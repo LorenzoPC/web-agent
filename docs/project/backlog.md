@@ -11,18 +11,21 @@ Priority definitions:
 
 ## P1 — Blocking
 
-*(none currently — the pipeline execution feature is fully wired and verified)*
+*(none currently)*
 
 ## P2 — Important
 
+- [ ] **Tabs UI (Pipeline / History)** — restructure `src/app/page.tsx` into two tabs on one page. See design doc's Architecture section.
+- [ ] **Chained "Run pipeline" action** — client-side loop over `MOCK_PIPELINE` calling `/api/pipeline/run` per step in order, threading `output` into the next step's `input`, updating each step's card (running → done/error) as it goes, stopping on the first error. Keep the existing per-step "Run" buttons alongside it.
+- [ ] **`runId` on `/api/pipeline/run`** — client generates one `crypto.randomUUID()` per chain (or per isolated single-step run) and sends it on every call; needed before run history can group step results under a run.
 - [ ] **Provision Neon Postgres** via the Vercel Marketplace (decision made 2026-07-17, see [`../design/web-agent.md`](../design/web-agent.md) key decisions) — not yet provisioned.
-- [ ] **Run history persistence** — add the `pipeline_runs` table (see design doc's Data model section), write a row after each `/api/pipeline/run` call, and add a way to read history back (`GET /api/pipeline/runs` or a client-side view).
+- [ ] **Run history persistence** — `pipeline_runs` + `pipeline_run_steps` tables (parent/child, see design doc's Data model section); write on each `/api/pipeline/run` call; `GET /api/pipeline/runs` for the History tab to read back.
 - [ ] **Fix Vercel project's GitHub auto-connect** — `vercel link` created the project but failed to connect `LorenzoPC/web-agent`; deploys currently need to go through the CLI/dashboard manually, or retry the connection.
 
 ## P3 — Nice to have
 
 - [ ] **Real search API for `call-tool`** — needs a provisioned integration (Vercel Marketplace), separate from the execution architecture itself.
-- [ ] **Auth/rate-limiting on `/api/pipeline/run`** — fine to skip while this stays local/single-user.
+- [ ] **Auth/rate-limiting on `/api/pipeline/run`** — fine to skip while this stays local/single-user (multi-tenancy is V2, see PRD).
 
 ---
 
