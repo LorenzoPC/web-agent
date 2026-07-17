@@ -4,6 +4,8 @@ Documentation index for web-agent. Doc templates come from [`bespoke-core`](http
 
 web-agent is a **standalone project** (deployed on Vercel, not joining the shared bf01 platform), so it uses bespoke-core's **minimal tier** only — see `templates/project/docs/README.md` in bespoke-core for the full tier breakdown. No `architecture/`, `operations/`, `product/`, `knowledge/`, `prompts/`, or `config/` folders here; add them only if a doc genuinely outgrows this structure.
 
+**Start here:** [`prds/web-agent.md`](prds/web-agent.md) (what/why) → [`design/web-agent.md`](design/web-agent.md) (how, including the architecture) → [`project/backlog.md`](project/backlog.md) (what's left).
+
 ---
 
 ## Project management
@@ -12,15 +14,15 @@ web-agent is a **standalone project** (deployed on Vercel, not joining the share
 |---|---|
 | [`project/backlog.md`](project/backlog.md) | Prioritised backlog |
 | [`project/changelog.md`](project/changelog.md) | Shipped features by epoch or version |
-| [`project/implementation_foundation.md`](project/implementation_foundation.md) | Architecture decisions behind the pipeline-execution feature (this project's design doc — see note in `design/` below) |
+| [`project/completed/`](project/completed/) | Archived docs superseded by a later, broader version — kept for history |
 
 ## Feature docs
 
 | Folder | Purpose |
 |---|---|
-| [`prds/`](prds/) | Product Requirements Documents — one file per feature |
-| [`design/`](design/) | Architecture and data model design docs — one file per feature. Currently empty: the pipeline-execution feature's design content lives at `project/implementation_foundation.md` instead (an earlier naming choice); use this folder for the *next* feature's design doc. |
-| [`adr/`](adr/) | Architecture Decision Records — one file per significant decision. Empty for now. |
+| [`prds/`](prds/) | Product Requirements Documents. `web-agent.md` is the current whole-project PRD. |
+| [`design/`](design/) | Architecture and data model design docs. `web-agent.md` is the current whole-project design doc, including the system architecture (no separate `architecture/` folder — see the tier note above). |
+| [`adr/`](adr/) | Architecture Decision Records — one file per significant decision. Empty for now; significant decisions are currently tracked in the design doc's "Key decisions" table instead. |
 
 ## Technical reference
 

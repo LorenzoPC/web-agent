@@ -1,9 +1,11 @@
 # PRD — Pipeline Execution & Cost Accounting
 
+> **Superseded 2026-07-17** by the project-level [`../../prds/web-agent.md`](../../prds/web-agent.md). Kept for history — this was the original feature-scoped PRD before the whole-project PRD existed.
+
 **Status:** Draft
 **Created:** 2026-07-17
 **Owner:** Lo
-**Design doc:** [`../project/implementation_foundation.md`](../project/implementation_foundation.md)
+**Design doc:** [`pipeline-execution-design.md`](pipeline-execution-design.md)
 
 ---
 

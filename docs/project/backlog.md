@@ -11,19 +11,17 @@ Priority definitions:
 
 ## P1 — Blocking
 
-- [ ] **Create `src/app/api/pipeline/run/route.ts`** — POST handler: resolve step by id, dispatch to `generateText` (chat), `embed` (embedding), or a stub (external), return `{ output, usage }`. See design doc's API surface + architecture sections.
-- [ ] **Rewrite `src/app/page.tsx`** — replace the create-next-app scaffold with the pipeline step list: render `MOCK_PIPELINE` (name, source, projected cost via `stepCost`), a "Run" action per step that POSTs to `/api/pipeline/run` and shows `actualCost` once it resolves, and a running total that shifts from projected to actual as steps complete.
-- [ ] **Document required env vars** — `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `LOCAL_MODEL_BASE_URL` (defaults to Ollama's `:11434`), `REMOTE_MODEL_BASE_URL`, `REMOTE_MODEL_API_KEY`. Add a `.env.local.example` (not committed with real values).
+*(none currently — the pipeline execution feature is fully wired and verified)*
 
 ## P2 — Important
 
-- [ ] **Verify end-to-end**: `npm run dev`, confirm the pipeline list renders with projected costs matching current `MOCK_PIPELINE` math; with `OPENAI_API_KEY` set, run `generate-response` and confirm streamed/returned output + real token-based cost; with no local Ollama running, confirm the `local` step's "Run" fails with a clear error, not a crash.
-- [ ] **Typecheck + lint**: `npm run lint` and `next build` (or `tsc --noEmit`) clean with the new `CostModel`/`ActualUsage` types.
+- [ ] **Provision Neon Postgres** via the Vercel Marketplace (decision made 2026-07-17, see [`../design/web-agent.md`](../design/web-agent.md) key decisions) — not yet provisioned.
+- [ ] **Run history persistence** — add the `pipeline_runs` table (see design doc's Data model section), write a row after each `/api/pipeline/run` call, and add a way to read history back (`GET /api/pipeline/runs` or a client-side view).
+- [ ] **Fix Vercel project's GitHub auto-connect** — `vercel link` created the project but failed to connect `LorenzoPC/web-agent`; deploys currently need to go through the CLI/dashboard manually, or retry the connection.
 
 ## P3 — Nice to have
 
 - [ ] **Real search API for `call-tool`** — needs a provisioned integration (Vercel Marketplace), separate from the execution architecture itself.
-- [ ] **Run history persistence** — currently each run's output/cost is shown live only; no storage. Open question in the PRD.
 - [ ] **Auth/rate-limiting on `/api/pipeline/run`** — fine to skip while this stays local/single-user.
 
 ---
@@ -33,4 +31,10 @@ Priority definitions:
 - [x] **`CostModel`/`ActualUsage`/`modelRef` added to `src/lib/types.ts`** — shipped 2026-07-17
 - [x] **`stepCost`/`actualCost` implemented in `src/lib/pipeline-data.ts`**, `MOCK_PIPELINE` updated with real model refs and a new `rerank-candidates` (remote/duration) step — shipped 2026-07-17
 - [x] **`src/lib/providers.ts` provider registry** (local/remote via `@ai-sdk/openai-compatible`, api via `@ai-sdk/openai`/`@ai-sdk/anthropic`) — shipped 2026-07-17
-- [x] **Architecture design doc** — [`implementation_foundation.md`](implementation_foundation.md), PRD — [`../prds/pipeline-execution.md`](../prds/pipeline-execution.md) — 2026-07-17
+- [x] **`src/app/api/pipeline/run/route.ts`** — POST handler dispatching to `generateText`/`embed`/stub per `stepKind` — shipped 2026-07-17
+- [x] **`src/app/page.tsx` pipeline UI** — step list with projected/actual cost and a "Run" action per step — shipped 2026-07-17
+- [x] **`.env.example`** documenting `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `LOCAL_MODEL_BASE_URL`, `REMOTE_MODEL_BASE_URL`, `REMOTE_MODEL_API_KEY` — shipped 2026-07-17
+- [x] **End-to-end verification** — lint + typecheck clean; confirmed in a real browser (Playwright) that the pipeline renders and the local step reaches Ollama and surfaces a clean error rather than crashing — 2026-07-17
+- [x] **`docs/` filled out to bespoke-core minimal tier** (`design/`, `adr/`, `project/changelog.md`, `project/completed/`, `reference/glossary.md`) — 2026-07-17
+- [x] **Vercel CLI installed, project linked** (`lorenzopcs-projects/web-agent`) — 2026-07-17
+- [x] **Project-level PRD + design doc** ([`../prds/web-agent.md`](../prds/web-agent.md), [`../design/web-agent.md`](../design/web-agent.md)), superseding the feature-scoped pipeline-execution PRD/design (archived to `project/completed/`) — 2026-07-17

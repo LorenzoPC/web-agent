@@ -1,8 +1,10 @@
 # Design — Pipeline Execution & Cost Accounting
 
+> **Superseded 2026-07-17** by the project-level [`../../design/web-agent.md`](../../design/web-agent.md). Kept for history.
+
 **Status:** Approved
 **Created:** 2026-07-17
-**PRD:** [`../prds/pipeline-execution.md`](../prds/pipeline-execution.md)
+**PRD:** [`pipeline-execution-prd.md`](pipeline-execution-prd.md)
 **Implementation plan:** see `docs/project/backlog.md` — no separate implementation-plan.md; the remaining steps are small enough to track directly in the backlog
 
 ---
