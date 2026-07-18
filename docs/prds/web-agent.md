@@ -14,6 +14,7 @@ Running an AI pipeline across different execution sources — hardware you own, 
 ## Goals
 
 - Let a user describe a challenge in plain language (the **Ecosystem builder**) and get back a proposed flow: a small set of fixed blocks (data source, processing, delivery), each with a few real catalog options ranked by relevance, selectable as cards with projected cost — building the flow replaces what's shown in the Pipeline tab
+- Back that catalog with a real, task-categorized database (models, services, SDK/framework hooks, RAG patterns, MCP servers) instead of a hand-typed list — models synced live from a real registry so pricing/availability stay accurate
 - Run a multi-step AI pipeline (retrieval, reranking, generation, tool calls, post-processing) against three source types from one app: local hardware, rented remote hardware, and paid APIs
 - Run the whole pipeline as a single chained action — each step's output feeds the next step's input, with per-step results visible as the chain progresses — as well as running any single step in isolation
 - Show a pre-run cost projection per step, then reconcile it against real usage once the step finishes — using a cost formula that matches how that source is actually billed (free / time-based / token-based / per-request), not one flat number
@@ -53,7 +54,7 @@ Running an AI pipeline across different execution sources — hardware you own, 
 
 ## Solution overview
 
-A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config (`MOCK_PIPELINE`) describing each step's source, cost model, and provider registry key. A server-side Route Handler (`/api/pipeline/run`) resolves each step's model through a shared AI SDK provider registry — local/remote hardware as OpenAI-compatible endpoints, APIs as direct provider SDKs — executes it, and returns real usage. The UI is three tabs on one page: **Ecosystem** (describe a challenge, get back proposed blocks with real catalog options as selectable cards, build a flow from the selection), **Pipeline** (a primary "Run pipeline" action chains the active flow's steps in order, output feeding the next step's input; each step also keeps its own standalone "Run" button), and **History** (past full-pipeline runs, once persistence is wired). `MOCK_PIPELINE` remains the default flow shown in the Pipeline tab until a flow is built in Ecosystem. Run history will persist to a Neon Postgres database (Vercel Marketplace) as one row per pipeline run with child rows per step result, provisioned but not yet wired into the app as of this writing.
+A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config (`MOCK_PIPELINE`) describing each step's source, cost model, and provider registry key. A server-side Route Handler (`/api/pipeline/run`) resolves each step's model through a shared AI SDK provider registry — local/remote hardware as OpenAI-compatible endpoints, APIs as direct provider SDKs — executes it, and returns real usage. The UI is three tabs on one page: **Ecosystem** (describe a challenge, get back proposed blocks with real catalog options as selectable cards, build a flow from the selection), **Pipeline** (a primary "Run pipeline" action chains the active flow's steps in order, output feeding the next step's input; each step also keeps its own standalone "Run" button), and **History** (past full-pipeline runs, once persistence is wired). `MOCK_PIPELINE` remains the default flow shown in the Pipeline tab until a flow is built in Ecosystem. Ecosystem's catalog (`catalog_entries`, task-categorized, ~300 models synced live from the AI Gateway plus a curated set of services/hooks/RAG patterns/MCP servers) lives in Neon Postgres — the first real database work in this project. Run history will use the same database (one row per pipeline run with child rows per step result), provisioned but not yet wired into the app as of this writing.
 
 ## Dependencies
 
@@ -63,7 +64,7 @@ A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config
 | Local Ollama server | Required for local steps | user |
 | Rented GPU endpoint | Required for the remote step | user |
 | Vercel project (`lorenzopcs-projects/web-agent`) | Linked 2026-07-17; GitHub auto-connect failed, not yet retried | user |
-| Neon Postgres (Vercel Marketplace) | Decision made 2026-07-17, not yet provisioned | user |
+| Neon Postgres (Vercel Marketplace) | Provisioned 2026-07-17 (`neon-alizarin-queen`), holding the catalog; run-history tables still pending | user |
 | Ecosystem builder's analysis model | Defaults to local Ollama (`ECOSYSTEM_ANALYZE_MODEL`, no API key needed); works with `llama3.2:latest` as of 2026-07-17 | user |
 
 ## Open questions
@@ -71,5 +72,7 @@ A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config
 - [ ] What does "review past runs" need beyond a list — filtering by step/date, cost threshold, re-running a past prompt?
 - [ ] Should the Vercel project's GitHub auto-deploy be fixed now, or is local dev sufficient for the current phase?
 - [ ] When should the `call-tool` step get a real search API instead of a stub? (Marketplace integration, separate task)
-- [ ] Should Ecosystem's block catalog stay fixed/hand-maintained, or eventually pull live pricing (e.g. from the AI Gateway's `/v1/models` pricing data) instead of hardcoded numbers?
+- [ ] Should candidate selection for the analyze prompt get smarter (rank by task-category match to the challenge) instead of the current 15-per-block alphabetical cap?
+- [ ] Should `hook`/`rag-pattern`/`mcp-server` catalog entries ever become selectable in the Ecosystem flow, and if so, how (they're compositions, not single runnable steps)?
+- [x] ~~Should Ecosystem's block catalog stay fixed/hand-maintained, or eventually pull live pricing?~~ — resolved 2026-07-17: models now sync live from the AI Gateway; services/hooks/RAG patterns/MCP servers remain hand-curated (no live registry covers them)
 - [x] ~~Should auth be added before or after this becomes anything other than single-user?~~ — resolved: auth/multi-tenancy is V2, explicitly deferred (see Non-goals)

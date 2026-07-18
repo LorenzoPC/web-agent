@@ -1,8 +1,10 @@
 import { Output, generateText } from "ai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { BLOCK_CATALOG, BLOCK_TYPES } from "@/lib/block-catalog";
+import { BLOCK_TYPES } from "@/lib/block-catalog";
+import { getCatalogOptionsForBlock } from "@/lib/catalog-db";
 import { registry } from "@/lib/providers";
+import type { PipelineStep } from "@/lib/types";
 
 const analysisSchema = z.object({
   blocks: z
@@ -16,11 +18,11 @@ const analysisSchema = z.object({
     .length(3),
 });
 
-function catalogSummary() {
+function catalogSummary(catalogByBlock: Record<string, PipelineStep[]>) {
   return BLOCK_TYPES.map(
     (block) =>
       `${block.name} (${block.id}): ${block.description}\n` +
-      BLOCK_CATALOG[block.id]
+      catalogByBlock[block.id]
         .map((option) => `  - ${option.id}: ${option.name} — ${option.description}`)
         .join("\n"),
   ).join("\n\n");
@@ -33,12 +35,18 @@ export async function POST(req: Request) {
   }
 
   try {
+    const catalogByBlock = Object.fromEntries(
+      await Promise.all(
+        BLOCK_TYPES.map(async (block) => [block.id, await getCatalogOptionsForBlock(block.id)] as const),
+      ),
+    );
+
     const modelRef = process.env.ECOSYSTEM_ANALYZE_MODEL ?? "local > llama3.2:latest";
     const { output } = await generateText({
       model: registry.languageModel(modelRef as Parameters<typeof registry.languageModel>[0]),
       prompt:
         `A user wants to build an AI pipeline for this challenge:\n"${challenge}"\n\n` +
-        `Here is the catalog of available options, grouped by block:\n\n${catalogSummary()}\n\n` +
+        `Here is the catalog of available options, grouped by block:\n\n${catalogSummary(catalogByBlock)}\n\n` +
         `For each of the three blocks (data-source, processing, delivery), recommend 1-3 catalog ` +
         `option ids (by their exact id string) that best fit this challenge, ranked best first, ` +
         `with a one-sentence rationale. Only use option ids that appear in the catalog above.`,
@@ -46,10 +54,10 @@ export async function POST(req: Request) {
     });
 
     const blocks = output.blocks.map((block) => {
-      const catalogOptions = BLOCK_CATALOG[block.blockType];
+      const catalogOptions = catalogByBlock[block.blockType];
       const validIds = new Set(catalogOptions.map((o) => o.id));
       const optionIds = [...new Set(block.recommendedOptionIds)].filter((id) => validIds.has(id));
-      const options = (optionIds.length > 0 ? optionIds : catalogOptions.map((o) => o.id))
+      const options = (optionIds.length > 0 ? optionIds : catalogOptions.slice(0, 3).map((o) => o.id))
         .map((id) => catalogOptions.find((o) => o.id === id))
         .filter((o) => o != null);
       return { blockType: block.blockType, rationale: block.rationale, options };
