@@ -12,11 +12,16 @@ export const registry = createProviderRegistry(
     local: createOpenAICompatible({
       name: "local",
       baseURL: process.env.LOCAL_MODEL_BASE_URL ?? "http://localhost:11434/v1",
+      // Ollama (0.5+) supports the OpenAI-compatible json_schema response format;
+      // without this the AI SDK won't send a schema at all, and small local
+      // models rarely produce valid structured output unprompted.
+      supportsStructuredOutputs: true,
     }),
     remote: createOpenAICompatible({
       name: "remote",
       baseURL: process.env.REMOTE_MODEL_BASE_URL ?? "http://localhost:11434/v1",
       apiKey: process.env.REMOTE_MODEL_API_KEY,
+      supportsStructuredOutputs: true,
     }),
     openai,
     anthropic,

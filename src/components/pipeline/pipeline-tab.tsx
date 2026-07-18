@@ -1,0 +1,106 @@
+"use client";
+
+import { useState } from "react";
+import { actualCost, formatCost, stepCost, totalCost } from "@/lib/pipeline-data";
+import type { PipelineStep } from "@/lib/types";
+import { StepCard } from "./step-card";
+import type { RunState } from "./types";
+
+type StepResult = Extract<RunState, { status: "done" | "error" }>;
+
+async function callStep(stepId: string, input: string): Promise<StepResult> {
+  try {
+    const res = await fetch("/api/pipeline/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stepId, input }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error ?? `Request failed (${res.status})`);
+    }
+    return { status: "done", output: data.output, usage: data.usage };
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Step failed",
+    };
+  }
+}
+
+export function PipelineTab({ steps }: { steps: PipelineStep[] }) {
+  const [input, setInput] = useState(
+    "Summarize the latest deployment status for this project.",
+  );
+  const [runs, setRuns] = useState<Record<string, RunState>>({});
+  const [isChainRunning, setIsChainRunning] = useState(false);
+
+  async function runStep(stepId: string) {
+    setRuns((prev) => ({ ...prev, [stepId]: { status: "running" } }));
+    const result = await callStep(stepId, input);
+    setRuns((prev) => ({ ...prev, [stepId]: result }));
+  }
+
+  async function runPipeline() {
+    setIsChainRunning(true);
+    setRuns({});
+    let chainInput = input;
+    for (const step of steps) {
+      setRuns((prev) => ({ ...prev, [step.id]: { status: "running" } }));
+      const result = await callStep(step.id, chainInput);
+      setRuns((prev) => ({ ...prev, [step.id]: result }));
+      if (result.status === "error") break;
+      chainInput = result.output;
+    }
+    setIsChainRunning(false);
+  }
+
+  const runningTotal = steps.reduce((sum, step) => {
+    const run = runs[step.id];
+    if (run?.status === "done") {
+      return sum + actualCost(step, run.usage);
+    }
+    return sum + stepCost(step);
+  }, 0);
+
+  return (
+    <div className="flex flex-col gap-8">
+      <textarea
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        rows={2}
+        className="w-full rounded-lg border border-zinc-300 bg-white p-3 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+      />
+
+      <button
+        onClick={runPipeline}
+        disabled={isChainRunning}
+        className="w-full rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+      >
+        {isChainRunning ? "Running pipeline…" : "Run pipeline"}
+      </button>
+
+      <ul className="flex flex-col gap-4">
+        {steps.map((step) => (
+          <StepCard
+            key={step.id}
+            step={step}
+            run={runs[step.id] ?? { status: "idle" }}
+            disabled={isChainRunning || runs[step.id]?.status === "running"}
+            onRun={() => runStep(step.id)}
+          />
+        ))}
+      </ul>
+
+      <div className="flex items-center justify-between border-t border-zinc-200 pt-4 dark:border-zinc-800">
+        <span className="text-sm text-zinc-600 dark:text-zinc-400">Running total</span>
+        <span className="text-sm font-semibold text-black dark:text-zinc-50">
+          {formatCost(runningTotal)}
+        </span>
+      </div>
+      <p className="text-xs text-zinc-500 dark:text-zinc-500">
+        Projected total: {formatCost(totalCost(steps))}
+      </p>
+    </div>
+  );
+}

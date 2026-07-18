@@ -15,8 +15,6 @@ Priority definitions:
 
 ## P2 — Important
 
-- [ ] **Tabs UI (Pipeline / History)** — restructure `src/app/page.tsx` into two tabs on one page. See design doc's Architecture section.
-- [ ] **Chained "Run pipeline" action** — client-side loop over `MOCK_PIPELINE` calling `/api/pipeline/run` per step in order, threading `output` into the next step's `input`, updating each step's card (running → done/error) as it goes, stopping on the first error. Keep the existing per-step "Run" buttons alongside it.
 - [ ] **`runId` on `/api/pipeline/run`** — client generates one `crypto.randomUUID()` per chain (or per isolated single-step run) and sends it on every call; needed before run history can group step results under a run.
 - [ ] **Provision Neon Postgres** via the Vercel Marketplace (decision made 2026-07-17, see [`../design/web-agent.md`](../design/web-agent.md) key decisions) — not yet provisioned.
 - [ ] **Run history persistence** — `pipeline_runs` + `pipeline_run_steps` tables (parent/child, see design doc's Data model section); write on each `/api/pipeline/run` call; `GET /api/pipeline/runs` for the History tab to read back.
@@ -26,6 +24,8 @@ Priority definitions:
 
 - [ ] **Real search API for `call-tool`** — needs a provisioned integration (Vercel Marketplace), separate from the execution architecture itself.
 - [ ] **Auth/rate-limiting on `/api/pipeline/run`** — fine to skip while this stays local/single-user (multi-tenancy is V2, see PRD).
+- [ ] **Seed the built pipeline's textarea from the Ecosystem challenge text** — currently the Pipeline tab always starts with the default placeholder prompt, even after building a flow from a specific challenge.
+- [ ] **Live pricing for the block catalog** — currently hand-maintained cost numbers in `src/lib/block-catalog.ts`; consider sourcing from the AI Gateway's `/v1/models` pricing data instead.
 
 ---
 
@@ -41,3 +41,9 @@ Priority definitions:
 - [x] **`docs/` filled out to bespoke-core minimal tier** (`design/`, `adr/`, `project/changelog.md`, `project/completed/`, `reference/glossary.md`) — 2026-07-17
 - [x] **Vercel CLI installed, project linked** (`lorenzopcs-projects/web-agent`) — 2026-07-17
 - [x] **Project-level PRD + design doc** ([`../prds/web-agent.md`](../prds/web-agent.md), [`../design/web-agent.md`](../design/web-agent.md)), superseding the feature-scoped pipeline-execution PRD/design (archived to `project/completed/`) — 2026-07-17
+- [x] **Tabs UI (Ecosystem / Pipeline / History)** — `src/components/pipeline/` (`pipeline-app.tsx`, `pipeline-tab.tsx`, `history-tab.tsx`, `ecosystem-tab.tsx`, `step-card.tsx`) — shipped 2026-07-17
+- [x] **Chained "Run pipeline" action** — client-side loop threading `output` → next `input`, stopping on the first error; per-step "Run" buttons kept alongside it — shipped 2026-07-17
+- [x] **Ecosystem builder** — `src/lib/block-catalog.ts` (fixed data-source/processing/delivery taxonomy, real costed catalog options) + `POST /api/ecosystem/analyze` (LLM selects from the catalog, server dedupes/validates against real ids) + card-selection UI + "Build flow" replacing the active pipeline — shipped 2026-07-17
+- [x] **Fixed `llama3.2:3b` → `llama3.2:latest`** in `pipeline-data.ts`/`block-catalog.ts` — the referenced tag didn't match what was actually pulled locally, causing "model not found" on every local/remote step run
+- [x] **`supportsStructuredOutputs: true` on local/remote providers** (`src/lib/providers.ts`) — without it the AI SDK sent no JSON schema to Ollama, so structured analysis (`generateText` with `Output.object`) failed on small local models
+- [x] **`ECOSYSTEM_ANALYZE_MODEL` env var** — defaults to `local > llama3.2:latest`, so the ecosystem builder works with zero paid API keys out of the box

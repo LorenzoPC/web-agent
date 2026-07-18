@@ -13,6 +13,7 @@ Running an AI pipeline across different execution sources — hardware you own, 
 
 ## Goals
 
+- Let a user describe a challenge in plain language (the **Ecosystem builder**) and get back a proposed flow: a small set of fixed blocks (data source, processing, delivery), each with a few real catalog options ranked by relevance, selectable as cards with projected cost — building the flow replaces what's shown in the Pipeline tab
 - Run a multi-step AI pipeline (retrieval, reranking, generation, tool calls, post-processing) against three source types from one app: local hardware, rented remote hardware, and paid APIs
 - Run the whole pipeline as a single chained action — each step's output feeds the next step's input, with per-step results visible as the chain progresses — as well as running any single step in isolation
 - Show a pre-run cost projection per step, then reconcile it against real usage once the step finishes — using a cost formula that matches how that source is actually billed (free / time-based / token-based / per-request), not one flat number
@@ -47,9 +48,12 @@ Running an AI pipeline across different execution sources — hardware you own, 
 **Scenario 4 — Add a new pipeline step**
 > A developer adds a new step (a different model, a different source type). Because local/remote/API sources share one execution path (a provider registry + a typed cost model), the new step only needs a config entry, not new plumbing.
 
+**Scenario 5 — Build a flow from a challenge**
+> A user types "I want a daily summary of game results for American basketball, in email format" and clicks Analyze. The app proposes real, costed options for a data source, a processing step, and delivery, the user picks one card per block, clicks "Build flow," and lands on the Pipeline tab with exactly those three steps ready to run.
+
 ## Solution overview
 
-A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config (`MOCK_PIPELINE`) describing each step's source, cost model, and provider registry key. A server-side Route Handler (`/api/pipeline/run`) resolves each step's model through a shared AI SDK provider registry — local/remote hardware as OpenAI-compatible endpoints, APIs as direct provider SDKs — executes it, and returns real usage. The UI is two tabs on one page: **Pipeline** (a primary "Run pipeline" action chains all steps in order, output feeding the next step's input; each step also keeps its own standalone "Run" button) and **History** (past full-pipeline runs, once persistence is wired). Run history will persist to a Neon Postgres database (Vercel Marketplace) as one row per pipeline run with child rows per step result, provisioned but not yet wired into the app as of this writing.
+A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config (`MOCK_PIPELINE`) describing each step's source, cost model, and provider registry key. A server-side Route Handler (`/api/pipeline/run`) resolves each step's model through a shared AI SDK provider registry — local/remote hardware as OpenAI-compatible endpoints, APIs as direct provider SDKs — executes it, and returns real usage. The UI is three tabs on one page: **Ecosystem** (describe a challenge, get back proposed blocks with real catalog options as selectable cards, build a flow from the selection), **Pipeline** (a primary "Run pipeline" action chains the active flow's steps in order, output feeding the next step's input; each step also keeps its own standalone "Run" button), and **History** (past full-pipeline runs, once persistence is wired). `MOCK_PIPELINE` remains the default flow shown in the Pipeline tab until a flow is built in Ecosystem. Run history will persist to a Neon Postgres database (Vercel Marketplace) as one row per pipeline run with child rows per step result, provisioned but not yet wired into the app as of this writing.
 
 ## Dependencies
 
@@ -60,10 +64,12 @@ A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config
 | Rented GPU endpoint | Required for the remote step | user |
 | Vercel project (`lorenzopcs-projects/web-agent`) | Linked 2026-07-17; GitHub auto-connect failed, not yet retried | user |
 | Neon Postgres (Vercel Marketplace) | Decision made 2026-07-17, not yet provisioned | user |
+| Ecosystem builder's analysis model | Defaults to local Ollama (`ECOSYSTEM_ANALYZE_MODEL`, no API key needed); works with `llama3.2:latest` as of 2026-07-17 | user |
 
 ## Open questions
 
 - [ ] What does "review past runs" need beyond a list — filtering by step/date, cost threshold, re-running a past prompt?
 - [ ] Should the Vercel project's GitHub auto-deploy be fixed now, or is local dev sufficient for the current phase?
 - [ ] When should the `call-tool` step get a real search API instead of a stub? (Marketplace integration, separate task)
+- [ ] Should Ecosystem's block catalog stay fixed/hand-maintained, or eventually pull live pricing (e.g. from the AI Gateway's `/v1/models` pricing data) instead of hardcoded numbers?
 - [x] ~~Should auth be added before or after this becomes anything other than single-user?~~ — resolved: auth/multi-tenancy is V2, explicitly deferred (see Non-goals)

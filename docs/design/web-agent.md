@@ -11,7 +11,9 @@
 
 web-agent runs a fixed pipeline of steps, each backed by one of three source types — local hardware, rented remote hardware, or a paid API. All three are called from one server-side Route Handler through a single AI SDK provider registry, so a step only differs from another by its config (which model, which cost formula), not by separate execution code. Cost is computed per step using whichever metric that source is actually billed on: free for local, wall-clock duration for rented hardware, and token counts (or a flat charge) for APIs.
 
-The UI is two tabs on one page: **Pipeline** (a primary "Run pipeline" action chains all steps client-side — each step's `output` string becomes the next step's `input`, seeded by the user's prompt for step 1; each step also keeps its own standalone "Run" button for isolated testing) and **History** (past runs, once persistence is wired). Chaining is orchestrated client-side by calling the existing single-step endpoint in sequence, not by a new server-side "run everything" endpoint — this reuses the per-step execution path as-is and gives natural per-step live UI updates without needing a streaming response. If a step errors mid-chain, the chain stops there; later steps are never invoked with no valid input.
+The UI is three tabs on one page: **Ecosystem** (describe a challenge in plain language, get back proposed blocks with real catalog options as selectable cards, build a flow from the selection — see below), **Pipeline** (a primary "Run pipeline" action chains all steps client-side — each step's `output` string becomes the next step's `input`, seeded by the user's prompt for step 1; each step also keeps its own standalone "Run" button for isolated testing), and **History** (past runs, once persistence is wired). Chaining is orchestrated client-side by calling the existing single-step endpoint in sequence, not by a new server-side "run everything" endpoint — this reuses the per-step execution path as-is and gives natural per-step live UI updates without needing a streaming response. If a step errors mid-chain, the chain stops there; later steps are never invoked with no valid input.
+
+**Ecosystem builder:** a fixed taxonomy of three blocks (data source, processing, delivery) each backed by a small hand-maintained catalog of real, costed options (`src/lib/block-catalog.ts`) shaped like `PipelineStep`. `POST /api/ecosystem/analyze` sends the user's challenge plus the catalog to an LLM, which recommends 1-3 catalog option ids per block (never invents new ones — the route filters/dedupes the model's response against the real catalog). The user picks one card per block; "Build flow" turns the three selections directly into a `PipelineStep[]`, which becomes the active flow shown in the Pipeline tab (replacing `MOCK_PIPELINE`, which remains the default until a flow is built).
 
 Run history (planned, not yet built) will persist to a Neon Postgres database: one row per pipeline run (whether it came from a full chain or a single isolated step) with child rows per step result, so past runs can be reviewed instead of only seen live.
 
@@ -53,6 +55,15 @@ export interface ActualUsage {
   outputTokens?: number;
 }
 ```
+
+Ecosystem's block catalog (`src/lib/block-catalog.ts`) reuses the `PipelineStep` shape, grouped by block type:
+
+```ts
+export type BlockType = "data-source" | "processing" | "delivery";
+export const BLOCK_CATALOG: Record<BlockType, PipelineStep[]> = { /* ... */ };
+```
+
+A built flow is just `Array<PipelineStep>` assembled from one selected catalog entry per block — no new type needed.
 
 **Planned — run history (Neon Postgres, not yet applied):**
 
@@ -96,6 +107,7 @@ CREATE INDEX pipeline_run_steps_run_id_idx ON pipeline_run_steps (run_id, step_o
 | Method | Path | Auth | Request body | Response |
 |---|---|---|---|---|
 | POST | `/api/pipeline/run` | none (local/single-user) | `{ stepId: string, input: string, runId: string }` *(runId planned — not yet required by the current implementation)* | `{ output: string, usage: ActualUsage }` or `{ error: string }` |
+| POST | `/api/ecosystem/analyze` | none | `{ challenge: string }` | `{ blocks: { blockType: BlockType, rationale: string, options: PipelineStep[] }[] }` or `{ error: string }` |
 | GET | `/api/pipeline/runs` *(planned)* | none | — | `{ runs: (PipelineRun & { steps: PipelineRunStep[] })[] }` — not yet implemented |
 
 Chaining a full pipeline run is orchestrated **client-side**: the browser calls `POST /api/pipeline/run` once per step, in order, reusing the same `runId` for all of them and threading each response's `output` into the next call's `input`. There is no separate "run everything" server endpoint.
@@ -159,8 +171,13 @@ Chaining a full pipeline run is orchestrated **client-side**: the browser calls 
 | Run history shape | Parent `pipeline_runs` row + child `pipeline_run_steps` rows, one run per "Run pipeline" click *or* per isolated single-step click | A flat one-row-per-step-call table (original plan) | A chained run is one meaningful unit of work with N step results, not N unrelated events — reviewing history should show "this prompt produced this chain," not a flat list that loses the grouping. |
 | Chaining orchestration | Client-side loop calling the existing single-step `/api/pipeline/run` endpoint, threading `output` → next `input` | A new server-side "run the whole pipeline" endpoint (single request, server loops and streams progress) | Reuses the existing endpoint and per-step error handling as-is; gives per-step live UI updates for free (each fetch resolves independently) without needing SSE/streaming infrastructure. Cost: one HTTP round-trip per step instead of one for the whole chain — acceptable at this scale. |
 | Chain failure handling | Stop the chain on the first step error; don't invoke later steps | Skip the failed step and continue, or auto-retry | A later step's `input` would be the failed step's (nonexistent) output — there's nothing valid to pass forward. Simplest and safest for V1. |
-| UI layout | Two tabs on one page: Pipeline, History | Separate routes/pages | Small enough surface that client-side tabs are simpler than routing; revisit if either tab grows enough to want its own URL/deep-link. |
+| UI layout | Three tabs on one page: Ecosystem, Pipeline, History | Separate routes/pages | Small enough surface that client-side tabs are simpler than routing; revisit if any tab grows enough to want its own URL/deep-link. |
 | Multi-tenancy | Deferred to V2, not built now | Build auth/scoping now since SaaS is the long-term goal | V1 goal is proving the execution + cost model works; adding auth/tenancy now is speculative generality with no current user of it. |
+| Ecosystem option generation | LLM selects from a fixed, hand-maintained catalog (real ids, real costs) | LLM freely invents block types/models per challenge | Grounded, real costs and model refs that are guaranteed runnable — no risk of the LLM proposing a model that doesn't exist in the registry. |
+| Ecosystem block taxonomy | Fixed 3 blocks (data-source, processing, delivery), always all 3 shown | Dynamic block set decided per challenge | Predictable UI and cost model; "not needed" is handled by a no-op option in the catalog (e.g. delivery's "Dashboard display only") rather than conditional block logic. |
+| Ecosystem analysis model | Local Ollama by default (`ECOSYSTEM_ANALYZE_MODEL`, no API key required) | Hardcoded to a paid API model | Keeps the whole app (pipeline + ecosystem builder) usable with zero paid keys out of the box; still overridable via env var. |
+| Local/remote provider config | `supportsStructuredOutputs: true` on both `createOpenAICompatible` providers | Leave default (`false`) | Without it, the AI SDK sends no JSON schema to Ollama at all and small local models rarely produce valid structured output unprompted — confirmed via `AI SDK Warning: responseFormat... not supported` and a resulting `No object generated` error until this was set. |
+| Ecosystem response robustness | Server dedupes + validates `recommendedOptionIds` against the real catalog before responding | Trust the model's output as-is | Smaller local models sometimes return the same catalog id twice for one block; deduping server-side avoids duplicate React keys and keeps the client dumb. |
 
 ---
 
@@ -171,6 +188,8 @@ Chaining a full pipeline run is orchestrated **client-side**: the browser calls 
 - [ ] Real search API for `call-tool` — deferred to a Marketplace-integration task
 - [ ] Vercel project's GitHub auto-deploy connection failed on `vercel link` — retry or leave as local-dev-only for now?
 - [ ] Does the History tab need a run detail view (click a run → see full per-step breakdown), or is the list with nested steps sufficient at this scale?
+- [ ] Should the block catalog stay hand-maintained, or eventually source live pricing (e.g. AI Gateway `/v1/models`) instead of hardcoded cost numbers?
+- [ ] The built flow's textarea still shows the default placeholder prompt, not the Ecosystem challenge text — worth seeding it from the challenge?
 
 ---
 
