@@ -34,6 +34,7 @@ export function PipelineTab({ steps }: { steps: PipelineStep[] }) {
   );
   const [runs, setRuns] = useState<Record<string, RunState>>({});
   const [isChainRunning, setIsChainRunning] = useState(false);
+  const [focusedStepId, setFocusedStepId] = useState<string | null>(steps[0]?.id ?? null);
 
   async function runStep(stepId: string) {
     setRuns((prev) => ({ ...prev, [stepId]: { status: "running" } }));
@@ -80,13 +81,15 @@ export function PipelineTab({ steps }: { steps: PipelineStep[] }) {
         {isChainRunning ? "Running pipeline…" : "Run pipeline"}
       </button>
 
-      <ul className="flex flex-col gap-4">
+      <ul className="flex flex-wrap items-start gap-3">
         {steps.map((step) => (
           <StepCard
             key={step.id}
             step={step}
             run={runs[step.id] ?? { status: "idle" }}
             disabled={isChainRunning || runs[step.id]?.status === "running"}
+            focused={focusedStepId === step.id}
+            onFocus={() => setFocusedStepId(step.id)}
             onRun={() => runStep(step.id)}
           />
         ))}

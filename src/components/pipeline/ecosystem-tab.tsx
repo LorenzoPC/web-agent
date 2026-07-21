@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { formatCost, stepCost } from "@/lib/pipeline-data";
+import { SOURCE_TYPE_LABELS, formatCost, stepCost } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
 import type { BlockType } from "@/lib/block-catalog";
+import { SelectableCard } from "./selectable-card";
 
 type BlockResult = {
   blockType: BlockType;
@@ -100,36 +101,51 @@ export function EcosystemTab({ onBuildFlow }: { onBuildFlow: (steps: PipelineSte
                 </h2>
                 <p className="text-sm text-zinc-500 dark:text-zinc-500">{block.rationale}</p>
               </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="flex flex-wrap items-start gap-3">
                 {block.options.map((option) => {
                   const isSelected = selected[block.blockType] === option.id;
                   return (
-                    <button
+                    <SelectableCard
                       key={option.id}
-                      onClick={() =>
+                      selected={isSelected}
+                      onSelect={() =>
                         setSelected((prev) => ({ ...prev, [block.blockType]: option.id }))
                       }
-                      className={`rounded-lg border p-4 text-left transition-colors ${
-                        isSelected
-                          ? "border-black bg-zinc-50 dark:border-white dark:bg-zinc-900"
-                          : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
-                      }`}
+                      header={
+                        <div className="flex flex-col gap-0.5">
+                          <h3
+                            className={`truncate font-medium text-black dark:text-zinc-50 ${
+                              isSelected ? "text-sm" : "text-xs"
+                            }`}
+                          >
+                            {option.name}
+                          </h3>
+                          <div className="flex items-center justify-between gap-1">
+                            <span
+                              className={`shrink-0 font-medium text-black dark:text-zinc-50 ${
+                                isSelected ? "text-xs" : "text-[10px]"
+                              }`}
+                            >
+                              {formatCost(stepCost(option))}
+                            </span>
+                            <span
+                              className={`min-w-0 truncate text-right text-zinc-500 dark:text-zinc-500 ${
+                                isSelected ? "text-xs" : "text-[10px]"
+                              }`}
+                            >
+                              {SOURCE_TYPE_LABELS[option.sourceType]}
+                            </span>
+                          </div>
+                        </div>
+                      }
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-sm font-medium text-black dark:text-zinc-50">
-                          {option.name}
-                        </h3>
-                        <span className="shrink-0 text-sm font-medium text-black dark:text-zinc-50">
-                          {formatCost(stepCost(option))}
-                        </span>
-                      </div>
                       <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
                         {option.description}
                       </p>
                       <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">
                         {option.sourceLabel}
                       </p>
-                    </button>
+                    </SelectableCard>
                   );
                 })}
               </div>
