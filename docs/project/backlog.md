@@ -1,6 +1,6 @@
 # Backlog — web-agent
 
-**Last reviewed:** 2026-07-21
+**Last reviewed:** 2026-07-22
 
 Priority definitions:
 - **P1** — Blocking. Must be resolved before the next major milestone.
@@ -18,7 +18,7 @@ Priority definitions:
 - [ ] **`runId` on `/api/pipeline/run`** — client generates one `crypto.randomUUID()` per chain (or per isolated single-step run) and sends it on every call; needed before run history can group step results under a run.
 - [ ] **Run history persistence** — `pipeline_runs` + `pipeline_run_steps` tables (parent/child, see design doc's Data model section) in the now-provisioned Neon database, via Drizzle; write on each `/api/pipeline/run` call; `GET /api/pipeline/runs` for the History tab to read back.
 - [ ] **Fix Vercel project's GitHub auto-connect** — `vercel link` created the project but failed to connect `LorenzoPC/web-agent`; deploys currently need to go through the CLI/dashboard manually, or retry the connection.
-- [ ] **Relevance-ranked candidates for the analyze prompt** — currently a flat 15-per-group alphabetical cap (`src/lib/catalog-db.ts`); rank by task-category match to the challenge (or cost, or recency) instead once the catalog grows further.
+- [ ] **Relevance-ranked candidates for the analyze prompt** — currently a flat 15-per-group alphabetical cap (`src/lib/catalog-db.ts`); rank by task-category match to the challenge (or cost, or recency) instead once the catalog grows further. Note: the LLM-recommended cap itself is unchanged by the new "Search something else" full-catalog modal — that's a separate, uncapped *browse* path, not a fix to the prompt's candidate selection.
 - [ ] **Verify GitHub MCP's real success path** — only the clean "Missing GITHUB_TOKEN" failure was tested (no token available this session); needs a real PAT to confirm end-to-end.
 
 ## P3 — Nice to have
@@ -28,7 +28,7 @@ Priority definitions:
 - [ ] **Grow the curated catalog further** — 25 hand-written entries today (2 services + 3 local models + 6 agents + 13 hooks/tools + 4 RAG patterns + 3 MCP servers); still a starting set, not exhaustive.
 - [ ] **Widen runnable gateway providers** — `scripts/sync-catalog-models.ts` only marks `openai`/`anthropic` language models and `openai` embedding models as runnable (`blockType` set), matching today's registry; revisit if `src/lib/providers.ts` adds more direct provider SDKs.
 - [ ] **Surface a tool-calling-reliability warning** — the free local default agent model (`llama3.2:latest`) doesn't reliably invoke attached tools (confirmed: claims it "can't search" rather than calling Exa); consider flagging this in the UI when a weak-tool-calling model is paired with Tools/MCP attachments.
-- [ ] **Retry on malformed analyze responses** — the "Tools" recommendation group occasionally still returns a glitched response (e.g. a stray token fragment as rationale, empty `recommendedOptionIds`) even fully isolated into its own call; a one-time retry could smooth this over. Accepted as known flakiness for now — the section stays manually selectable either way.
+- [ ] **Retry on malformed analyze responses** — recommendation groups occasionally still return a glitched response (e.g. a stray token fragment or empty string as an item's rationale, or — seen on the bundled goal+blocks+agent call specifically — no valid ids at all, falling back to the generic "A solid default option for your goal." rationale) even fully isolated into its own call; a one-time retry could smooth this over. Accepted as known flakiness for now — every section stays manually selectable either way.
 - [ ] **A browsing UI for `hook`/`rag-pattern`/`mcp-server` catalog data outside the Ecosystem flow** — undecided whether this is worth building.
 
 ---
@@ -63,3 +63,13 @@ Priority definitions:
   - Pipeline tab now seeds its input from the Ecosystem `refinedGoal` and displays `successCriteria`
   - Provisioned Exa Search API (Vercel Marketplace) and pulled `nomic-embed-text` locally as part of verification
   - Bug found and fixed: `/api/pipeline/run` previously looked up steps by id from `MOCK_PIPELINE` only, so built-flow steps could never actually run — client now sends the full `PipelineStep` object
+- [x] **"Search something else" full-catalog search modal** — shipped 2026-07-22:
+  - `src/lib/catalog-db.ts`: `searchCatalogCategory(category, offset, limit, query?)` — uncapped, paginated, optional `ILIKE` text search across name/description/provider; `CATALOG_CATEGORY_COPY` per-category title/subtitle
+  - `GET /api/ecosystem/catalog` route backing it
+  - `src/components/pipeline/catalog-search-modal.tsx` — modal with header/subtitle, a search box (debounced), and a lazy-loaded card grid (`IntersectionObserver` sentinel fetches the next page)
+  - Every Ecosystem section (data source, delivery, agent, tools, MCP servers, RAG sources) ends with a trailing "Search something else" card that opens the modal for that category; picking an item merges it into that section's option list client-side (not persisted) so "Build flow" can still resolve it
+  - Verified in-browser via Playwright: modal opens, lists real catalog items, selecting one closes the modal and shows it as a selected card in the tray
+- [x] **Per-item rationale on Ecosystem recommendations** — shipped 2026-07-22:
+  - `/api/ecosystem/analyze`'s schema changed from `recommendedOptionIds: string[]` to `recommendations: { id, rationale }[]` for every group (blocks, agent, tools, MCP servers, RAG sources); `resolveRecommendations()` replaces `resolveIds()`, falling back to the first N candidates with a generic rationale if the model's ids don't validate
+  - Each option card shows its own rationale text (in quotes, italic) while selected, if the analyze response gave one for that specific id
+  - Verified in-browser: agent/tools/MCP/RAG groups reliably returned real, item-specific rationale text; the bundled goal+blocks+agent call occasionally fell back to the generic rationale for the two block sections — pre-existing model flakiness on that specific call (see backlog's "Retry on malformed analyze responses"), not a regression

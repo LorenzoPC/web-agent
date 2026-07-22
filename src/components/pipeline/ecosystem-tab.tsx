@@ -16,17 +16,23 @@ function withExtras<T extends { id: string }>(base: T[], extra: T[]): T[] {
   return [...base, ...extra.filter((o) => !ids.has(o.id))];
 }
 
-type Group<T> = { rationale: string; allOptions: T[]; recommendedIds: string[] };
+type Recommendation = { id: string; rationale: string };
+
+type Group<T> = { rationale: string; allOptions: T[]; recommendations: Recommendation[] };
 
 type AnalysisResult = {
   refinedGoal: string;
   successCriteria: string;
-  blocks: { blockType: BlockType; rationale: string; allOptions: PipelineStep[]; recommendedIds: string[] }[];
+  blocks: { blockType: BlockType; rationale: string; allOptions: PipelineStep[]; recommendations: Recommendation[] }[];
   agent: Group<PipelineStep>;
   tools: Group<CatalogCard>;
   mcpServers: Group<CatalogCard>;
   ragSources: Group<CatalogCard>;
 };
+
+function rationaleFor(recommendations: Recommendation[], id: string): string | undefined {
+  return recommendations.find((r) => r.id === id)?.rationale;
+}
 
 type AnalysisState =
   | { status: "idle" }
@@ -43,10 +49,12 @@ function StepOptionCard({
   option,
   selected,
   onSelect,
+  rationale,
 }: {
   option: PipelineStep;
   selected: boolean;
   onSelect: () => void;
+  rationale?: string;
 }) {
   return (
     <SelectableCard
@@ -76,6 +84,9 @@ function StepOptionCard({
     >
       <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">{option.description}</p>
       <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">{option.sourceLabel}</p>
+      {rationale && (
+        <p className="mt-2 text-xs italic text-zinc-500 dark:text-zinc-400">“{rationale}”</p>
+      )}
     </SelectableCard>
   );
 }
@@ -84,10 +95,12 @@ function CardOptionCard({
   option,
   selected,
   onSelect,
+  rationale,
 }: {
   option: CatalogCard;
   selected: boolean;
   onSelect: () => void;
+  rationale?: string;
 }) {
   return (
     <SelectableCard
@@ -111,6 +124,9 @@ function CardOptionCard({
       <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">{option.description}</p>
       {option.provider && (
         <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">{option.provider}</p>
+      )}
+      {rationale && (
+        <p className="mt-2 text-xs italic text-zinc-500 dark:text-zinc-400">“{rationale}”</p>
       )}
     </SelectableCard>
   );
@@ -219,11 +235,13 @@ export function EcosystemTab({
       setAnalysis({ status: "done", result });
       setRefinedGoal(result.refinedGoal);
       setSuccessCriteria(result.successCriteria);
-      setSelectedBlocks(Object.fromEntries(result.blocks.map((b) => [b.blockType, b.recommendedIds[0]])));
-      setSelectedAgentId(result.agent.recommendedIds[0]);
-      setSelectedToolIds(new Set(result.tools.recommendedIds));
-      setSelectedMcpIds(new Set(result.mcpServers.recommendedIds));
-      setSelectedRagIds(new Set(result.ragSources.recommendedIds));
+      setSelectedBlocks(
+        Object.fromEntries(result.blocks.map((b) => [b.blockType, b.recommendations[0]?.id])),
+      );
+      setSelectedAgentId(result.agent.recommendations[0]?.id);
+      setSelectedToolIds(new Set(result.tools.recommendations.map((r) => r.id)));
+      setSelectedMcpIds(new Set(result.mcpServers.recommendations.map((r) => r.id)));
+      setSelectedRagIds(new Set(result.ragSources.recommendations.map((r) => r.id)));
     } catch (error) {
       setAnalysis({
         status: "error",
@@ -316,6 +334,7 @@ export function EcosystemTab({
                   option={option}
                   selected={selectedAgentId === option.id}
                   onSelect={() => setSelectedAgentId(option.id)}
+                  rationale={rationaleFor(analysis.result.agent.recommendations, option.id)}
                 />
               ))}
               <SearchMoreCard onClick={() => setSearchCategory("agent")} />
@@ -334,6 +353,7 @@ export function EcosystemTab({
                   option={option}
                   selected={selectedToolIds.has(option.id)}
                   onSelect={() => setSelectedToolIds((prev) => toggle(prev, option.id))}
+                  rationale={rationaleFor(analysis.result.tools.recommendations, option.id)}
                 />
               ))}
               <SearchMoreCard onClick={() => setSearchCategory("tools")} />
@@ -359,6 +379,7 @@ export function EcosystemTab({
                       onSelect={() =>
                         setSelectedBlocks((prev) => ({ ...prev, [block.blockType]: option.id }))
                       }
+                      rationale={rationaleFor(block.recommendations, option.id)}
                     />
                   ))}
                   <SearchMoreCard
@@ -386,6 +407,7 @@ export function EcosystemTab({
                     option={option}
                     selected={selectedMcpIds.has(option.id)}
                     onSelect={() => setSelectedMcpIds((prev) => toggle(prev, option.id))}
+                    rationale={rationaleFor(analysis.result.mcpServers.recommendations, option.id)}
                   />
                 ))}
                 <SearchMoreCard onClick={() => setSearchCategory("mcp-servers")} />
@@ -406,6 +428,7 @@ export function EcosystemTab({
                     option={option}
                     selected={selectedRagIds.has(option.id)}
                     onSelect={() => setSelectedRagIds((prev) => toggle(prev, option.id))}
+                    rationale={rationaleFor(analysis.result.ragSources.recommendations, option.id)}
                   />
                 ))}
                 <SearchMoreCard onClick={() => setSearchCategory("rag-sources")} />

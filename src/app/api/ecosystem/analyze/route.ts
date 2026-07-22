@@ -5,9 +5,14 @@ import { BLOCK_TYPES } from "@/lib/block-catalog";
 import { getAgentOptions, getCatalogCardsByKind, getCatalogOptionsForBlock } from "@/lib/catalog-db";
 import { registry } from "@/lib/providers";
 
+const recommendationSchema = z.object({
+  id: z.string(),
+  rationale: z.string(),
+});
+
 const pickSchema = z.object({
   rationale: z.string(),
-  recommendedOptionIds: z.array(z.string()),
+  recommendations: z.array(recommendationSchema),
 });
 
 // One call per group rather than one big call: the local default analysis model
@@ -24,7 +29,7 @@ const goalAndBlocksSchema = z.object({
       z.object({
         blockType: z.enum(["data-source", "delivery"]),
         rationale: z.string(),
-        recommendedOptionIds: z.array(z.string()).min(1).max(3),
+        recommendations: z.array(recommendationSchema).min(1).max(3),
       }),
     )
     .length(2),
@@ -35,11 +40,25 @@ function summarizeGroup(title: string, options: { id: string; name: string; desc
   return `${title}\n` + options.map((o) => `  - ${o.id}: ${o.name} — ${o.description}`).join("\n");
 }
 
-/** Dedupes and validates LLM-recommended ids against the real candidate list; falls back to the first N if none survive. */
-function resolveIds(ids: string[], candidateIds: string[], fallbackCount: number): string[] {
+type Recommendation = { id: string; rationale: string };
+
+/** Dedupes and validates LLM-recommended {id, rationale} entries against the real candidate list; falls back to the first N ids (with a generic rationale) if none survive. */
+function resolveRecommendations(
+  recommendations: Recommendation[],
+  candidateIds: string[],
+  fallbackCount: number,
+): Recommendation[] {
   const validIds = new Set(candidateIds);
-  const unique = [...new Set(ids)].filter((id) => validIds.has(id));
-  return unique.length > 0 ? unique : candidateIds.slice(0, fallbackCount);
+  const seen = new Set<string>();
+  const valid = recommendations.filter((r) => {
+    if (!validIds.has(r.id) || seen.has(r.id)) return false;
+    seen.add(r.id);
+    return true;
+  });
+  if (valid.length > 0) return valid;
+  return candidateIds
+    .slice(0, fallbackCount)
+    .map((id) => ({ id, rationale: "A solid default option for your goal." }));
 }
 
 async function pickAttachment(
@@ -54,14 +73,15 @@ async function pickAttachment(
     prompt:
       `A user wants to build an AI agent flow for this challenge:\n"${challenge}"\n\nGoal: ${goal}\n\n` +
       `From the real catalog below (use exact id strings, never invent new ones), recommend which ` +
-      `${groupLabel} (if any) would help this agent, ranked best first:\n\n` +
+      `${groupLabel} (if any) would help this agent, ranked best first. For each one you recommend, ` +
+      `give a short one-sentence rationale specific to that item, not a generic blurb:\n\n` +
       summarizeGroup(groupLabel, candidates),
     output: Output.object({ schema: pickSchema }),
   });
   return {
     rationale: output.rationale,
     allOptions: candidates,
-    recommendedIds: resolveIds(output.recommendedOptionIds, candidates.map((c) => c.id), 0),
+    recommendations: resolveRecommendations(output.recommendations, candidates.map((c) => c.id), 0),
   };
 }
 
@@ -89,7 +109,9 @@ export async function POST(req: Request) {
       `A user wants to build an AI agent flow for this challenge:\n"${challenge}"\n\n` +
       `First, restate the challenge as a clear, one-paragraph goal ("refinedGoal"), and draft 2-4 ` +
       `concrete bullet points describing what a successful result looks like ("successCriteria").\n\n` +
-      `Then, from the real catalogs below (use exact id strings, never invent new ones), recommend:\n\n` +
+      `Then, from the real catalogs below (use exact id strings, never invent new ones), recommend ` +
+      `options for each group. For each item you recommend, give a short one-sentence rationale ` +
+      `specific to that item, not a generic blurb:\n\n` +
       BLOCK_TYPES.map((b) =>
         summarizeGroup(`${b.name} (${b.id}) — ${b.description}:`, blockCandidatesByType[b.id]),
       ).join("\n\n") +
@@ -114,7 +136,7 @@ export async function POST(req: Request) {
         blockType: block.blockType,
         rationale: block.rationale,
         allOptions: candidates,
-        recommendedIds: resolveIds(block.recommendedOptionIds, candidates.map((c) => c.id), 3),
+        recommendations: resolveRecommendations(block.recommendations, candidates.map((c) => c.id), 3),
       };
     });
 
@@ -125,7 +147,11 @@ export async function POST(req: Request) {
       agent: {
         rationale: goalAndBlocks.agent.rationale,
         allOptions: agentCandidates,
-        recommendedIds: resolveIds(goalAndBlocks.agent.recommendedOptionIds, agentCandidates.map((c) => c.id), 1),
+        recommendations: resolveRecommendations(
+          goalAndBlocks.agent.recommendations,
+          agentCandidates.map((c) => c.id),
+          1,
+        ),
       },
       tools,
       mcpServers,
