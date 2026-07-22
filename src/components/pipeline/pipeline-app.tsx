@@ -10,12 +10,18 @@ import { PipelineTab } from "./pipeline-tab";
 const TABS = ["Ecosystem", "Pipeline", "History"] as const;
 type Tab = (typeof TABS)[number];
 
+const DEFAULT_INPUT = "Summarize the latest deployment status for this project.";
+
 export function PipelineApp() {
   const [tab, setTab] = useState<Tab>("Ecosystem");
   const [pipelineSteps, setPipelineSteps] = useState<PipelineStep[]>(MOCK_PIPELINE);
+  const [seedInput, setSeedInput] = useState(DEFAULT_INPUT);
+  const [successCriteria, setSuccessCriteria] = useState("");
 
-  function handleBuildFlow(steps: PipelineStep[]) {
+  function handleBuildFlow(steps: PipelineStep[], input: string, criteria: string) {
     setPipelineSteps(steps);
+    setSeedInput(input);
+    setSuccessCriteria(criteria);
     setTab("Pipeline");
   }
 
@@ -48,7 +54,14 @@ export function PipelineApp() {
       </div>
 
       {tab === "Ecosystem" && <EcosystemTab onBuildFlow={handleBuildFlow} />}
-      {tab === "Pipeline" && <PipelineTab key={pipelineSteps.map((s) => s.id).join(",")} steps={pipelineSteps} />}
+      {tab === "Pipeline" && (
+        <PipelineTab
+          key={pipelineSteps.map((s) => s.id).join(",")}
+          steps={pipelineSteps}
+          initialInput={seedInput}
+          successCriteria={successCriteria}
+        />
+      )}
       {tab === "History" && <HistoryTab />}
     </div>
   );

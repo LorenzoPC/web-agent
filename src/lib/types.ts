@@ -20,6 +20,14 @@ export interface PipelineStep {
   unit: string;
   estimatedUnits: number;
   cost: CostModel;
+  /** Agent persona system prompt (kind: 'agent' catalog entries). Only meaningful for stepKind "chat". */
+  systemPrompt?: string;
+  /** Attached "hook"-kind catalog ids. Only ids with a recognized metadata.executor do anything at run time. */
+  toolRefs?: string[];
+  /** Attached "mcp-server"-kind catalog ids. Only ids with a recognized metadata.executor do anything at run time. */
+  mcpServerRefs?: string[];
+  /** Attached "rag-pattern"-kind catalog id + user-supplied reference text, for the real local-RAG executor. */
+  ragSource?: { id: string; documents: string };
 }
 
 /** Real usage reported after a step runs, used to reconcile against the pre-run estimate. */

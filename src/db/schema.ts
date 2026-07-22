@@ -1,12 +1,14 @@
 import { jsonb, numeric, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
 
-// Catalog entry kinds: a model or service is directly usable as a PipelineStep
-// (has blockType/sourceType/stepKind/modelRef set); hook/rag-pattern/mcp-server
-// are catalog-only for now — browsable reference data, not yet selectable in the
-// Ecosystem builder (see docs/design/web-agent.md).
+// Catalog entry kinds: 'model' | 'service' | 'agent' | 'hook' | 'rag-pattern' | 'mcp-server'.
+// Model/service/agent are directly usable as a PipelineStep (blockType/sourceType/
+// stepKind/modelRef set); hook/rag-pattern/mcp-server are catalog-only by default —
+// browsable reference data. A few specific rows carry metadata.executor, which
+// /api/pipeline/run recognizes to wire real behavior (Exa search, GitHub MCP,
+// local RAG retrieval) — see docs/design/web-agent.md.
 export const catalogEntries = pgTable("catalog_entries", {
   id: text("id").primaryKey(),
-  kind: text("kind").notNull(), // 'model' | 'service' | 'hook' | 'rag-pattern' | 'mcp-server'
+  kind: text("kind").notNull(),
   blockType: text("block_type"), // 'data-source' | 'processing' | 'delivery' | null
   sourceType: text("source_type"), // 'local' | 'remote' | 'api' | null
   stepKind: text("step_kind"), // 'chat' | 'embedding' | 'external' | null
@@ -14,6 +16,7 @@ export const catalogEntries = pgTable("catalog_entries", {
   description: text("description"),
   provider: text("provider"),
   modelRef: text("model_ref"), // registry key, e.g. "openai > gpt-5.4"; null for non-runnable kinds
+  systemPrompt: text("system_prompt"), // 'agent' kind: the persona's system prompt
   cost: jsonb("cost").notNull(), // CostModel payload
   unit: text("unit"),
   estimatedUnits: numeric("estimated_units"),

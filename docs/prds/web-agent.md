@@ -1,4 +1,4 @@
-# PRD — web-agent
+# Web Agent App — PRD
 
 **Status:** In development
 **Created:** 2026-07-17
@@ -15,6 +15,7 @@ Running an AI pipeline across different execution sources — hardware you own, 
 
 - Let a user describe a challenge in plain language (the **Ecosystem builder**) and get back a proposed flow: a small set of fixed blocks (data source, processing, delivery), each with a few real catalog options ranked by relevance, selectable as cards with projected cost — building the flow replaces what's shown in the Pipeline tab
 - Back that catalog with a real, task-categorized database (models, services, SDK/framework hooks, RAG patterns, MCP servers) instead of a hand-typed list — models synced live from a real registry so pricing/availability stay accurate
+- **(Shipped 2026-07-21)** Broadened Ecosystem builder: an editable LLM-refined restatement of the goal, an **Agent** picker (a new catalog kind — persona = model + system prompt + purpose, replacing the raw "processing" model choice), a multi-select **Tools** picker, "bonus" multi-select **MCP servers** and **RAG sources** pickers, and an editable LLM-drafted **Success criteria** section. Selection-only for most of these, except 3 integrations get real execution: Exa web search, a GitHub MCP connection, and a local-documents RAG source (in-memory embedding + retrieval) — all three verified working. See the design doc's "Ecosystem builder v2" section for the architecture.
 - Run a multi-step AI pipeline (retrieval, reranking, generation, tool calls, post-processing) against three source types from one app: local hardware, rented remote hardware, and paid APIs
 - Run the whole pipeline as a single chained action — each step's output feeds the next step's input, with per-step results visible as the chain progresses — as well as running any single step in isolation
 - Show a pre-run cost projection per step, then reconcile it against real usage once the step finishes — using a cost formula that matches how that source is actually billed (free / time-based / token-based / per-request), not one flat number
@@ -66,6 +67,9 @@ A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config
 | Vercel project (`lorenzopcs-projects/web-agent`) | Linked 2026-07-17; GitHub auto-connect failed, not yet retried | user |
 | Neon Postgres (Vercel Marketplace) | Provisioned 2026-07-17 (`neon-alizarin-queen`), holding the catalog; run-history tables still pending | user |
 | Ecosystem builder's analysis model | Defaults to local Ollama (`ECOSYSTEM_ANALYZE_MODEL`, no API key needed); works with `llama3.2:latest` as of 2026-07-17 | user |
+| Exa Search API (Vercel Marketplace) | Provisioned 2026-07-17 (`exa-search-api-cordovan-compass`); confirmed working via a direct API test — real current results returned | user |
+| `GITHUB_TOKEN` env var | Needed for the real GitHub MCP connection (user-supplied PAT, not a Marketplace resource); code path confirmed correct (clean error without it) but the real success path is untested — nobody has supplied a token yet | user |
+| `nomic-embed-text` (Ollama) | Pulled locally 2026-07-21; required for local RAG retrieval and the `retrieve-context`/`postprocess` mock pipeline steps | user |
 
 ## Open questions
 
@@ -74,5 +78,7 @@ A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config
 - [ ] When should the `call-tool` step get a real search API instead of a stub? (Marketplace integration, separate task)
 - [ ] Should candidate selection for the analyze prompt get smarter (rank by task-category match to the challenge) instead of the current 15-per-block alphabetical cap?
 - [ ] Should `hook`/`rag-pattern`/`mcp-server` catalog entries ever become selectable in the Ecosystem flow, and if so, how (they're compositions, not single runnable steps)?
+- [ ] Small local models (`llama3.2:latest`) don't reliably invoke attached tools even when available (confirmed: Exa search works standalone, but the model just claims it can't search rather than calling it) — should the UI warn when a selected Agent's model has weak tool-calling support, or is this just an inherent tradeoff of the free/local option?
+- [x] ~~When should the `call-tool` step get a real search API instead of a stub?~~ — partially resolved: the *Ecosystem* "Tools" section now has a real Exa-backed search option; the original `MOCK_PIPELINE`/static "call-tool" step remains a separate, still-stubbed concept
 - [x] ~~Should Ecosystem's block catalog stay fixed/hand-maintained, or eventually pull live pricing?~~ — resolved 2026-07-17: models now sync live from the AI Gateway; services/hooks/RAG patterns/MCP servers remain hand-curated (no live registry covers them)
 - [x] ~~Should auth be added before or after this becomes anything other than single-user?~~ — resolved: auth/multi-tenancy is V2, explicitly deferred (see Non-goals)

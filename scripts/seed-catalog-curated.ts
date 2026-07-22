@@ -17,6 +17,10 @@ type CuratedEntry = {
   unit?: string;
   estimatedUnits?: string;
   categories: string[];
+  // Marks a specific row as one of the few catalog entries /api/pipeline/run
+  // actually wires up for real (vs. catalog-only/decorative for the rest of
+  // its kind). See docs/design/web-agent.md "Ecosystem builder v2".
+  executor?: "exa-search" | "github-mcp" | "local-rag";
 };
 
 // Modest starting set — not exhaustive. Growing this is ongoing backlog work.
@@ -124,9 +128,92 @@ const ENTRIES: CuratedEntry[] = [
     cost: { kind: "free" },
     categories: ["agentic-tool-use"],
   },
+  {
+    id: "curated:tool-web-search",
+    kind: "hook",
+    name: "Web Search",
+    description: "Search the live web and return results the agent can cite",
+    provider: "Exa",
+    cost: { kind: "perRequest", dollarsPerRequest: 0.005 },
+    categories: ["search"],
+    executor: "exa-search",
+  },
+  {
+    id: "curated:tool-calculator",
+    kind: "hook",
+    name: "Calculator",
+    description: "Evaluate arithmetic and numeric expressions precisely",
+    cost: { kind: "free" },
+    categories: ["natural-language-processing"],
+  },
+  {
+    id: "curated:tool-send-email",
+    kind: "hook",
+    name: "Send Email",
+    description: "Compose and send an email as a tool call",
+    cost: { kind: "perRequest", dollarsPerRequest: 0.001 },
+    categories: ["natural-language-processing"],
+  },
+  {
+    id: "curated:tool-read-calendar",
+    kind: "hook",
+    name: "Read Calendar",
+    description: "Look up events on a connected calendar",
+    cost: { kind: "free" },
+    categories: ["natural-language-processing"],
+  },
+  {
+    id: "curated:tool-code-execution",
+    kind: "hook",
+    name: "Code Execution",
+    description: "Run a short code snippet in a sandbox and return its output",
+    cost: { kind: "free" },
+    categories: ["agentic-tool-use"],
+  },
+  {
+    id: "curated:tool-image-generation",
+    kind: "hook",
+    name: "Generate Image",
+    description: "Generate an image from a text prompt as a tool call",
+    cost: { kind: "free" },
+    categories: ["image-generation"],
+  },
+  {
+    id: "curated:tool-fetch-url",
+    kind: "hook",
+    name: "Fetch URL",
+    description: "Retrieve and read the contents of a given URL",
+    cost: { kind: "free" },
+    categories: ["search"],
+  },
+  {
+    id: "curated:tool-json-extract",
+    kind: "hook",
+    name: "Extract Structured Data",
+    description: "Pull structured fields out of unstructured text against a schema",
+    cost: { kind: "free" },
+    categories: ["natural-language-processing"],
+  },
+  {
+    id: "curated:tool-translate",
+    kind: "hook",
+    name: "Translate Text",
+    description: "Translate text between languages as a tool call",
+    cost: { kind: "free" },
+    categories: ["natural-language-processing"],
+  },
+  {
+    id: "curated:tool-sentiment",
+    kind: "hook",
+    name: "Sentiment Analysis",
+    description: "Classify the sentiment/tone of a piece of text",
+    cost: { kind: "free" },
+    categories: ["natural-language-processing"],
+  },
 
   // RAG patterns — catalog-only: a composition of other entries (embedding model +
-  // vector store, etc.), not a single runnable step.
+  // vector store, etc.), not a single runnable step. Exception: "Local documents
+  // (real)" below actually runs — see executor.
   {
     id: "curated:rag-embedding-search",
     kind: "rag-pattern",
@@ -151,16 +238,29 @@ const ENTRIES: CuratedEntry[] = [
     cost: { kind: "free" },
     categories: ["embeddings-retrieval"],
   },
+  {
+    id: "curated:rag-local-documents",
+    kind: "rag-pattern",
+    name: "Local documents (real)",
+    description:
+      "Paste reference text; it's chunked and embedded locally, then the most relevant " +
+      "chunks are retrieved and added to the agent's context",
+    cost: { kind: "free" },
+    categories: ["embeddings-retrieval"],
+    executor: "local-rag",
+  },
 
   // MCP servers — catalog-only: an external integration point reached via the Model
-  // Context Protocol, not a single runnable pipeline step.
+  // Context Protocol, not a single runnable pipeline step. Exception: GitHub below
+  // actually connects — see executor.
   {
     id: "curated:mcp-github",
     kind: "mcp-server",
     name: "GitHub MCP server",
-    description: "Read/write GitHub repos, issues, and PRs via MCP",
+    description: "Read GitHub repos, issues, and PRs via a real MCP connection",
     cost: { kind: "free" },
     categories: ["agentic-tool-use"],
+    executor: "github-mcp",
   },
   {
     id: "curated:mcp-filesystem",
@@ -183,18 +283,20 @@ const ENTRIES: CuratedEntry[] = [
 async function main() {
   const db = getDb();
   for (const entry of ENTRIES) {
-    const { categories, ...values } = entry;
+    const { categories, executor, ...values } = entry;
+    const metadata = executor ? { executor } : null;
     await db
       .insert(catalogEntries)
       .values({
         ...values,
+        metadata,
         source: "curated",
         syncedAt: null,
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
         target: catalogEntries.id,
-        set: { ...values, source: "curated", updatedAt: new Date() },
+        set: { ...values, metadata, source: "curated", updatedAt: new Date() },
       });
 
     await db.delete(catalogEntryCategories).where(eq(catalogEntryCategories.entryId, entry.id));

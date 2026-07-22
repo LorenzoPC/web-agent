@@ -1,6 +1,6 @@
 # Backlog — web-agent
 
-**Last reviewed:** 2026-07-17
+**Last reviewed:** 2026-07-21
 
 Priority definitions:
 - **P1** — Blocking. Must be resolved before the next major milestone.
@@ -11,23 +11,25 @@ Priority definitions:
 
 ## P1 — Blocking
 
-*(none currently)*
+- [ ] **Proper environment handling — move to centralized storage.** Env vars/secrets (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `DATABASE_URL`, `EXA_API_KEY`, `GITHUB_TOKEN`, etc.) currently live only in per-machine `.env.local` files pulled via `vercel env pull`. Needs a real plan for centralized management as the number of integrations grows (this session alone added 3: Neon, Exa, and a user-supplied GitHub token) — e.g. Vercel's env vars as the single source of truth with a documented pull/sync workflow, rather than ad hoc `.env.local` drift per developer.
 
 ## P2 — Important
 
 - [ ] **`runId` on `/api/pipeline/run`** — client generates one `crypto.randomUUID()` per chain (or per isolated single-step run) and sends it on every call; needed before run history can group step results under a run.
 - [ ] **Run history persistence** — `pipeline_runs` + `pipeline_run_steps` tables (parent/child, see design doc's Data model section) in the now-provisioned Neon database, via Drizzle; write on each `/api/pipeline/run` call; `GET /api/pipeline/runs` for the History tab to read back.
 - [ ] **Fix Vercel project's GitHub auto-connect** — `vercel link` created the project but failed to connect `LorenzoPC/web-agent`; deploys currently need to go through the CLI/dashboard manually, or retry the connection.
-- [ ] **Relevance-ranked candidates for the analyze prompt** — currently a flat 15-per-block alphabetical cap (`src/lib/catalog-db.ts`); rank by task-category match to the challenge (or cost, or recency) instead once the catalog grows further.
+- [ ] **Relevance-ranked candidates for the analyze prompt** — currently a flat 15-per-group alphabetical cap (`src/lib/catalog-db.ts`); rank by task-category match to the challenge (or cost, or recency) instead once the catalog grows further.
+- [ ] **Verify GitHub MCP's real success path** — only the clean "Missing GITHUB_TOKEN" failure was tested (no token available this session); needs a real PAT to confirm end-to-end.
 
 ## P3 — Nice to have
 
-- [ ] **Real search API for `call-tool`** — needs a provisioned integration (Vercel Marketplace), separate from the execution architecture itself.
+- [ ] **Real search API for the original `call-tool` mock pipeline step** — needs its own provisioned integration; distinct from Ecosystem's real Exa "Web Search" tool, which is now live.
 - [ ] **Auth/rate-limiting on `/api/pipeline/run`** — fine to skip while this stays local/single-user (multi-tenancy is V2, see PRD).
-- [ ] **Seed the built pipeline's textarea from the Ecosystem challenge text** — currently the Pipeline tab always starts with the default placeholder prompt, even after building a flow from a specific challenge.
-- [ ] **Grow the curated catalog** — 14 hand-written entries today (2 services + 3 local models + 3 hooks + 3 RAG patterns + 3 MCP servers); this was a starting set, not exhaustive.
+- [ ] **Grow the curated catalog further** — 25 hand-written entries today (2 services + 3 local models + 6 agents + 13 hooks/tools + 4 RAG patterns + 3 MCP servers); still a starting set, not exhaustive.
 - [ ] **Widen runnable gateway providers** — `scripts/sync-catalog-models.ts` only marks `openai`/`anthropic` language models and `openai` embedding models as runnable (`blockType` set), matching today's registry; revisit if `src/lib/providers.ts` adds more direct provider SDKs.
-- [ ] **Surface `hook`/`rag-pattern`/`mcp-server` entries somewhere in the UI** — they're real, categorized catalog data now but have no consumer; a browse view, or a way to reference them from a built flow, is undecided.
+- [ ] **Surface a tool-calling-reliability warning** — the free local default agent model (`llama3.2:latest`) doesn't reliably invoke attached tools (confirmed: claims it "can't search" rather than calling Exa); consider flagging this in the UI when a weak-tool-calling model is paired with Tools/MCP attachments.
+- [ ] **Retry on malformed analyze responses** — the "Tools" recommendation group occasionally still returns a glitched response (e.g. a stray token fragment as rationale, empty `recommendedOptionIds`) even fully isolated into its own call; a one-time retry could smooth this over. Accepted as known flakiness for now — the section stays manually selectable either way.
+- [ ] **A browsing UI for `hook`/`rag-pattern`/`mcp-server` catalog data outside the Ecosystem flow** — undecided whether this is worth building.
 
 ---
 
@@ -51,3 +53,13 @@ Priority definitions:
 - [x] **`ECOSYSTEM_ANALYZE_MODEL` env var** — defaults to `local > llama3.2:latest`, so the ecosystem builder works with zero paid API keys out of the box
 - [x] **Neon Postgres provisioned** (`vercel integration add neon`, project `neon-alizarin-queen`) — 2026-07-17
 - [x] **Catalog database** — `src/db/schema.ts` (Drizzle: `catalog_entries`, `catalog_task_categories`, `catalog_entry_categories`), `scripts/sync-catalog-models.ts` (~300 models synced live from the AI Gateway), `scripts/seed-catalog-curated.ts` (14 hand-curated services/local-models/hooks/RAG-patterns/MCP-servers), `src/lib/catalog-db.ts` (`getCatalogOptionsForBlock`), `/api/ecosystem/analyze` updated to read from the database instead of the static file — shipped 2026-07-17
+- [x] **Ecosystem builder v2** (Agents, Tools, MCP servers, RAG sources, refined goal, success criteria) — shipped 2026-07-21, see design doc's "Ecosystem builder v2" section:
+  - `systemPrompt` column on `catalog_entries`; `scripts/seed-catalog-agents.ts` (6 curated personas); curated hooks grown 3→13 (`"Web Search"` marked `metadata.executor: "exa-search"`); GitHub MCP entry marked `"github-mcp"`; new "Local documents (real)" RAG entry marked `"local-rag"`
+  - `src/lib/catalog-db.ts` extended with `getAgentOptions`/`getCatalogCardsByKind`
+  - Real execution helpers: `src/lib/tools/exa-search.ts`, `github-mcp.ts`, `local-rag.ts` — all three verified working (Exa confirmed via direct API test + real current results; GitHub MCP confirmed correctly wired via its clean "Missing GITHUB_TOKEN" failure path; local RAG fully verified end-to-end with a planted-fact test)
+  - `PipelineStep` extended with `systemPrompt`/`toolRefs`/`mcpServerRefs`/`ragSource`; `/api/pipeline/run` consumes them
+  - `/api/ecosystem/analyze` rewritten to 4 focused `generateText` calls (goal+blocks+agent bundled; tools/MCP/RAG each fully isolated) after a bundled/2-group call produced cross-contaminated rationale text on the local default model
+  - `src/components/pipeline/ecosystem-tab.tsx` restructured: Agent/Tools/MCP servers/RAG sources sections (reusing the `SelectableCard` compact-card pattern), editable refined-goal and success-criteria boxes
+  - Pipeline tab now seeds its input from the Ecosystem `refinedGoal` and displays `successCriteria`
+  - Provisioned Exa Search API (Vercel Marketplace) and pulled `nomic-embed-text` locally as part of verification
+  - Bug found and fixed: `/api/pipeline/run` previously looked up steps by id from `MOCK_PIPELINE` only, so built-flow steps could never actually run — client now sends the full `PipelineStep` object

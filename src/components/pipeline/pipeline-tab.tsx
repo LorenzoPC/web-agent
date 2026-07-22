@@ -8,12 +8,12 @@ import type { RunState } from "./types";
 
 type StepResult = Extract<RunState, { status: "done" | "error" }>;
 
-async function callStep(stepId: string, input: string): Promise<StepResult> {
+async function callStep(step: PipelineStep, input: string): Promise<StepResult> {
   try {
     const res = await fetch("/api/pipeline/run", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stepId, input }),
+      body: JSON.stringify({ step, input }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -28,18 +28,26 @@ async function callStep(stepId: string, input: string): Promise<StepResult> {
   }
 }
 
-export function PipelineTab({ steps }: { steps: PipelineStep[] }) {
+export function PipelineTab({
+  steps,
+  initialInput,
+  successCriteria,
+}: {
+  steps: PipelineStep[];
+  initialInput?: string;
+  successCriteria?: string;
+}) {
   const [input, setInput] = useState(
-    "Summarize the latest deployment status for this project.",
+    initialInput ?? "Summarize the latest deployment status for this project.",
   );
   const [runs, setRuns] = useState<Record<string, RunState>>({});
   const [isChainRunning, setIsChainRunning] = useState(false);
   const [focusedStepId, setFocusedStepId] = useState<string | null>(steps[0]?.id ?? null);
 
-  async function runStep(stepId: string) {
-    setRuns((prev) => ({ ...prev, [stepId]: { status: "running" } }));
-    const result = await callStep(stepId, input);
-    setRuns((prev) => ({ ...prev, [stepId]: result }));
+  async function runStep(step: PipelineStep) {
+    setRuns((prev) => ({ ...prev, [step.id]: { status: "running" } }));
+    const result = await callStep(step, input);
+    setRuns((prev) => ({ ...prev, [step.id]: result }));
   }
 
   async function runPipeline() {
@@ -48,7 +56,7 @@ export function PipelineTab({ steps }: { steps: PipelineStep[] }) {
     let chainInput = input;
     for (const step of steps) {
       setRuns((prev) => ({ ...prev, [step.id]: { status: "running" } }));
-      const result = await callStep(step.id, chainInput);
+      const result = await callStep(step, chainInput);
       setRuns((prev) => ({ ...prev, [step.id]: result }));
       if (result.status === "error") break;
       chainInput = result.output;
@@ -73,6 +81,15 @@ export function PipelineTab({ steps }: { steps: PipelineStep[] }) {
         className="w-full rounded-lg border border-zinc-300 bg-white p-3 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
       />
 
+      {successCriteria && (
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 className="text-xs font-medium text-zinc-500 dark:text-zinc-500">Success criteria</h3>
+          <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
+            {successCriteria}
+          </p>
+        </div>
+      )}
+
       <button
         onClick={runPipeline}
         disabled={isChainRunning}
@@ -90,7 +107,7 @@ export function PipelineTab({ steps }: { steps: PipelineStep[] }) {
             disabled={isChainRunning || runs[step.id]?.status === "running"}
             focused={focusedStepId === step.id}
             onFocus={() => setFocusedStepId(step.id)}
-            onRun={() => runStep(step.id)}
+            onRun={() => runStep(step)}
           />
         ))}
       </ul>
