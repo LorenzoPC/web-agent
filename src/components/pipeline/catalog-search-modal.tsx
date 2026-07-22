@@ -34,12 +34,33 @@ export function CatalogSearchModal({
 }) {
   const [state, setState] = useState<FetchState>({ status: "loading" });
   const [loadingMore, setLoadingMore] = useState(false);
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedQuery(query.trim()), 300);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  // Reset to "loading" as soon as the request key changes, rather than inside the
+  // fetch effect below — this is React's recommended render-time pattern for
+  // resetting state when inputs change, and avoids a stale-then-loading flicker.
+  const requestKey = `${category}::${debouncedQuery}`;
+  const [loadedKey, setLoadedKey] = useState(requestKey);
+  if (loadedKey !== requestKey) {
+    setLoadedKey(requestKey);
+    setState({ status: "loading" });
+  }
+
   async function fetchPage(offset: number) {
-    const res = await fetch(
-      `/api/ecosystem/catalog?category=${category}&offset=${offset}&limit=${PAGE_SIZE}`,
-    );
+    const params = new URLSearchParams({
+      category,
+      offset: String(offset),
+      limit: String(PAGE_SIZE),
+    });
+    if (debouncedQuery) params.set("q", debouncedQuery);
+    const res = await fetch(`/api/ecosystem/catalog?${params}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
     return data as { title: string; subtitle: string; items: ModalItem[]; hasMore: boolean };
@@ -63,7 +84,7 @@ export function CatalogSearchModal({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category]);
+  }, [category, debouncedQuery]);
 
   useEffect(() => {
     if (state.status !== "ready" || !state.hasMore) return;
@@ -104,7 +125,7 @@ export function CatalogSearchModal({
         className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-xl dark:bg-zinc-900"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-zinc-200 p-5 dark:border-zinc-800">
+        <div className="flex items-start justify-between gap-4 p-5 pb-0">
           <div>
             <h2 className="text-lg font-semibold text-black dark:text-zinc-50">
               {state.status === "ready" ? state.title : "Loading…"}
@@ -122,6 +143,17 @@ export function CatalogSearchModal({
           </button>
         </div>
 
+        <div className="border-b border-zinc-200 p-5 dark:border-zinc-800">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Describe what you're looking for…"
+            className="w-full rounded-lg border border-zinc-300 bg-white p-2.5 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            autoFocus
+          />
+        </div>
+
         <div className="overflow-y-auto p-5">
           {state.status === "loading" && (
             <p className="text-sm text-zinc-500 dark:text-zinc-500">Loading catalog…</p>
@@ -129,7 +161,14 @@ export function CatalogSearchModal({
           {state.status === "error" && (
             <p className="text-sm text-red-600 dark:text-red-400">{state.message}</p>
           )}
-          {state.status === "ready" && (
+          {state.status === "ready" && state.items.length === 0 && (
+            <p className="text-sm text-zinc-500 dark:text-zinc-500">
+              {debouncedQuery
+                ? `Nothing in the catalog matches "${debouncedQuery}".`
+                : "Nothing in the catalog yet."}
+            </p>
+          )}
+          {state.status === "ready" && state.items.length > 0 && (
             <>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {state.items.map((item) => {

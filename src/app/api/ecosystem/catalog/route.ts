@@ -13,8 +13,9 @@ export async function GET(request: Request) {
 
   const offset = Number(searchParams.get("offset") ?? "0");
   const limit = Number(searchParams.get("limit") ?? String(DEFAULT_LIMIT));
+  const query = searchParams.get("q") ?? undefined;
 
-  const { items, hasMore } = await searchCatalogCategory(category, offset, limit);
+  const { items, hasMore } = await searchCatalogCategory(category, offset, limit, query);
   const { title, subtitle } = CATALOG_CATEGORY_COPY[category];
 
   return NextResponse.json({ title, subtitle, items, hasMore });

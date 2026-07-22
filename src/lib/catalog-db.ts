@@ -1,4 +1,4 @@
-import { and, asc, eq, or } from "drizzle-orm";
+import { and, asc, eq, ilike, or } from "drizzle-orm";
 import { getDb } from "@/db";
 import { catalogEntries } from "@/db/schema";
 import type { BlockType } from "./block-catalog";
@@ -80,11 +80,12 @@ export async function searchCatalogCategory(
   category: CatalogCategory,
   offset: number,
   limit: number,
+  query?: string,
 ): Promise<{ items: (PipelineStep | CatalogCard)[]; hasMore: boolean }> {
   const db = getDb();
 
   const isBlockCategory = category === "data-source" || category === "delivery";
-  const where = isBlockCategory
+  const categoryWhere = isBlockCategory
     ? and(
         eq(catalogEntries.blockType, category as BlockType),
         or(eq(catalogEntries.kind, "model"), eq(catalogEntries.kind, "service")),
@@ -92,6 +93,18 @@ export async function searchCatalogCategory(
     : category === "agent"
       ? and(eq(catalogEntries.kind, "agent"), eq(catalogEntries.blockType, "processing"))
       : eq(catalogEntries.kind, CATALOG_KIND_BY_CARD_CATEGORY[category]);
+
+  const trimmedQuery = query?.trim();
+  const where = trimmedQuery
+    ? and(
+        categoryWhere,
+        or(
+          ilike(catalogEntries.name, `%${trimmedQuery}%`),
+          ilike(catalogEntries.description, `%${trimmedQuery}%`),
+          ilike(catalogEntries.provider, `%${trimmedQuery}%`),
+        ),
+      )
+    : categoryWhere;
 
   const rows = await db
     .select()
