@@ -1,4 +1,4 @@
-import type { ActualUsage, PipelineStep } from "./types";
+import type { ActualUsage, CostModel, PipelineStep } from "./types";
 
 export const SOURCE_TYPE_LABELS: Record<PipelineStep["sourceType"], string> = {
   local: "Local hardware",
@@ -113,4 +113,17 @@ export function totalCost(steps: PipelineStep[]): number {
 export function formatCost(amount: number): string {
   if (amount === 0) return "Free";
   return amount < 0.01 ? `$${amount.toFixed(4)}` : `$${amount.toFixed(2)}`;
+}
+
+export function formatCostModel(cost: CostModel): string {
+  switch (cost.kind) {
+    case "free":
+      return "Free";
+    case "duration":
+      return `${formatCost(cost.dollarsPerHour)}/hr`;
+    case "tokens":
+      return `${formatCost(cost.inputPerMillion)}/M in · ${formatCost(cost.outputPerMillion)}/M out`;
+    case "perRequest":
+      return `${formatCost(cost.dollarsPerRequest)}/req`;
+  }
 }

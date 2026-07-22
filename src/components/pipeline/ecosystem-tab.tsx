@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import type { BlockType } from "@/lib/block-catalog";
-import type { CatalogCard } from "@/lib/catalog-db";
-import { SOURCE_TYPE_LABELS, formatCost, stepCost } from "@/lib/pipeline-data";
-import type { CostModel, PipelineStep } from "@/lib/types";
+import type { CatalogCard, CatalogCategory } from "@/lib/catalog-db";
+import { SOURCE_TYPE_LABELS, formatCost, formatCostModel, stepCost } from "@/lib/pipeline-data";
+import type { PipelineStep } from "@/lib/types";
+import { CatalogSearchModal, type ModalItem } from "./catalog-search-modal";
 import { SelectableCard } from "./selectable-card";
 
 const LOCAL_RAG_ID = "curated:rag-local-documents";
+
+/** ids already present in `base` are skipped so a re-opened search doesn't duplicate a card. */
+function withExtras<T extends { id: string }>(base: T[], extra: T[]): T[] {
+  const ids = new Set(base.map((o) => o.id));
+  return [...base, ...extra.filter((o) => !ids.has(o.id))];
+}
 
 type Group<T> = { rationale: string; allOptions: T[]; recommendedIds: string[] };
 
@@ -26,19 +33,6 @@ type AnalysisState =
   | { status: "loading" }
   | { status: "done"; result: AnalysisResult }
   | { status: "error"; message: string };
-
-function formatCostModel(cost: CostModel): string {
-  switch (cost.kind) {
-    case "free":
-      return "Free";
-    case "duration":
-      return `${formatCost(cost.dollarsPerHour)}/hr`;
-    case "tokens":
-      return `${formatCost(cost.inputPerMillion)}/M in · ${formatCost(cost.outputPerMillion)}/M out`;
-    case "perRequest":
-      return `${formatCost(cost.dollarsPerRequest)}/req`;
-  }
-}
 
 const BLOCK_TITLES: Record<string, string> = {
   "data-source": "Data Source",
@@ -122,6 +116,20 @@ function CardOptionCard({
   );
 }
 
+function SearchMoreCard({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{ width: 100 }}
+      className="flex h-full min-h-[64px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-zinc-300 p-3 text-center text-[10px] text-zinc-500 transition-colors hover:border-zinc-400 hover:text-zinc-700 dark:border-zinc-700 dark:text-zinc-500 dark:hover:border-zinc-500 dark:hover:text-zinc-300"
+    >
+      <span className="text-base leading-none">+</span>
+      Search something else
+    </button>
+  );
+}
+
 export function EcosystemTab({
   onBuildFlow,
 }: {
@@ -140,11 +148,59 @@ export function EcosystemTab({
   const [selectedRagIds, setSelectedRagIds] = useState<Set<string>>(new Set());
   const [ragDocuments, setRagDocuments] = useState("");
 
+  const [searchCategory, setSearchCategory] = useState<CatalogCategory | null>(null);
+  const [extraBlockOptions, setExtraBlockOptions] = useState<Record<string, PipelineStep[]>>({});
+  const [extraAgentOptions, setExtraAgentOptions] = useState<PipelineStep[]>([]);
+  const [extraToolOptions, setExtraToolOptions] = useState<CatalogCard[]>([]);
+  const [extraMcpOptions, setExtraMcpOptions] = useState<CatalogCard[]>([]);
+  const [extraRagOptions, setExtraRagOptions] = useState<CatalogCard[]>([]);
+
   function toggle(set: Set<string>, id: string): Set<string> {
     const next = new Set(set);
     if (next.has(id)) next.delete(id);
     else next.add(id);
     return next;
+  }
+
+  function handleSearchSelect(item: ModalItem) {
+    switch (searchCategory) {
+      case "data-source":
+      case "delivery": {
+        const step = item as PipelineStep;
+        const category = searchCategory;
+        setExtraBlockOptions((prev) => ({
+          ...prev,
+          [category]: withExtras(prev[category] ?? [], [step]),
+        }));
+        setSelectedBlocks((prev) => ({ ...prev, [category]: step.id }));
+        break;
+      }
+      case "agent": {
+        const step = item as PipelineStep;
+        setExtraAgentOptions((prev) => withExtras(prev, [step]));
+        setSelectedAgentId(step.id);
+        break;
+      }
+      case "tools": {
+        const card = item as CatalogCard;
+        setExtraToolOptions((prev) => withExtras(prev, [card]));
+        setSelectedToolIds((prev) => new Set(prev).add(card.id));
+        break;
+      }
+      case "mcp-servers": {
+        const card = item as CatalogCard;
+        setExtraMcpOptions((prev) => withExtras(prev, [card]));
+        setSelectedMcpIds((prev) => new Set(prev).add(card.id));
+        break;
+      }
+      case "rag-sources": {
+        const card = item as CatalogCard;
+        setExtraRagOptions((prev) => withExtras(prev, [card]));
+        setSelectedRagIds((prev) => new Set(prev).add(card.id));
+        break;
+      }
+    }
+    setSearchCategory(null);
   }
 
   async function analyze() {
@@ -180,13 +236,17 @@ export function EcosystemTab({
     if (analysis.status !== "done") return;
     const { result } = analysis;
 
-    const dataSourceStep = result.blocks
-      .find((b) => b.blockType === "data-source")
-      ?.allOptions.find((o) => o.id === selectedBlocks["data-source"]);
-    const deliveryStep = result.blocks
-      .find((b) => b.blockType === "delivery")
-      ?.allOptions.find((o) => o.id === selectedBlocks.delivery);
-    const agentStep = result.agent.allOptions.find((o) => o.id === selectedAgentId);
+    const dataSourceStep = withExtras(
+      result.blocks.find((b) => b.blockType === "data-source")?.allOptions ?? [],
+      extraBlockOptions["data-source"] ?? [],
+    ).find((o) => o.id === selectedBlocks["data-source"]);
+    const deliveryStep = withExtras(
+      result.blocks.find((b) => b.blockType === "delivery")?.allOptions ?? [],
+      extraBlockOptions.delivery ?? [],
+    ).find((o) => o.id === selectedBlocks.delivery);
+    const agentStep = withExtras(result.agent.allOptions, extraAgentOptions).find(
+      (o) => o.id === selectedAgentId,
+    );
     if (!dataSourceStep || !agentStep || !deliveryStep) return;
 
     const wantsLocalRag = selectedRagIds.has(LOCAL_RAG_ID);
@@ -244,36 +304,13 @@ export function EcosystemTab({
             />
           </div>
 
-          {analysis.result.blocks.map((block) => (
-            <div key={block.blockType} className="flex flex-col gap-3">
-              <div>
-                <h2 className="font-medium text-black dark:text-zinc-50">
-                  {BLOCK_TITLES[block.blockType]}
-                </h2>
-                <p className="text-sm text-zinc-500 dark:text-zinc-500">{block.rationale}</p>
-              </div>
-              <div className="flex flex-wrap items-start gap-3">
-                {block.allOptions.map((option) => (
-                  <StepOptionCard
-                    key={option.id}
-                    option={option}
-                    selected={selectedBlocks[block.blockType] === option.id}
-                    onSelect={() =>
-                      setSelectedBlocks((prev) => ({ ...prev, [block.blockType]: option.id }))
-                    }
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-
           <div className="flex flex-col gap-3">
             <div>
               <h2 className="font-medium text-black dark:text-zinc-50">Agent</h2>
               <p className="text-sm text-zinc-500 dark:text-zinc-500">{analysis.result.agent.rationale}</p>
             </div>
             <div className="flex flex-wrap items-start gap-3">
-              {analysis.result.agent.allOptions.map((option) => (
+              {withExtras(analysis.result.agent.allOptions, extraAgentOptions).map((option) => (
                 <StepOptionCard
                   key={option.id}
                   option={option}
@@ -281,72 +318,99 @@ export function EcosystemTab({
                   onSelect={() => setSelectedAgentId(option.id)}
                 />
               ))}
+              <SearchMoreCard onClick={() => setSearchCategory("agent")} />
             </div>
           </div>
 
-          {analysis.result.tools.allOptions.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <div>
-                <h2 className="font-medium text-black dark:text-zinc-50">Tools</h2>
-                <p className="text-sm text-zinc-500 dark:text-zinc-500">{analysis.result.tools.rationale}</p>
-              </div>
-              <div className="flex flex-wrap items-start gap-3">
-                {analysis.result.tools.allOptions.map((option) => (
-                  <CardOptionCard
-                    key={option.id}
-                    option={option}
-                    selected={selectedToolIds.has(option.id)}
-                    onSelect={() => setSelectedToolIds((prev) => toggle(prev, option.id))}
-                  />
-                ))}
-              </div>
+          <div className="flex flex-col gap-3">
+            <div>
+              <h2 className="font-medium text-black dark:text-zinc-50">Tools</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-500">{analysis.result.tools.rationale}</p>
             </div>
-          )}
+            <div className="flex flex-wrap items-start gap-3">
+              {withExtras(analysis.result.tools.allOptions, extraToolOptions).map((option) => (
+                <CardOptionCard
+                  key={option.id}
+                  option={option}
+                  selected={selectedToolIds.has(option.id)}
+                  onSelect={() => setSelectedToolIds((prev) => toggle(prev, option.id))}
+                />
+              ))}
+              <SearchMoreCard onClick={() => setSearchCategory("tools")} />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <h2 className="font-medium text-black dark:text-zinc-50">Data sources (and outputs)</h2>
+            {analysis.result.blocks.map((block) => (
+              <div key={block.blockType} className="flex flex-col gap-3">
+                <div>
+                  <h3 className="text-sm font-medium text-black dark:text-zinc-50">
+                    {BLOCK_TITLES[block.blockType]}
+                  </h3>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-500">{block.rationale}</p>
+                </div>
+                <div className="flex flex-wrap items-start gap-3">
+                  {withExtras(block.allOptions, extraBlockOptions[block.blockType] ?? []).map((option) => (
+                    <StepOptionCard
+                      key={option.id}
+                      option={option}
+                      selected={selectedBlocks[block.blockType] === option.id}
+                      onSelect={() =>
+                        setSelectedBlocks((prev) => ({ ...prev, [block.blockType]: option.id }))
+                      }
+                    />
+                  ))}
+                  <SearchMoreCard
+                    onClick={() => setSearchCategory(block.blockType as CatalogCategory)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
 
           <div className="flex flex-col gap-6 border-t border-zinc-200 pt-6 dark:border-zinc-800">
             <h2 className="font-medium text-black dark:text-zinc-50">Bonuses</h2>
 
-            {analysis.result.mcpServers.allOptions.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <div>
-                  <h3 className="text-sm font-medium text-black dark:text-zinc-50">MCP servers</h3>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                    {analysis.result.mcpServers.rationale}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-start gap-3">
-                  {analysis.result.mcpServers.allOptions.map((option) => (
-                    <CardOptionCard
-                      key={option.id}
-                      option={option}
-                      selected={selectedMcpIds.has(option.id)}
-                      onSelect={() => setSelectedMcpIds((prev) => toggle(prev, option.id))}
-                    />
-                  ))}
-                </div>
+            <div className="flex flex-col gap-3">
+              <div>
+                <h3 className="text-sm font-medium text-black dark:text-zinc-50">MCP servers</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                  {analysis.result.mcpServers.rationale}
+                </p>
               </div>
-            )}
+              <div className="flex flex-wrap items-start gap-3">
+                {withExtras(analysis.result.mcpServers.allOptions, extraMcpOptions).map((option) => (
+                  <CardOptionCard
+                    key={option.id}
+                    option={option}
+                    selected={selectedMcpIds.has(option.id)}
+                    onSelect={() => setSelectedMcpIds((prev) => toggle(prev, option.id))}
+                  />
+                ))}
+                <SearchMoreCard onClick={() => setSearchCategory("mcp-servers")} />
+              </div>
+            </div>
 
-            {analysis.result.ragSources.allOptions.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <div>
-                  <h3 className="text-sm font-medium text-black dark:text-zinc-50">RAG sources</h3>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                    {analysis.result.ragSources.rationale}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-start gap-3">
-                  {analysis.result.ragSources.allOptions.map((option) => (
-                    <CardOptionCard
-                      key={option.id}
-                      option={option}
-                      selected={selectedRagIds.has(option.id)}
-                      onSelect={() => setSelectedRagIds((prev) => toggle(prev, option.id))}
-                    />
-                  ))}
-                </div>
+            <div className="flex flex-col gap-3">
+              <div>
+                <h3 className="text-sm font-medium text-black dark:text-zinc-50">RAG sources</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                  {analysis.result.ragSources.rationale}
+                </p>
               </div>
-            )}
+              <div className="flex flex-wrap items-start gap-3">
+                {withExtras(analysis.result.ragSources.allOptions, extraRagOptions).map((option) => (
+                  <CardOptionCard
+                    key={option.id}
+                    option={option}
+                    selected={selectedRagIds.has(option.id)}
+                    onSelect={() => setSelectedRagIds((prev) => toggle(prev, option.id))}
+                  />
+                ))}
+                <SearchMoreCard onClick={() => setSearchCategory("rag-sources")} />
+              </div>
+            </div>
 
             {selectedRagIds.has(LOCAL_RAG_ID) && (
               <div>
@@ -384,6 +448,29 @@ export function EcosystemTab({
             Build flow
           </button>
         </div>
+      )}
+
+      {searchCategory && (
+        <CatalogSearchModal
+          category={searchCategory}
+          isSelected={(id) => {
+            switch (searchCategory) {
+              case "data-source":
+              case "delivery":
+                return selectedBlocks[searchCategory] === id;
+              case "agent":
+                return selectedAgentId === id;
+              case "tools":
+                return selectedToolIds.has(id);
+              case "mcp-servers":
+                return selectedMcpIds.has(id);
+              case "rag-sources":
+                return selectedRagIds.has(id);
+            }
+          }}
+          onSelect={handleSearchSelect}
+          onClose={() => setSearchCategory(null)}
+        />
       )}
     </div>
   );

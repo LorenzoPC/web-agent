@@ -29,11 +29,12 @@ export function PipelineApp() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          Pipeline
+          Agent flows
         </h1>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Describe a challenge to build a flow, then run each step against local hardware,
-          rented remote hardware, or a paid API, and compare projected vs. actual cost.
+          Describe a goal and get back a proposed agent flow — a model, tools, and data
+          sources — ready to run against local hardware, rented remote hardware, or a paid
+          API, with projected vs. actual cost at every step.
         </p>
       </div>
 
