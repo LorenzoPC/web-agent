@@ -1,6 +1,6 @@
 # Design — web-agent
 
-**Status:** Approved (pipeline execution, chained runs, tabs UI, Ecosystem catalog database, Ecosystem builder v2 — Agents/Tools/MCP/RAG, full-catalog search, per-item rationale) / Draft (run history persistence)
+**Status:** Approved (pipeline execution, chained runs, tabs UI, Ecosystem catalog database, Ecosystem builder v2 — Agents/Tools/MCP/RAG, full-catalog search, per-item rationale) / Draft (run history persistence, Dashboard + Agent Marketplace screens — UI built against mock data, persistence not yet applied)
 **Created:** 2026-07-17
 **PRD:** [`../prds/web-agent.md`](../prds/web-agent.md)
 **Implementation plan:** tracked directly in [`../project/backlog.md`](../project/backlog.md)
@@ -27,6 +27,10 @@ Everything else selected (other tools, other MCP servers, other RAG patterns) is
 **Analyze endpoint reliability finding:** the local default analysis model produced hallucinated/cross-contaminated `rationale` text (e.g. a stray URL repeated everywhere, then an MCP server id leaking into the RAG section's rationale) when multiple recommendation groups shared one structured-output call — even though the actual id *selections* stayed correct throughout. The fix was fully isolating each group into its own `generateText` call: one call for goal+blocks+agent (held up fine bundled), and separate calls each for tools, MCP servers, and RAG sources (needed full isolation — even a 2-group "attachments" call still bled). This is now 4 sequential/parallel LLM calls per analysis instead of 1.
 
 Run history (planned, not yet built) will persist to a Neon Postgres database: one row per pipeline run (whether it came from a full chain or a single isolated step) with child rows per step result, so past runs can be reviewed instead of only seen live.
+
+**Dashboard + Agent Marketplace (2026-07-30, UI only — mock data, no persistence yet):** the app gained real routing — the old single-page builder moved from `/` to `/builder`, `/` now renders a signed-in **Dashboard**, and a new **Marketplace** page lives at `/marketplace`. A shared nav shell (`src/components/shell/app-nav.tsx`, rendered from the now-`async` root `layout.tsx`) links all three and shows the current user's name via a mock-auth seam (`src/lib/auth.ts`'s `getCurrentUser()`, hardcoded, `async` on purpose so a real session lookup can replace the body later with no call-site changes). The Dashboard currently shows only a **Results** section (recent pipeline runs — mock data). The Marketplace has two sections: **Business Capabilities Agents** — a **Capabilities**/**Roles** toggle over pool cards (Capabilities mirrors the already-seeded-but-previously-unread `catalog_task_categories`/`catalog_entry_categories` tables — NLP, Agentic Tool Use, etc.; Roles is a new, not-yet-persisted taxonomy — Customer Support, Sales, Engineering, Customer Experience) — and **Tasks Agents**, a card grid of individual agent personas (name + role) that opens a right-side sidebar with the full persona (role, source, cost, description, system prompt) on click, reusing the persona data shape (`PipelineStep`, now carrying an optional `role`) rather than inventing a parallel type. Pool cards are independently click-to-expand (accordion per card, several can be open at once), showing that pool's mapped agents and/or a **Pre / Work / Post** breakdown of business processes the pool could support — content drafted collaboratively over several rounds in conversation (16-20 processes per Role, phase-classified, then hand-reviewed) before being hardcoded into `src/lib/mock-data.ts`. Only the 4 Role pools have process content so far; Capability pools have none yet. Support Agent and Code Reviewer Agent are deliberately excluded from the flat Tasks Agents grid — they're shown only under the Engineering pool instead, per an explicit scoping call.
+
+This entire feature is intentionally sequenced UI-first: a `role` column on `catalog_entries` and a new `pipeline_runs` table were drafted in `src/db/schema.ts` (plus a matching backfill in `scripts/seed-catalog-agents.ts`) but deliberately **not** pushed or applied — the Dashboard/Marketplace validate layout and content against `src/lib/mock-data.ts` first, with real persistence (and the API routes/queries to back it) as explicit follow-up work once the mock is settled. No new API routes exist for either screen yet.
 
 V1 is built and scoped as a single-user personal tool. Broad-audience SaaS with multi-tenancy is the long-term ambition but explicitly deferred to V2 — see the PRD's Non-goals.
 
@@ -149,6 +153,39 @@ CREATE INDEX pipeline_run_steps_run_id_idx ON pipeline_run_steps (run_id, step_o
 **Migrations required:**
 - `001_run_history.sql` — creates `pipeline_runs` + `pipeline_run_steps`. Not yet written to a `db/migrations/` folder — no migration tooling chosen yet (open question).
 
+**Drafted, not applied — Dashboard/Marketplace schema (`src/db/schema.ts`):** written ahead of the UI-first pivot below, kept in the file as a ready-to-push draft rather than reverted:
+
+```ts
+// catalogEntries gains one nullable column, agent rows only:
+role: text("role"), // e.g. "Research Analyst"; null for non-agent rows
+
+// a new, separate table — one row per full "Run pipeline" chain, not per step
+// (deliberately simpler than the pipeline_runs/pipeline_run_steps split above,
+// to avoid threading a runId through /api/pipeline/run):
+export const pipelineRuns = pgTable("pipeline_runs", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(), // no `users` table yet — the mock-auth constant
+  rootInput: text("root_input").notNull(),
+  successCriteria: text("success_criteria"),
+  status: text("status").notNull(), // 'success' | 'partial' | 'error'
+  totalCostUsd: numeric("total_cost_usd").notNull(),
+  stepCount: integer("step_count").notNull(),
+  steps: jsonb("steps").notNull(), // per-step snapshot, shape TBD
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+```
+
+`scripts/seed-catalog-agents.ts` was updated in lockstep with a `role` string per curated agent (Research Analyst, Content Summarizer, Customer Support Specialist, Code Reviewer, Data Analyst, General Assistant) — idempotent, ready to re-run once `role` is actually pushed.
+
+**Current — Dashboard/Marketplace UI, mock data only (`src/lib/mock-data.ts`):** both screens render entirely from static exports, no database reads:
+- `MOCK_AGENTS: PipelineStep[]` — the 6 curated personas plus `role`, standing in for a real `getMarketplaceAgents()` query.
+- `MOCK_CAPABILITY_POOLS` / `MOCK_ROLE_POOLS: MockAgentPool[]` — `{ id, name, description, entryCount, agents?, processes? }`; `agents?: { name, note }[]` (only Engineering populated); `processes?: { pre, work, post }: string[]` (all 4 Role pools populated, no Capability pool has this yet).
+- `MOCK_RUNS: MockRun[]` — `{ id, rootInput, status, totalCostUsd, stepCount, completedAt }`, standing in for `listRecentRuns()` reading the drafted `pipelineRuns` table above.
+
+These shapes were deliberately kept close to what the real query results will look like, so swapping mock data for real queries later should be a low-diff change to the page components, not a rewrite.
+
 ---
 
 ## API surface
@@ -159,6 +196,7 @@ CREATE INDEX pipeline_run_steps_run_id_idx ON pipeline_run_steps (run_id, step_o
 | POST | `/api/ecosystem/analyze` | none | `{ challenge: string }` | `{ refinedGoal, successCriteria, blocks: [...], agent, tools, mcpServers, ragSources }` — each group is `{ rationale, allOptions, recommendations }`, where `recommendations` is `{ id, rationale }[]` (one rationale per recommended item, not just per section); `allOptions` sourced from `catalog_entries` (`getCatalogOptionsForBlock`/`getAgentOptions`/`getCatalogCardsByKind`), capped at 15 candidates/group |
 | GET | `/api/ecosystem/catalog` | none | query params: `category` (one of `CatalogCategory`), `offset`, `limit`, optional `q` | `{ title, subtitle, items, hasMore }` — uncapped, paginated fetch (`searchCatalogCategory`) backing each section's "Search something else" modal; `q` does an `ILIKE` match on name/description/provider |
 | GET | `/api/pipeline/runs` *(planned)* | none | — | `{ runs: (PipelineRun & { steps: PipelineRunStep[] })[] }` — not yet implemented |
+| — | Dashboard / Marketplace | — | — | **No API routes yet.** Both pages read directly from `src/lib/mock-data.ts` — see Data model. |
 
 Chaining a full pipeline run is orchestrated **client-side**: the browser calls `POST /api/pipeline/run` once per step, in order, reusing the same `runId` for all of them and threading each response's `output` into the next call's `input`. There is no separate "run everything" server endpoint.
 
@@ -247,6 +285,13 @@ real `tools` object passed to `generateText` alongside `system: step.systemPromp
 | Tool-calling model choice | Not enforced/warned in the UI | Restrict tool/MCP attachment to models known to support tool-calling well | Found during verification: the free local default model (`llama3.2:latest`) doesn't reliably invoke attached tools (claims it "can't search" rather than calling Exa) — a real limitation, but out of scope to solve now; noted as an open question instead of blocking the feature. |
 | Access to candidates beyond the 15-per-section cap | A "Search something else" card per section opens a modal over the *entire* uncapped catalog for that category (`GET /api/ecosystem/catalog`, paginated + text-searchable) | Raise or remove the cap in the analyze prompt itself | The cap exists to protect the analyze LLM call from an oversized prompt (see the cap's own decision row below); a separate uncapped *browse* path lets a user reach anything in the catalog without touching that constraint. Selections from the modal are merged into the section's option list client-side only — nothing is written back to `catalog_entries`. |
 | Per-item vs per-section rationale | Analyze schema carries `recommendations: { id, rationale }[]` — one short rationale per recommended item | Keep the single per-section `rationale` string only | A section-level blurb can't explain *why this specific card* over another one in the same tray; per-item rationale is shown on that card while selected, giving a concrete reason tied to what the user actually picked. The existing section-level `rationale` is kept alongside it as the tray's subtitle. |
+| Dashboard/Marketplace build order | UI first, entirely against static mock data (`src/lib/mock-data.ts`); schema/API work deferred | Build the `role` column + `pipeline_runs` table and real queries first, then the UI | Explicit user call mid-implementation — the schema/seed edits were already drafted when the user paused to validate layout and content (including several rounds of iterating on business-process copy) before committing to a data model. |
+| Landing route | `/` becomes the Dashboard now; the old single-page builder moved to `/builder` | Leave `/` as the builder, add the Dashboard at a new `/dashboard` path | User confirmed wanting `/` to literally be the landing screen, accepting the risk of colliding with a concurrent session's in-flight edits to the builder's run code — mitigated by the move being a pure file relocation, no logic changes. |
+| Auth (Dashboard/Marketplace) | Mocked via a single `getCurrentUser()` seam (`src/lib/auth.ts`), `async` on purpose | Wire a real auth provider (e.g. Clerk via Vercel Marketplace) as part of this pass | Keeps scope to the two screens; every call site already awaits the result, so swapping in a real session lookup later is a same-signature change. |
+| "Agent pools" definition | Categorized groupings to build a flow from, shown two ways — **Capabilities** (mirrors the existing `catalog_task_categories`/`catalog_entry_categories` tables) and **Roles** (a new business-function taxonomy: Customer Support, Sales, Engineering, Customer Experience) | "Agent pools" = saved/named pipeline configs | User's explicit clarification when the term was ambiguous — not related to the Ecosystem builder's "Build flow" output. |
+| Business-process content generation | Hand-drafted collaboratively in conversation (16-20 items per Role, phase-classified into Pre/Work/Post, iterated over several rounds) then hardcoded into mock data | Generate the process list via an LLM call at request/render time | The content needed multiple rounds of human judgment (add more items, reorder by phase, rebalance an underrepresented phase) that a live LLM call wouldn't reliably reproduce; a reviewed static list was the right fit for this first pass. |
+| Pool card interaction | Click-to-expand in place, accordion-style per card (several can be open at once), showing mapped agents and/or the Pre/Work/Post breakdown | A separate detail sidebar/modal, matching the Marketplace agent card's pattern | The content (short bullet lists) doesn't need the extra real estate a sidebar gives a full agent persona — inline expansion is lighter-weight and keeps pool cards scannable in the grid. |
+| Support Agent / Code Reviewer Agent placement | Excluded from the Marketplace's flat "Tasks Agents" grid; shown only under the Engineering pool | List every agent in both the flat grid and any pool mapping | Explicit user scoping call — these two conceptually belong to a specific business capability, not the general task-agent list. |
 
 ---
 
@@ -259,6 +304,11 @@ real `tools` object passed to `generateText` alongside `system: step.systemPromp
 - [ ] Worth widening `RUNNABLE_LANGUAGE_PROVIDERS`/`RUNNABLE_EMBEDDING_PROVIDERS` (currently just openai/anthropic) if more providers get added to `src/lib/providers.ts`'s registry?
 - [ ] GitHub MCP's real success path is untested (only the clean "Missing GITHUB_TOKEN" failure path was verified) — needs a real token to confirm end-to-end.
 - [ ] Should the UI surface a warning when an attached Tool/MCP server is paired with an Agent whose model has weak tool-calling support (confirmed: the free local default doesn't reliably call tools)?
+- [ ] When should the drafted `role` column + `pipelineRuns` table (in `src/db/schema.ts`, not yet pushed) actually be applied, and the Dashboard/Marketplace switched from `src/lib/mock-data.ts` to real queries/API routes?
+- [ ] Is "Roles" (Customer Support/Sales/Engineering/Customer Experience) a taxonomy that deserves its own DB table (mirroring `catalog_task_categories`), or does it map onto something else once this becomes real?
+- [ ] Only Engineering has a real agent mapping and only the 4 Role pools have Pre/Work/Post content — Capability pools have neither. Worth adding equivalent content there, or is Capabilities meant to stay summary-only?
+- [ ] Should a pool card's Pre/Work/Post items ever link to specific catalog agents/ids, or stay freeform descriptive text?
+- [ ] A few phase classifications (Pre vs. Work vs. Post) flagged as genuinely ambiguous during content drafting — e.g. "Summarize discovery calls into CRM notes" (Sales, called Work) and "Recommend proactive outreach for customers nearing renewal" (CX, called Pre) — still open, not yet revisited with the user.
 - [x] ~~The built flow's textarea still shows the default placeholder prompt, not the Ecosystem challenge text~~ — resolved: seeded from `refinedGoal` when a flow is built via Ecosystem
 - [x] ~~Should `hook`/`rag-pattern`/`mcp-server` catalog entries ever become selectable in the Ecosystem flow?~~ — resolved: Tools (`hook`), MCP servers, and RAG sources are all now selectable/attachable to the Agent step (Ecosystem builder v2)
 
@@ -273,3 +323,7 @@ real `tools` object passed to `generateText` alongside `system: step.systemPromp
 - Editing/deleting past runs once persisted
 - Multi-tenancy, per-user auth/scoping (V2 — see PRD Non-goals)
 - Retrying a failed step mid-chain, or resuming a chain from where it stopped
+- Real persistence for the Dashboard/Marketplace (agent pools, results, the drafted `role` column) — mock data only in this pass; see Open questions
+- Real auth for the Dashboard/Marketplace — mocked via a hardcoded `getCurrentUser()`
+- Wiring the History tab to real run data — still its own separate placeholder, unrelated to the new (also mock) Dashboard Results section
+- Process-phase (Pre/Work/Post) content for Capability pools, or agent mappings for any pool beyond Engineering

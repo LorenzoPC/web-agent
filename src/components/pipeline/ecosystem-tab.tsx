@@ -288,7 +288,7 @@ export function EcosystemTab({
     <div className="flex flex-col gap-8">
       <div>
         <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Describe your challenge
+          Describe your job-to-be-done
         </label>
         <textarea
           value={challenge}

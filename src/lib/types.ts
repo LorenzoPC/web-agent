@@ -22,6 +22,8 @@ export interface PipelineStep {
   cost: CostModel;
   /** Agent persona system prompt (kind: 'agent' catalog entries). Only meaningful for stepKind "chat". */
   systemPrompt?: string;
+  /** Display role for the agent marketplace, e.g. "Research Analyst". Only set for kind: 'agent' entries. */
+  role?: string;
   /** Attached "hook"-kind catalog ids. Only ids with a recognized metadata.executor do anything at run time. */
   toolRefs?: string[];
   /** Attached "mcp-server"-kind catalog ids. Only ids with a recognized metadata.executor do anything at run time. */

@@ -1,4 +1,4 @@
-import { jsonb, numeric, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, jsonb, numeric, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
 
 // Catalog entry kinds: 'model' | 'service' | 'agent' | 'hook' | 'rag-pattern' | 'mcp-server'.
 // Model/service/agent are directly usable as a PipelineStep (blockType/sourceType/
@@ -17,6 +17,7 @@ export const catalogEntries = pgTable("catalog_entries", {
   provider: text("provider"),
   modelRef: text("model_ref"), // registry key, e.g. "openai > gpt-5.4"; null for non-runnable kinds
   systemPrompt: text("system_prompt"), // 'agent' kind: the persona's system prompt
+  role: text("role"), // 'agent' kind: display role for the marketplace, e.g. "Research Analyst"
   cost: jsonb("cost").notNull(), // CostModel payload
   unit: text("unit"),
   estimatedUnits: numeric("estimated_units"),
@@ -45,3 +46,20 @@ export const catalogEntryCategories = pgTable(
   },
   (t) => [primaryKey({ columns: [t.entryId, t.categoryId] })],
 );
+
+// One row per completed "Run pipeline" chain (not per step — see docs/design/web-agent.md
+// for the normalized per-step design this deliberately simplifies away from for now).
+// `userId` has no `users` table behind it yet; it's the mock-auth constant from src/lib/auth.ts.
+export const pipelineRuns = pgTable("pipeline_runs", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  rootInput: text("root_input").notNull(),
+  successCriteria: text("success_criteria"),
+  status: text("status").notNull(), // 'success' | 'partial' | 'error'
+  totalCostUsd: numeric("total_cost_usd").notNull(),
+  stepCount: integer("step_count").notNull(),
+  steps: jsonb("steps").notNull(), // RunStepSummary[] snapshot — see src/lib/types.ts
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

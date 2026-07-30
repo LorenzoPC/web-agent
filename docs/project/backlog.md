@@ -1,6 +1,6 @@
 # Backlog — web-agent
 
-**Last reviewed:** 2026-07-22
+**Last reviewed:** 2026-07-30
 
 Priority definitions:
 - **P1** — Blocking. Must be resolved before the next major milestone.
@@ -20,6 +20,9 @@ Priority definitions:
 - [ ] **Fix Vercel project's GitHub auto-connect** — `vercel link` created the project but failed to connect `LorenzoPC/web-agent`; deploys currently need to go through the CLI/dashboard manually, or retry the connection.
 - [ ] **Relevance-ranked candidates for the analyze prompt** — currently a flat 15-per-group alphabetical cap (`src/lib/catalog-db.ts`); rank by task-category match to the challenge (or cost, or recency) instead once the catalog grows further. Note: the LLM-recommended cap itself is unchanged by the new "Search something else" full-catalog modal — that's a separate, uncapped *browse* path, not a fix to the prompt's candidate selection.
 - [ ] **Verify GitHub MCP's real success path** — only the clean "Missing GITHUB_TOKEN" failure was tested (no token available this session); needs a real PAT to confirm end-to-end.
+- [ ] **Apply the drafted Dashboard/Marketplace schema and switch off mock data** — `role` column on `catalog_entries` + `pipelineRuns` table are already drafted in `src/db/schema.ts` (not pushed); `scripts/seed-catalog-agents.ts` already has a `role` per curated agent ready to backfill. Once pushed: build `getMarketplaceAgents()`/`getAgentPools()`/`persistRun()`/`listRecentRuns()`, the `/api/marketplace/agents`, `/api/dashboard/pools`, `/api/runs` routes, and the small additive persistence hook in `pipeline-tab.tsx` (all designed, not yet built — see the approved plan this was paused from). Replaces `src/lib/mock-data.ts` in `src/app/page.tsx` and `src/app/marketplace/page.tsx`.
+- [ ] **Define a real "Roles" taxonomy** — Capabilities pools already have a DB home (`catalog_task_categories`/`catalog_entry_categories`); Roles (Customer Support, Sales, Engineering, Customer Experience) don't yet. Needs a table + a real agent→role mapping before the Marketplace's Roles view can read from the database.
+- [ ] **Populate Capability-pool content** — only the 4 Role pools have mapped agents/Pre-Work-Post process content today; Capability pools (NLP, Agentic Tool Use, etc.) have neither.
 
 ## P3 — Nice to have
 
@@ -30,6 +33,8 @@ Priority definitions:
 - [ ] **Surface a tool-calling-reliability warning** — the free local default agent model (`llama3.2:latest`) doesn't reliably invoke attached tools (confirmed: claims it "can't search" rather than calling Exa); consider flagging this in the UI when a weak-tool-calling model is paired with Tools/MCP attachments.
 - [ ] **Retry on malformed analyze responses** — recommendation groups occasionally still return a glitched response (e.g. a stray token fragment or empty string as an item's rationale, or — seen on the bundled goal+blocks+agent call specifically — no valid ids at all, falling back to the generic "A solid default option for your goal." rationale) even fully isolated into its own call; a one-time retry could smooth this over. Accepted as known flakiness for now — every section stays manually selectable either way.
 - [ ] **A browsing UI for `hook`/`rag-pattern`/`mcp-server` catalog data outside the Ecosystem flow** — undecided whether this is worth building.
+- [ ] **Revisit flagged Pre/Work/Post phase classifications** — a handful of business-process items were genuinely ambiguous when drafted (e.g. "Summarize discovery calls into CRM notes" called Work, "Recommend proactive outreach for customers nearing renewal" called Pre) — flagged in chat, not yet re-reviewed with the user.
+- [ ] **Real auth for the Dashboard/Marketplace** — currently a hardcoded `getCurrentUser()` (`src/lib/auth.ts`); revisit once/if these screens need to be more than single-user (see PRD Non-goals on multi-tenancy).
 
 ---
 
@@ -73,3 +78,17 @@ Priority definitions:
   - `/api/ecosystem/analyze`'s schema changed from `recommendedOptionIds: string[]` to `recommendations: { id, rationale }[]` for every group (blocks, agent, tools, MCP servers, RAG sources); `resolveRecommendations()` replaces `resolveIds()`, falling back to the first N candidates with a generic rationale if the model's ids don't validate
   - Each option card shows its own rationale text (in quotes, italic) while selected, if the analyze response gave one for that specific id
   - Verified in-browser: agent/tools/MCP/RAG groups reliably returned real, item-specific rationale text; the bundled goal+blocks+agent call occasionally fell back to the generic rationale for the two block sections — pre-existing model flakiness on that specific call (see backlog's "Retry on malformed analyze responses"), not a regression
+- [x] **Shared `SelectableCard` + 200px/100px card templatizing** — shipped 2026-07-29:
+  - `src/components/pipeline/selectable-card.tsx` — the reusable card wrapper (`{as, selected, onSelect, header, children}`), 200px wide selected / 100px unselected, whole card is a button, `children` only rendered while selected; unselected cards show smaller name/cost text
+  - Adopted by the Ecosystem tab's option cards and the Pipeline tab's `StepCard` (which gained click-to-focus, since it previously had no selection concept); both tabs' card rows became `flex flex-wrap` so several cards fit per line
+  - Card headers on both tabs now show price (left) and source type (right) on the same line
+  - Later reused as the base visual language for the Ecosystem builder's `StepOptionCard`/`CardOptionCard` (v2) and, unrelated to this component itself, informed (but is not directly reused by) the Marketplace's `AgentCard`/pool cards below
+- [x] **Root cleanup — `drizzle.config.ts` moved into `db/`** — shipped 2026-07-29: relocated from repo root to `db/drizzle.config.ts` (git rename), `schema`/`out` paths confirmed to resolve relative to the invoking CWD (repo root) not the config file's own location; added `npm run db:generate`/`db:push` scripts pointing at the new path so the move doesn't break the usual `drizzle-kit` workflow. `skills-lock.json` deliberately left at root — likely required there by the Claude Code skill installer.
+- [x] **Dashboard + Agent Marketplace screens (UI only, mock data)** — shipped 2026-07-30, see design doc's "Dashboard + Agent Marketplace" section for full detail; not yet backed by real persistence (tracked above under P2):
+  - Routing: builder moved `/` → `/builder`; `/` now renders the Dashboard; new `/marketplace` page. Shared nav shell (`src/components/shell/app-nav.tsx`) in the now-`async` root `layout.tsx`, active-route highlighting, mock user name via `src/lib/auth.ts`'s `getCurrentUser()`
+  - Dashboard (`/`): a Results section listing recent mock pipeline runs (status badge, cost, timestamp, step count), empty-state copy modeled on the History tab's
+  - Marketplace (`/marketplace`): "Business Capabilities Agents" (Capabilities/Roles toggle over independently click-to-expand pool cards — `src/components/marketplace/agent-pools-section.tsx`) and "Tasks Agents" (a card grid of individual personas — `agent-card.tsx`/`agent-marketplace.tsx` — opening a right-side `agent-sidebar.tsx` with the full persona on click, mirroring `catalog-search-modal.tsx`'s backdrop-click-to-close pattern)
+  - Support Agent and Code Reviewer Agent excluded from the Tasks Agents grid, shown only under the Engineering pool
+  - Business-process content: 16-20 processes per Role pool, drafted and iterated in conversation, then classified into **Pre / Work / Post** phases and hardcoded into `src/lib/mock-data.ts`; rendered in each pool card's expanded state alongside any mapped agents (Engineering only, so far)
+  - `PipelineStep` gained an optional `role` field; `src/db/schema.ts` gained a drafted-but-unpushed `role` column and `pipelineRuns` table, with a matching backfill drafted in `scripts/seed-catalog-agents.ts` — deliberately not applied yet, see P2
+  - Builder's Ecosystem tab textarea label changed from "Describe your challenge" to "Describe your job-to-be-done"

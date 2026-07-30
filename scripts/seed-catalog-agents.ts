@@ -6,6 +6,7 @@ import type { CostModel } from "../src/lib/types";
 type AgentEntry = {
   id: string;
   name: string;
+  role: string;
   description: string;
   systemPrompt: string;
   modelRef: string;
@@ -22,6 +23,7 @@ const AGENTS: AgentEntry[] = [
   {
     id: "curated:agent-research",
     name: "Research Agent",
+    role: "Research Analyst",
     description: "Gathers and synthesizes information on a topic into a clear, sourced summary",
     systemPrompt:
       "You are a research agent. Given a topic or question, gather and synthesize relevant " +
@@ -35,6 +37,7 @@ const AGENTS: AgentEntry[] = [
   {
     id: "curated:agent-summarizer",
     name: "Summarizer Agent",
+    role: "Content Summarizer",
     description: "Condenses content into a concise, accurate summary",
     systemPrompt:
       "You are a summarizer agent. Condense the given content into a concise, accurate summary, " +
@@ -48,6 +51,7 @@ const AGENTS: AgentEntry[] = [
   {
     id: "curated:agent-support",
     name: "Support Agent",
+    role: "Customer Support Specialist",
     description: "Answers user questions helpfully, staying within the provided context",
     systemPrompt:
       "You are a customer support agent. Respond helpfully and empathetically to user questions, " +
@@ -61,6 +65,7 @@ const AGENTS: AgentEntry[] = [
   {
     id: "curated:agent-code-reviewer",
     name: "Code Reviewer Agent",
+    role: "Code Reviewer",
     description: "Reviews code or diffs for correctness, security, and style issues",
     systemPrompt:
       "You are a code reviewer agent. Analyze the given code or diff for correctness, security " +
@@ -74,6 +79,7 @@ const AGENTS: AgentEntry[] = [
   {
     id: "curated:agent-data-analyst",
     name: "Data Analyst Agent",
+    role: "Data Analyst",
     description: "Identifies trends, anomalies, and insights from data",
     systemPrompt:
       "You are a data analyst agent. Given data or a description of data, identify trends, " +
@@ -87,6 +93,7 @@ const AGENTS: AgentEntry[] = [
   {
     id: "curated:agent-general",
     name: "General Assistant Agent",
+    role: "General Assistant",
     description: "A general-purpose local assistant, no per-call cost",
     systemPrompt:
       "You are a general-purpose assistant agent. Help with the given task directly and " +
