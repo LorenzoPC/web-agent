@@ -5,6 +5,7 @@ import type { BlockType } from "@/lib/block-catalog";
 import type { CatalogCard, CatalogCategory } from "@/lib/catalog-db";
 import { SOURCE_TYPE_LABELS, formatCost, formatCostModel, stepCost } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
+import { CreateNewCard } from "@/components/ui/create-new-card";
 import { CatalogSearchModal, type ModalItem } from "./catalog-search-modal";
 import { SelectableCard } from "./selectable-card";
 
@@ -129,20 +130,6 @@ function CardOptionCard({
         <p className="mt-2 text-xs italic text-zinc-500 dark:text-zinc-400">“{rationale}”</p>
       )}
     </SelectableCard>
-  );
-}
-
-function SearchMoreCard({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{ width: 100 }}
-      className="flex h-full min-h-[64px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-zinc-300 p-3 text-center text-[10px] text-zinc-500 transition-colors hover:border-zinc-400 hover:text-zinc-700 dark:border-zinc-700 dark:text-zinc-500 dark:hover:border-zinc-500 dark:hover:text-zinc-300"
-    >
-      <span className="text-base leading-none">+</span>
-      Search something else
-    </button>
   );
 }
 
@@ -337,7 +324,7 @@ export function EcosystemTab({
                   rationale={rationaleFor(analysis.result.agent.recommendations, option.id)}
                 />
               ))}
-              <SearchMoreCard onClick={() => setSearchCategory("agent")} />
+              <CreateNewCard label="Search something else" width={100} onClick={() => setSearchCategory("agent")} />
             </div>
           </div>
 
@@ -356,7 +343,7 @@ export function EcosystemTab({
                   rationale={rationaleFor(analysis.result.tools.recommendations, option.id)}
                 />
               ))}
-              <SearchMoreCard onClick={() => setSearchCategory("tools")} />
+              <CreateNewCard label="Search something else" width={100} onClick={() => setSearchCategory("tools")} />
             </div>
           </div>
 
@@ -382,7 +369,7 @@ export function EcosystemTab({
                       rationale={rationaleFor(block.recommendations, option.id)}
                     />
                   ))}
-                  <SearchMoreCard
+                  <CreateNewCard label="Search something else" width={100}
                     onClick={() => setSearchCategory(block.blockType as CatalogCategory)}
                   />
                 </div>
@@ -410,7 +397,7 @@ export function EcosystemTab({
                     rationale={rationaleFor(analysis.result.mcpServers.recommendations, option.id)}
                   />
                 ))}
-                <SearchMoreCard onClick={() => setSearchCategory("mcp-servers")} />
+                <CreateNewCard label="Search something else" width={100} onClick={() => setSearchCategory("mcp-servers")} />
               </div>
             </div>
 
@@ -431,7 +418,7 @@ export function EcosystemTab({
                     rationale={rationaleFor(analysis.result.ragSources.recommendations, option.id)}
                   />
                 ))}
-                <SearchMoreCard onClick={() => setSearchCategory("rag-sources")} />
+                <CreateNewCard label="Search something else" width={100} onClick={() => setSearchCategory("rag-sources")} />
               </div>
             </div>
 

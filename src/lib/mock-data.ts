@@ -310,3 +310,287 @@ export const MOCK_RUNS: MockRun[] = [
     completedAt: "2026-07-19T18:47:00Z",
   },
 ];
+
+// See docs/project/pattern_libraries.md — V1 Flow Patterns are curated/seeded,
+// linear only. Each slot is a placeholder agent-task, bound to a real agent +
+// task instructions when a pattern is used to build a flow.
+export interface MockPatternSlot {
+  taskLabel: string;
+  defaultInstructions: string;
+}
+
+export interface MockFlowPattern {
+  id: string;
+  name: string;
+  description: string;
+  slots: MockPatternSlot[];
+}
+
+export const MOCK_FLOW_PATTERNS: MockFlowPattern[] = [
+  {
+    id: "single-agent",
+    name: "Single Agent",
+    description: "One agent handles the entire task end to end. The default pattern — equivalent to today's Ecosystem builder.",
+    slots: [
+      {
+        taskLabel: "Complete the task",
+        defaultInstructions: "Handle the full request end to end, using the input as context.",
+      },
+    ],
+  },
+  {
+    id: "research-synthesize",
+    name: "Research → Synthesize",
+    description: "One agent gathers information, a second agent turns it into a polished result.",
+    slots: [
+      {
+        taskLabel: "Research the topic",
+        defaultInstructions: "Gather relevant facts, sources, and context on the given topic.",
+      },
+      {
+        taskLabel: "Synthesize the findings",
+        defaultInstructions: "Turn the research into a clear, well-organized final output.",
+      },
+    ],
+  },
+  {
+    id: "draft-review",
+    name: "Draft → Review",
+    description: "One agent produces a first draft, a second agent reviews and refines it.",
+    slots: [
+      {
+        taskLabel: "Draft the output",
+        defaultInstructions: "Produce a first draft based on the input.",
+      },
+      {
+        taskLabel: "Review and refine",
+        defaultInstructions: "Review the draft for accuracy, clarity, and tone, and produce a refined final version.",
+      },
+    ],
+  },
+  {
+    id: "triage-handle-notify",
+    name: "Triage → Handle → Notify",
+    description: "One agent classifies the request, a second handles it, a third summarizes the outcome.",
+    slots: [
+      {
+        taskLabel: "Triage the request",
+        defaultInstructions: "Classify the request by type and urgency, and route it accordingly.",
+      },
+      {
+        taskLabel: "Handle the request",
+        defaultInstructions: "Carry out the work needed to resolve the request.",
+      },
+      {
+        taskLabel: "Notify the outcome",
+        defaultInstructions: "Draft a concise summary of the outcome for the requester.",
+      },
+    ],
+  },
+  {
+    id: "extract-validate",
+    name: "Extract → Validate",
+    description: "One agent pulls structured data out of unstructured input, a second validates it against expected rules.",
+    slots: [
+      {
+        taskLabel: "Extract structured data",
+        defaultInstructions: "Pull the relevant structured fields out of the unstructured input.",
+      },
+      {
+        taskLabel: "Validate the extraction",
+        defaultInstructions: "Check the extracted data for completeness, accuracy, and format issues, and flag anything that looks wrong.",
+      },
+    ],
+  },
+  {
+    id: "summarize-translate",
+    name: "Summarize → Translate",
+    description: "One agent condenses the content, a second translates the summary into the target language.",
+    slots: [
+      {
+        taskLabel: "Summarize the content",
+        defaultInstructions: "Condense the input into a clear, accurate summary.",
+      },
+      {
+        taskLabel: "Translate the summary",
+        defaultInstructions: "Translate the summary into the target language, preserving meaning and tone.",
+      },
+    ],
+  },
+  {
+    id: "plan-execute-report",
+    name: "Plan → Execute → Report",
+    description: "One agent plans an approach, a second carries it out, a third reports the results.",
+    slots: [
+      {
+        taskLabel: "Plan the approach",
+        defaultInstructions: "Break the request down into a clear, actionable plan.",
+      },
+      {
+        taskLabel: "Execute the plan",
+        defaultInstructions: "Carry out the planned steps to produce a result.",
+      },
+      {
+        taskLabel: "Report the results",
+        defaultInstructions: "Summarize what was done and the outcome, in a form ready to share.",
+      },
+    ],
+  },
+  {
+    id: "classify-prioritize-assign",
+    name: "Classify → Prioritize → Assign",
+    description: "One agent classifies an incoming item, a second prioritizes it, a third assigns it to the right owner.",
+    slots: [
+      {
+        taskLabel: "Classify the item",
+        defaultInstructions: "Determine the type or category of the incoming item.",
+      },
+      {
+        taskLabel: "Prioritize the item",
+        defaultInstructions: "Assess urgency and importance, and assign a priority level.",
+      },
+      {
+        taskLabel: "Assign the item",
+        defaultInstructions: "Route the item to the appropriate owner or team based on its classification and priority.",
+      },
+    ],
+  },
+  {
+    id: "draft-factcheck-finalize",
+    name: "Draft → Fact-check → Finalize",
+    description: "One agent drafts content, a second fact-checks it against sources, a third produces the polished final version.",
+    slots: [
+      {
+        taskLabel: "Draft the content",
+        defaultInstructions: "Produce a first draft based on the input.",
+      },
+      {
+        taskLabel: "Fact-check the draft",
+        defaultInstructions: "Verify claims and figures in the draft against available sources, flagging anything unverifiable.",
+      },
+      {
+        taskLabel: "Finalize the content",
+        defaultInstructions: "Incorporate fact-check findings and produce the polished final version.",
+      },
+    ],
+  },
+];
+
+// See docs/project/pattern_libraries.md — Prompts are scoped to Business Unit
+// (today's MOCK_ROLE_POOLS, renamed conceptually per the doc's rename decision)
+// / Role (an agent's `role` field) / Task-process, with specificity fallback.
+// Task/processes need stable ids to be scoped against — derived here from the
+// existing MOCK_ROLE_POOLS content rather than hand-duplicated.
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+export interface MockBusinessUnit {
+  id: string;
+  name: string;
+}
+
+export const MOCK_BUSINESS_UNITS: MockBusinessUnit[] = MOCK_ROLE_POOLS.map((pool) => ({
+  id: pool.id,
+  name: pool.name,
+}));
+
+export interface MockTaskProcess {
+  id: string;
+  businessUnitId: string;
+  label: string;
+  phase: "pre" | "work" | "post";
+}
+
+export const MOCK_TASK_PROCESSES: MockTaskProcess[] = MOCK_ROLE_POOLS.flatMap((pool) =>
+  (["pre", "work", "post"] as const).flatMap((phase) =>
+    (pool.processes?.[phase] ?? []).map((label) => ({
+      id: `${pool.id}:${phase}:${slugify(label)}`,
+      businessUnitId: pool.id,
+      label,
+      phase,
+    })),
+  ),
+);
+
+export const MOCK_AGENT_ROLES: string[] = [...new Set(MOCK_AGENTS.map((a) => a.role).filter((r): r is string => !!r))];
+
+export interface MockPrompt {
+  id: string;
+  name: string;
+  body: string;
+  businessUnitId?: string;
+  role?: string;
+  taskProcessId?: string;
+  archived: boolean;
+}
+
+function taskProcessId(businessUnitId: string, phase: MockTaskProcess["phase"], label: string): string {
+  return `${businessUnitId}:${phase}:${slugify(label)}`;
+}
+
+export const MOCK_PROMPTS: MockPrompt[] = [
+  {
+    id: "prompt-support-tone",
+    name: "Support tone guidelines",
+    body: "Always respond in a warm, empathetic tone. Never promise a refund or credit without escalating to a human first — offer to escalate instead.",
+    businessUnitId: "customer-support",
+    archived: false,
+  },
+  {
+    id: "prompt-support-first-response",
+    name: "First-response draft",
+    body: "Draft a first-response reply to the customer's message below. Acknowledge their issue, show you understand it, and either answer directly or explain the next step. Keep it under 150 words.",
+    businessUnitId: "customer-support",
+    taskProcessId: taskProcessId("customer-support", "work", "Draft first-response replies to common questions"),
+    archived: false,
+  },
+  {
+    id: "prompt-code-reviewer-persona",
+    name: "Code reviewer standard checklist",
+    body: "Review the code or diff below for correctness, security issues, and style problems. Be specific and reference line numbers where possible. Call out anything that looks like a security risk explicitly, even if minor.",
+    role: "Code Reviewer",
+    archived: false,
+  },
+  {
+    id: "prompt-pr-review-detailed",
+    name: "PR review — detailed pass",
+    body: "Review this pull request diff. For each file changed: 1) flag correctness issues, 2) flag security concerns, 3) flag style/consistency issues. End with a one-line overall verdict (approve, approve with comments, or request changes).",
+    businessUnitId: "engineering",
+    taskProcessId: taskProcessId("engineering", "work", "Review pull requests for correctness, security, and style"),
+    archived: false,
+  },
+  {
+    id: "prompt-sales-tone",
+    name: "Sales outreach tone",
+    body: "Write in a confident, concise, consultative tone. Avoid generic sales language and hard-selling phrases. Focus on the prospect's specific situation, not generic product features.",
+    businessUnitId: "sales",
+    archived: false,
+  },
+  {
+    id: "prompt-sales-outreach-draft",
+    name: "Personalized outreach draft",
+    body: "Using the research notes below, draft a short, personalized outreach message to this prospect. Reference something specific to their situation in the first line. Keep it under 100 words and end with a low-friction call to action.",
+    businessUnitId: "sales",
+    taskProcessId: taskProcessId("sales", "work", "Research prospects and draft personalized outreach"),
+    archived: false,
+  },
+  {
+    id: "prompt-cx-verbatim-summary",
+    name: "CSAT/NPS verbatim summarizer",
+    body: "Summarize the customer feedback verbatims below into the top 3-5 recurring themes. For each theme, note whether it's positive or negative and roughly how many verbatims mention it.",
+    businessUnitId: "customer-experience",
+    taskProcessId: taskProcessId("customer-experience", "post", "Summarize NPS/CSAT verbatims into trends"),
+    archived: false,
+  },
+  {
+    id: "prompt-legacy-support-macro",
+    name: "Old support macro (deprecated)",
+    body: "Thank you for contacting support. Your request has been logged and will be reviewed within 5-7 business days.",
+    businessUnitId: "customer-support",
+    archived: true,
+  },
+];

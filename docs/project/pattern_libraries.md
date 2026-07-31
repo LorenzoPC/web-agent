@@ -1,6 +1,6 @@
 # Flow Patterns + Prompts Library
 
-**Status:** Draft — goal, V1/V2 scope, and prompt/pattern mechanics agreed in conversation (only nav grouping still open); data model/screens below are a proposed implementation plan, not yet built
+**Status:** Draft — goal and V1/V2 scope agreed. The Patterns and Prompts **screens are built** (UI only, mock data, see New screens below); the new Builder "Flow" tab and all real persistence (schema/API/queries) are **not yet built**, and two open corrections (see `agentic_component_enhancement.md`) should be confirmed before the Flow tab is started.
 **Created:** 2026-07-30
 **Related:** [`../design/web-agent.md`](../design/web-agent.md) (main design doc), [`../prds/web-agent.md`](../prds/web-agent.md) (PRD)
 
@@ -23,9 +23,10 @@ The two connect directly to work already shipped: the Marketplace's "Business Ca
 
 ### V1
 
-- **Flow Patterns are curated, not user-authored.** A handful of hand-seeded patterns (e.g. "Single agent" — today's default, "Research → Synthesize," "Draft → Review"), browsable in a new **Patterns** screen. No pattern-authoring UI.
+- **Flow Patterns are curated, not user-authored** for the real (persisted) V1. ~~No pattern-authoring UI.~~ **Amended 2026-07-30:** the UI draft pass includes a minimal "Create new pattern" form (name, description, add/reorder steps) on the Patterns screen, reusing a newly-generalized `CreateNewCard` component (see below) — but it only appends to local component state in the browser, nothing is persisted to `mock-data.ts` or a database. This demonstrates the authoring interaction for the draft; whether real V1 actually ships user-authored patterns (vs. staying curated-only as originally decided) is still open — the persisted/backend version of this decision has **not** been reversed, only the UI draft's scope grew slightly ahead of it.
 - **Flow Patterns are linear only.** A pattern is an ordered list of N agent-task slots. No branching, parallel fan-out/fan-in, or loops — the existing chain-runner (`runPipeline`, `/api/pipeline/run`) needs no changes.
-- **Ecosystem builder change:** data-source and delivery blocks are unchanged (single-select, LLM-recommended, as today). The single Agent slot is replaced by: pick a Flow Pattern, then for each of its slots, **manually** bind a real agent persona (+ optional Tools/MCP/RAG attachments, same manual multi-select as today) and edit that slot's task instructions (pre-seeded with a default from the pattern, user-editable). **No LLM recommendation for slot binding** — sidesteps the analyze endpoint's known cross-contamination fragility (see main design doc) and keeps this pass scoped.
+- **Ecosystem tab stays focused on data-source, delivery, and the job-to-be-done description** (unchanged — single-select, LLM-recommended, as today). It no longer picks a single Agent directly.
+- **Amended 2026-07-30 — Flow Pattern selection + slot binding gets its own new Builder tab**, inserted between Ecosystem and Pipeline (working name **"Flow"** — see Open questions), rather than being folded into the Ecosystem tab as originally sketched. In this tab: pick a Flow Pattern (same browsing UX as the Patterns screen), then for each of its slots, **manually** bind a real agent persona (+ optional Tools/MCP/RAG attachments, same manual multi-select as today) and tailor that slot's task instructions — pre-seeded with the pattern's default, editable, with the Ecosystem tab's job-to-be-done text shown alongside as context so the tailoring is grounded in the actual request. **No LLM recommendation for agent/prompt binding** — sidesteps the analyze endpoint's known cross-contamination fragility (see main design doc) and keeps this pass scoped. Whether tailoring the task-instructions *text itself* gets LLM assistance, or stays purely manual editing with the job-to-be-done shown as reference only, is still open — see Open questions.
 - **Prompts Library** — a new **Prompts** screen: create/update prompts, soft-archive instead of hard delete (archived prompts drop out of new-binding pickers but stay resolvable for flows that already snapshot them), each scoped to any combination of Business Unit / Role / Task-process. A **Test** panel: pick a real catalog agent (not a raw model), type sample input, run through the existing single-step execution path with the agent's `systemPrompt` as persona and the prompt body as instructions, inspect the output — before the prompt is ever bound into a real flow.
 - **Prompt scoping uses specificity with fallback**, not an exact-tuple-only match: a prompt can attach at the Business Unit level (broadest), the Role level, or an exact Task/process (most specific). Resolving prompts for a task slot walks Task/process → Role → Business Unit, most specific match wins.
 - **A slot with no matching prompt at any level is still usable** — the user can leave it unbound or write instructions from scratch — but the flow editor visually flags any slot without a bound prompt, and always shows a persistent "Create a prompt" CTA (scoped to that slot's task/process) for the gap.
@@ -119,12 +120,19 @@ Following this codebase's established sequencing (see the Dashboard/Marketplace 
 
 ---
 
-## New screens (proposed)
+## New screens
 
-- **`/patterns`** — gallery of curated Flow Patterns (name, description, slot count/preview). Read-only browsing in V1, matching the Marketplace's card-grid posture.
-- **`/prompts`** — list of prompts (filterable by Business Unit/Role/Task-process, archived ones hidden by default), a create/edit form, an archive action, and a Test panel (catalog-agent picker + sample input + run + output).
-- **Ecosystem tab changes** — a new pattern-selection step ahead of the (now per-slot) agent binding; each slot's binding UI reuses the existing option-card/attachment UX, plus a new prompt-picker (filtered list per the specificity rule, with a "Create a prompt" CTA when nothing matches) and an editable task-instructions field. Slots without a bound prompt are visually flagged but still usable.
-- **Nav** — `/patterns` and `/prompts` join Dashboard/Marketplace/Builder in the shared nav shell. Whether to group Marketplace/Patterns/Prompts under a single "Library" nav item or keep all 5 flat is explicitly **deferred** (non-urgent) — see Open questions.
+**Built (UI only, mock data — 2026-07-30):**
+
+- **`/patterns`** — gallery of 9 curated Flow Patterns (name, description, click-to-expand slot preview), matching the Marketplace's card-grid posture. Plus a local-only "Create new pattern" card/form (see the amended V1 scope note above) — appends to component state, nothing persisted.
+- **`src/components/ui/create-new-card.tsx`** — the Ecosystem builder's "Search something else" dashed-border "+" card, generalized into a reusable component (`{label, onClick, width?}`). Now backs the Ecosystem builder's 5 "Search something else" cards, the Patterns screen's "Create new pattern" card, and the Prompts screen's "Create new prompt" card — three screens on one component.
+- **`/prompts`** — list of 8 seeded prompts, filterable by Business Unit/Role/Task-process (task-process narrows by the chosen business unit) with archived ones hidden by default; create/edit form (local-state only, same posture as Patterns); an archive toggle per prompt (soft, matches the documented decision); and a **Test panel that is real, not mocked** — picks a catalog agent, combines the prompt body with optional sample input, and calls the actual `/api/pipeline/run` endpoint (agent `systemPrompt` as persona, prompt body as instructions) — same execution path the Builder itself uses.
+- **Nav** — `/patterns` and `/prompts` joined Dashboard/Marketplace/Builder in the shared nav shell (now 5 flat items). Grouping remains explicitly **deferred** — see Open questions.
+- **Note:** the shipped `MockPrompt` shape does **not** yet have the `kind: "instruction" | "policy"` field proposed in `agentic_component_enhancement.md`'s Policies section — that proposal came after this UI was built and hasn't been retrofitted yet.
+
+**Still planned, not built:**
+
+- **New Builder tab — working name "Flow"** — inserted between Ecosystem and Pipeline in `PipelineApp`'s tab list (currently `["Ecosystem", "Pipeline", "History"]` → becomes `["Ecosystem", "Flow", "Pipeline", "History"]`). Pattern selection reuses the Patterns screen's browsing UX; each slot's binding UI reuses the existing option-card/attachment UX, plus a new prompt-picker (filtered list per the specificity rule, with a "Create a prompt" CTA when nothing matches) and an editable task-instructions field, shown alongside the job-to-be-done text carried over from the Ecosystem tab. Slots without a bound prompt are visually flagged but still usable. "Build flow" (or whatever this tab's equivalent action is called) hands off to Pipeline, same as today. **Before building this:** confirm the two corrections proposed in `agentic_component_enhancement.md` (full chain transcript instead of just prior-step output; policy/instruction resolution split) — see that doc's Open questions and the backlog's P2 items.
 
 ---
 
@@ -143,12 +151,17 @@ Following this codebase's established sequencing (see the Dashboard/Marketplace 
 | Prompt delete | Soft archive (`archivedAt`), not hard delete | Hard delete, or block deletion while referenced | Archived prompts stay resolvable for flows that already snapshotted them (consistent with the versioning decision above) while disappearing from new-binding pickers. |
 | Test panel mechanic | Pick a real catalog agent; its `systemPrompt` is the persona, the prompt body is the task instructions, run through the existing single-step execution path | Test against a raw model with no persona; or support both | Mirrors real bound-flow execution exactly, reuses existing execution logic with no new code path, and resolves how a Prompt relates to an agent's `systemPrompt` generally (not just for testing) — see Concept model. |
 | Nav grouping for 5 top-level screens | Deferred, not decided | Group into a "Library" submenu now | Flagged non-urgent; better decided once Patterns/Prompts actually exist and the real crowding (or lack of it) is visible. |
+| Patterns UI draft includes a "Create new pattern" form | Yes, but local-state-only (not persisted) | Non-functional placeholder card only | Demonstrates the authoring interaction now that the "Create new" pattern is being generalized into a reusable component anyway; doesn't commit the real/persisted V1 to user-authored patterns — that decision (curated-only) stands until revisited. |
+| "Create new" affordance | Generalized the Ecosystem builder's "Search something else" card into `src/components/ui/create-new-card.tsx` | Keep a separate one-off component per screen | One reusable `{label, onClick, width?}` component now backs both the Ecosystem builder's 5 "Search something else" cards and the Patterns "Create new pattern" card — and is the natural component to reuse for the Prompts screen's own create affordance next. |
+| Where Flow Pattern selection + slot binding lives | Its own new Builder tab between Ecosystem and Pipeline, not folded into the Ecosystem tab | Extend the Ecosystem tab's existing Agent section in place | Keeps each tab's job clear — Ecosystem gathers the job-to-be-done/data-source/delivery, the new tab is specifically about assembling the multi-agent flow from a pattern — and avoids further overloading an already-dense Ecosystem tab. |
 
 ---
 
 ## Open questions
 
 - [ ] Nav real estate — five top-level items (Dashboard/Marketplace/Patterns/Prompts/Builder) once both new screens exist; deferred, revisit once both screens exist and the real crowding is visible (see Key decisions).
+- [ ] Name for the new Builder tab — "Flow" is a working name (see Key decisions); needs a real decision, ideally not colliding with "Flow Pattern" the library concept it uses.
+- [ ] Does tailoring a slot's task instructions to the specific job-to-be-done get LLM assistance (e.g. a "rewrite this for my request" action), or stay purely manual editing with the job-to-be-done text shown as reference only? The "no LLM for slot binding" decision covers *which* agent/prompt gets picked, not necessarily the instructions text itself — these could reasonably diverge.
 - [x] ~~Exact specificity-resolution order when a prompt could match on more than one axis~~ — resolved 2026-07-30: Task/process → Role → Business Unit → none, see Key decisions
 - [x] ~~Can a Task/process have zero matching prompts and still be usable?~~ — resolved 2026-07-30: yes, usable but visually flagged, plus an always-available "Create a prompt" CTA
 - [x] ~~Prompt delete/archive behavior~~ — resolved 2026-07-30: soft archive
