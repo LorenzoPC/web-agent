@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { AppNav } from "@/components/shell/app-nav";
 import { QuickActions } from "@/components/shell/quick-actions";
 import { getCurrentUser } from "@/lib/auth";
+import { MOCK_AGENTS, MOCK_ROLE_INSTRUCTIONS } from "@/lib/mock-data";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,7 +36,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <AppNav userName={user.name} />
         {children}
-        <QuickActions />
+        <QuickActions agents={MOCK_AGENTS} roleInstructions={MOCK_ROLE_INSTRUCTIONS} />
       </body>
     </html>
   );

@@ -1024,6 +1024,51 @@ export const MOCK_TOOL_TEMPLATES: MockToolTemplate[] = [
   },
 ];
 
+export interface MockStarterInstruction {
+  title: string;
+  instruction: string;
+}
+
+/** Four common instructions per agent role, shown as starter cards in the Conversation panel. */
+export const MOCK_ROLE_INSTRUCTIONS: Record<string, MockStarterInstruction[]> = {
+  "Research Analyst": [
+    { title: "Brief me on a topic", instruction: "Give me a concise, sourced briefing on the topic below — key facts, recent developments, and open questions:" },
+    { title: "Compare options", instruction: "Compare the options below side by side — strengths, weaknesses, and which fits best for what situation:" },
+    { title: "Check the evidence", instruction: "What does the evidence say about the claim below? Separate well-supported findings from weaker or disputed ones:" },
+    { title: "Map a market", instruction: "Map the competitive landscape for the market below — main players, how they differ, and where the gaps are:" },
+  ],
+  "Content Summarizer": [
+    { title: "Key bullet points", instruction: "Summarize the content below into 5 key bullet points, keeping any important figures:" },
+    { title: "TL;DR", instruction: "Give me a two-sentence TL;DR of the following:" },
+    { title: "Notes to action items", instruction: "Turn these meeting notes into a summary of decisions made and action items with owners:" },
+    { title: "Executive summary", instruction: "Write a one-paragraph executive summary of the document below for a busy stakeholder:" },
+  ],
+  "Customer Support Specialist": [
+    { title: "Draft a reply", instruction: "Draft a warm, helpful reply to this customer message:" },
+    { title: "De-escalate", instruction: "This customer is frustrated. Draft a calm, empathetic response that acknowledges the issue and offers a clear next step:" },
+    { title: "Troubleshooting steps", instruction: "Write simple step-by-step troubleshooting instructions a customer can follow for this issue:" },
+    { title: "Write an FAQ entry", instruction: "Turn this support question and its answer into a clear, reusable FAQ entry:" },
+  ],
+  "Code Reviewer": [
+    { title: "Review a diff", instruction: "Review this diff for correctness, security, and style issues, referencing line numbers:" },
+    { title: "Security pass", instruction: "Check the code below for security vulnerabilities and explain how to fix each one:" },
+    { title: "Explain this code", instruction: "Explain what the code below does, step by step, and point out anything surprising:" },
+    { title: "Suggest refactors", instruction: "Suggest refactors that would make the code below simpler to maintain, without changing behavior:" },
+  ],
+  "Data Analyst": [
+    { title: "Spot trends", instruction: "Identify the main trends and anomalies in the data below:" },
+    { title: "Explain a metric change", instruction: "This metric changed unexpectedly. Walk me through the likely causes and how to confirm each one:" },
+    { title: "Plan an analysis", instruction: "Help me plan an analysis for the question below — what data I need, which metrics, and how to present it:" },
+    { title: "Leadership takeaways", instruction: "Turn these numbers into three plain-language takeaways for a leadership update:" },
+  ],
+  "General Assistant": [
+    { title: "Brainstorm ideas", instruction: "Brainstorm 10 ideas for the following:" },
+    { title: "Rewrite this", instruction: "Rewrite the text below to be clearer and more concise, keeping the same meaning:" },
+    { title: "Draft an email", instruction: "Draft a short, friendly email about the following:" },
+    { title: "Make a plan", instruction: "Break this goal into a simple step-by-step plan:" },
+  ],
+};
+
 // Scripted Discovery session for the Create Tool mockup (docs/adr/0001-discovery-session-realtime-voice.md).
 // Each user answer carries the patch the interviewer would write into the form
 // after hearing it — the same contract the realtime version will use.
