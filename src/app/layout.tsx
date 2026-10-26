@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppNav } from "@/components/shell/app-nav";
+import { FeatureRequestPanel } from "@/components/shell/feature-request-panel";
 import { QuickActions } from "@/components/shell/quick-actions";
+import { SidePanelProvider } from "@/components/shell/side-panel";
 import { getCurrentUser } from "@/lib/auth";
 import { MOCK_AGENTS, MOCK_ROLE_INSTRUCTIONS } from "@/lib/mock-data";
 import "./globals.css";
@@ -34,9 +36,12 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AppNav userName={user.name} />
-        {children}
-        <QuickActions agents={MOCK_AGENTS} roleInstructions={MOCK_ROLE_INSTRUCTIONS} />
+        <SidePanelProvider>
+          <AppNav userName={user.name} />
+          {children}
+          <QuickActions agents={MOCK_AGENTS} roleInstructions={MOCK_ROLE_INSTRUCTIONS} />
+          <FeatureRequestPanel userName={user.name} />
+        </SidePanelProvider>
       </body>
     </html>
   );

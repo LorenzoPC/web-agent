@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ConversationPanel } from "@/components/conversation/conversation-panel";
 import type { MockStarterInstruction } from "@/lib/mock-data";
 import type { PipelineStep } from "@/lib/types";
+import { useSidePanel } from "./side-panel";
 
 // Items with neither an href nor a panel to open have no screen yet and render
 // as disabled "Soon" rows.
@@ -28,7 +29,7 @@ export function QuickActions({
   roleInstructions: Record<string, MockStarterInstruction[]>;
 }) {
   const [open, setOpen] = useState(false);
-  const [conversationOpen, setConversationOpen] = useState(false);
+  const { panel, setPanel } = useSidePanel();
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,10 +50,10 @@ export function QuickActions({
 
   return (
     <>
-      {/* On small screens the panel is full-width, so the launcher steps aside rather than cover the composer. */}
+      {/* On small screens the panels are full-width, so the launcher steps aside rather than cover their footers. */}
       <div
         ref={rootRef}
-        className={`fixed bottom-5 left-5 z-50 flex flex-col items-start gap-2 ${conversationOpen ? "max-md:hidden" : ""}`}
+        className={`fixed bottom-5 left-5 z-50 flex flex-col items-start gap-2 ${panel ? "max-md:hidden" : ""}`}
       >
         {open && (
           <div
@@ -80,7 +81,7 @@ export function QuickActions({
                   role="menuitem"
                   onClick={() => {
                     setOpen(false);
-                    setConversationOpen(true);
+                    setPanel("conversation");
                   }}
                   className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-zinc-900 transition-colors hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-900"
                 >
@@ -122,8 +123,8 @@ export function QuickActions({
         </button>
       </div>
       <ConversationPanel
-        open={conversationOpen}
-        onClose={() => setConversationOpen(false)}
+        open={panel === "conversation"}
+        onClose={() => setPanel(null)}
         agents={agents}
         roleInstructions={roleInstructions}
       />
