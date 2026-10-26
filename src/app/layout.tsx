@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppNav } from "@/components/shell/app-nav";
+import { QuickActions } from "@/components/shell/quick-actions";
 import { getCurrentUser } from "@/lib/auth";
 import "./globals.css";
 
@@ -34,6 +35,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <AppNav userName={user.name} />
         {children}
+        <QuickActions />
       </body>
     </html>
   );

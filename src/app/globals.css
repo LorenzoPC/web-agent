@@ -10,6 +10,19 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* One turn over the first 2s of every 4s cycle, then rest. */
+  --animate-orb-spin: orb-spin 4s ease-in-out infinite;
+
+  @keyframes orb-spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    50%,
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 }
 
 @media (prefers-color-scheme: dark) {

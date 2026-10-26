@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Orb } from "@/components/ui/orb";
 
 const LINKS = [
   { href: "/", label: "Dashboard" },
@@ -20,7 +21,10 @@ export function AppNav({ userName }: { userName: string }) {
   return (
     <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3 dark:border-zinc-800 dark:bg-black">
       <div className="flex items-center gap-6">
-        <span className="text-sm font-semibold text-black dark:text-zinc-50">Web Agent</span>
+        <div className="flex items-center gap-2">
+          <Orb />
+          <span className="text-sm font-semibold text-black dark:text-zinc-50">Web Agent</span>
+        </div>
         <nav className="flex gap-1">
           {LINKS.map((link) => {
             const active = (NAV_PARENTS[pathname] ?? pathname) === link.href;
