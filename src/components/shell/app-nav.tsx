@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/patterns", label: "Patterns" },
   { href: "/prompts", label: "Prompts" },
   { href: "/builder", label: "Builder" },
+  { href: "/onboarding", label: "Get started" },
 ] as const;
 
 // Sub-screens that keep their parent nav item highlighted.
