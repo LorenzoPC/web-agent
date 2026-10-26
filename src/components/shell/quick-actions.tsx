@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 const ACTIONS: { label: string; href?: string; hint?: string }[] = [
   { label: "Create Agent", href: "/builder", hint: "Builder" },
   { label: "See Dashboard", href: "/" },
-  { label: "Create Tool" },
+  { label: "Create Tool", href: "/tools/new" },
   { label: "Create Skill" },
 ];
 

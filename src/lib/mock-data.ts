@@ -1,4 +1,5 @@
-import type { PipelineStep } from "./types";
+import type { CostModel, PipelineStep } from "./types";
+import type { RecipePatch } from "./tool-discovery";
 
 // Placeholder data for the Dashboard/Marketplace UI mockup, ahead of wiring real
 // persistence (role column + pipeline_runs table + queries). Shapes are kept close
@@ -805,3 +806,312 @@ export const MOCK_UNIT_COVERAGE: MockUnitCoverage[] = MOCK_BUSINESS_UNITS.map((u
     phases: { pre: phaseCoverage("pre"), work: phaseCoverage("work"), post: phaseCoverage("post") },
   };
 });
+
+// Tool recipes — everything an agent needs to call a tool well: a callable name
+// and model-facing description, a typed input schema with an example, how the
+// call executes, auth, what comes back, guardrails, and per-call cost. The
+// model-facing half mirrors the AI SDK `tool()` shape (see src/lib/tools/*);
+// the rest is the operational config a pipeline step needs around it.
+
+export type ToolParamType = "string" | "number" | "integer" | "boolean" | "enum" | "array";
+
+export interface MockToolParam {
+  name: string;
+  type: ToolParamType;
+  description: string;
+  required: boolean;
+  /** Allowed values, only used for type "enum". Kept untrimmed while editing; trimmed into the schema. */
+  enumValues?: string[];
+}
+
+export type ToolHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+export type MockToolExecution =
+  | { kind: "http"; method: ToolHttpMethod; url: string }
+  | { kind: "mcp"; serverUrl: string; toolName: string }
+  | { kind: "function"; code: string };
+
+/** Secrets are referenced by env var name only — never stored in the recipe. */
+export type MockToolAuth =
+  | { kind: "none" }
+  | { kind: "apiKey"; header: string; envVar: string }
+  | { kind: "bearer"; envVar: string };
+
+export interface MockToolRecipe {
+  id: string;
+  /** snake_case identifier the model calls. */
+  name: string;
+  /** Model-facing: what the tool does and when (not) to use it. */
+  description: string;
+  parameters: MockToolParam[];
+  /** Ask providers that support it to constrain generated input to the schema. */
+  strict: boolean;
+  /** JSON text of one representative input, sent to the model as an input example. */
+  inputExample: string;
+  execution: MockToolExecution;
+  auth: MockToolAuth;
+  /** What the result contains, as the agent will read it. */
+  outputDescription: string;
+  /** Results longer than this are truncated before reaching the model. */
+  maxOutputChars: number;
+  sideEffects: "read" | "write";
+  requiresApproval: boolean;
+  timeoutMs: number;
+  retries: number;
+  cost: Extract<CostModel, { kind: "free" } | { kind: "perRequest" }>;
+}
+
+export interface MockToolTemplate {
+  label: string;
+  recipe: MockToolRecipe;
+}
+
+/** Starting point for "Blank" and for a Discovery session, which fills it in by interview. */
+export const BLANK_TOOL_RECIPE: MockToolRecipe = {
+  id: "blank",
+  name: "",
+  description: "",
+  parameters: [],
+  strict: true,
+  inputExample: "",
+  execution: { kind: "http", method: "GET", url: "" },
+  auth: { kind: "none" },
+  outputDescription: "",
+  maxOutputChars: 4000,
+  sideEffects: "read",
+  requiresApproval: false,
+  timeoutMs: 15000,
+  retries: 1,
+  cost: { kind: "free" },
+};
+
+export const MOCK_TOOL_TEMPLATES: MockToolTemplate[] = [
+  { label: "Blank", recipe: BLANK_TOOL_RECIPE },
+  {
+    label: "Web search · HTTP",
+    recipe: {
+      id: "template-search-web",
+      name: "search_web",
+      description:
+        "Search the live web and return the top results with title, URL, and highlighted excerpts. Use it for current events, recent releases, or facts likely to have changed since the model's training. Don't use it for questions answerable from the conversation or attached documents.",
+      parameters: [
+        {
+          name: "query",
+          type: "string",
+          description: "A natural-language search query, phrased the way a person would search",
+          required: true,
+        },
+        {
+          name: "numResults",
+          type: "integer",
+          description: "How many results to return, 1–10. Defaults to 5",
+          required: false,
+        },
+      ],
+      strict: true,
+      inputExample: JSON.stringify({ query: "NBA game results last night", numResults: 5 }, null, 2),
+      execution: { kind: "http", method: "POST", url: "https://api.exa.ai/search" },
+      auth: { kind: "apiKey", header: "x-api-key", envVar: "EXA_API_KEY" },
+      outputDescription:
+        "Up to numResults items, each with title, url, and highlights (the excerpts most relevant to the query).",
+      maxOutputChars: 6000,
+      sideEffects: "read",
+      requiresApproval: false,
+      timeoutMs: 10000,
+      retries: 2,
+      cost: { kind: "perRequest", dollarsPerRequest: 0.005 },
+    },
+  },
+  {
+    label: "GitHub issue · MCP",
+    recipe: {
+      id: "template-create-github-issue",
+      name: "create_github_issue",
+      description:
+        "Open a new issue in a GitHub repository. Use it only when the user explicitly asks to file, report, or track something as an issue. Don't use it to comment on or update an existing issue.",
+      parameters: [
+        {
+          name: "owner",
+          type: "string",
+          description: "Repository owner — a GitHub user or organization login, e.g. vercel",
+          required: true,
+        },
+        {
+          name: "repo",
+          type: "string",
+          description: "Repository name without the owner, e.g. next.js",
+          required: true,
+        },
+        {
+          name: "title",
+          type: "string",
+          description: "A short, specific issue title, under 80 characters",
+          required: true,
+        },
+        {
+          name: "body",
+          type: "string",
+          description: "Issue body in GitHub-flavored Markdown: what happened, what was expected, and steps to reproduce",
+          required: false,
+        },
+        {
+          name: "labels",
+          type: "array",
+          description: 'Existing label names to apply, e.g. ["bug"]',
+          required: false,
+        },
+      ],
+      strict: true,
+      inputExample: JSON.stringify(
+        {
+          owner: "acme",
+          repo: "web-agent",
+          title: "Builder crashes when a step has no model",
+          body: "Steps to reproduce: …",
+          labels: ["bug"],
+        },
+        null,
+        2,
+      ),
+      execution: { kind: "mcp", serverUrl: "https://api.githubcopilot.com/mcp/", toolName: "create_issue" },
+      auth: { kind: "bearer", envVar: "GITHUB_TOKEN" },
+      outputDescription: "The created issue's number, URL, and state.",
+      maxOutputChars: 2000,
+      sideEffects: "write",
+      requiresApproval: true,
+      timeoutMs: 15000,
+      // Creating an issue isn't idempotent — a retry after a slow success files a duplicate.
+      retries: 0,
+      cost: { kind: "free" },
+    },
+  },
+  {
+    label: "Date math · Function",
+    recipe: {
+      id: "template-days-between",
+      name: "days_between",
+      description:
+        "Count the calendar days between two dates. Use it whenever an answer depends on an exact day count — deadlines, ages, SLAs — instead of computing it yourself, since day counts across months are easy to get wrong.",
+      parameters: [
+        {
+          name: "start",
+          type: "string",
+          description: "Start date, ISO 8601 (YYYY-MM-DD)",
+          required: true,
+        },
+        {
+          name: "end",
+          type: "string",
+          description: "End date, ISO 8601 (YYYY-MM-DD). May be before start, giving a negative count",
+          required: true,
+        },
+      ],
+      strict: true,
+      inputExample: JSON.stringify({ start: "2026-07-01", end: "2026-10-23" }, null, 2),
+      execution: {
+        kind: "function",
+        code: "async ({ start, end }) => {\n  const ms = Date.parse(end) - Date.parse(start);\n  return { days: Math.round(ms / 86_400_000) };\n}",
+      },
+      auth: { kind: "none" },
+      outputDescription: "An object with days: the signed whole number of days from start to end.",
+      maxOutputChars: 200,
+      sideEffects: "read",
+      requiresApproval: false,
+      timeoutMs: 2000,
+      retries: 0,
+      cost: { kind: "free" },
+    },
+  },
+];
+
+// Scripted Discovery session for the Create Tool mockup (docs/adr/0001-discovery-session-realtime-voice.md).
+// Each user answer carries the patch the interviewer would write into the form
+// after hearing it — the same contract the realtime version will use.
+
+export interface MockDiscoveryTurn {
+  speaker: "interviewer" | "user";
+  text: string;
+  /** What the interviewer writes into the recipe after hearing this answer. */
+  patch?: RecipePatch;
+}
+
+export const MOCK_DISCOVERY_SCRIPT: MockDiscoveryTurn[] = [
+  { speaker: "interviewer", text: "Hi! I'll help you design a tool for your agent. What job should it do?" },
+  {
+    speaker: "user",
+    text: "I need it to pull last night's NBA results, so the agent can write a daily summary email.",
+    patch: {
+      name: "get_nba_scores",
+      description:
+        "Get final scores for NBA games on a given date, with both teams, the final score, and each game's top scorer. Use it whenever a summary or answer depends on actual game results. Don't use it for future schedules or season-long player stats.",
+    },
+  },
+  {
+    speaker: "interviewer",
+    text: "Got it, I've called it get_nba_scores. What does the agent need to tell it? Just a date?",
+  },
+  {
+    speaker: "user",
+    text: "A date, and optionally one team to filter on.",
+    patch: {
+      parameters: [
+        {
+          name: "date",
+          type: "string",
+          description: "Game date, ISO 8601 (YYYY-MM-DD). Use yesterday's date for last night's games",
+          required: true,
+        },
+        {
+          name: "team",
+          type: "string",
+          description: "Team abbreviation, e.g. BOS. Omit it to get every game that day",
+          required: false,
+        },
+      ],
+      exampleInput: { date: "2026-10-22" },
+    },
+  },
+  { speaker: "interviewer", text: "Perfect. Where do the scores come from, and how do you call it?" },
+  {
+    speaker: "user",
+    text: "It's a GET request to our sports data API. The key is s k dash four seven…",
+    patch: {
+      executionKind: "http",
+      httpMethod: "GET",
+      url: "https://api.sportsdata.example/v1/nba/games/{date}",
+    },
+  },
+  {
+    speaker: "interviewer",
+    text: "Stop there, please don't read a key out loud. I only need the name of the environment variable that holds it.",
+  },
+  {
+    speaker: "user",
+    text: "Sorry! It's SPORTS_API_KEY, sent as a bearer token.",
+    patch: { authKind: "bearer", authEnvVar: "SPORTS_API_KEY" },
+  },
+  { speaker: "interviewer", text: "Thanks. What comes back, and does calling it change anything?" },
+  {
+    speaker: "user",
+    text: "Just the results: teams, final score, and the top scorer for each game. It's read-only.",
+    patch: {
+      outputDescription:
+        "One item per game: home and away team, final score, and the top scorer with their points.",
+      maxOutputChars: 6000,
+      sideEffects: "read",
+      requiresApproval: false,
+      timeoutSeconds: 10,
+      retries: 2,
+    },
+  },
+  { speaker: "interviewer", text: "Last one: does each call cost anything?" },
+  {
+    speaker: "user",
+    text: "About a tenth of a cent per call.",
+    patch: { pricing: "perRequest", dollarsPerCall: 0.001 },
+  },
+  {
+    speaker: "interviewer",
+    text: "All set, and everything in the recipe check passes. Review the form below, and create the tool when you're happy.",
+  },
+];
