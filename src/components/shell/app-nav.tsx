@@ -11,6 +11,9 @@ const LINKS = [
   { href: "/builder", label: "Builder" },
 ] as const;
 
+// Sub-screens that keep their parent nav item highlighted.
+const NAV_PARENTS: Record<string, string> = { "/product": "/" };
+
 export function AppNav({ userName }: { userName: string }) {
   const pathname = usePathname();
 
@@ -20,7 +23,7 @@ export function AppNav({ userName }: { userName: string }) {
         <span className="text-sm font-semibold text-black dark:text-zinc-50">Web Agent</span>
         <nav className="flex gap-1">
           {LINKS.map((link) => {
-            const active = pathname === link.href;
+            const active = (NAV_PARENTS[pathname] ?? pathname) === link.href;
             return (
               <Link
                 key={link.href}

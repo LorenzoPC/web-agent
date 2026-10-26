@@ -291,7 +291,7 @@ export const MOCK_RUNS: MockRun[] = [
     status: "success",
     totalCostUsd: 0.0412,
     stepCount: 3,
-    completedAt: "2026-07-21T14:32:00Z",
+    completedAt: "2026-10-23T07:00:00Z",
   },
   {
     id: "run-2",
@@ -299,7 +299,7 @@ export const MOCK_RUNS: MockRun[] = [
     status: "success",
     totalCostUsd: 0.0187,
     stepCount: 3,
-    completedAt: "2026-07-20T09:05:00Z",
+    completedAt: "2026-10-22T18:47:00Z",
   },
   {
     id: "run-3",
@@ -307,7 +307,7 @@ export const MOCK_RUNS: MockRun[] = [
     status: "partial",
     totalCostUsd: 0.0093,
     stepCount: 3,
-    completedAt: "2026-07-19T18:47:00Z",
+    completedAt: "2026-10-22T09:05:00Z",
   },
 ];
 
@@ -594,3 +594,214 @@ export const MOCK_PROMPTS: MockPrompt[] = [
     archived: true,
   },
 ];
+
+// Dashboard — headline metrics, a newsfeed of notification headers, ranked top
+// priorities, and agent coverage of each business unit's task-processes.
+
+export interface MockMetric {
+  id: string;
+  label: string;
+  value: number;
+  format: "count" | "percent" | "usd" | "seconds" | "score";
+  /** Fractional change vs `comparedTo` (0.18 = +18%); for percent and score metrics, the change in points. */
+  change: number;
+  comparedTo: string;
+  /** Whether an increase is good news — decides the delta's color. */
+  higherIsBetter: boolean;
+}
+
+export const MOCK_METRICS: MockMetric[] = [
+  { id: "active-agents", label: "Active agents", value: 14, format: "count", change: 0.27, comparedTo: "last month", higherIsBetter: true },
+  { id: "runs", label: "Runs this week", value: 1284, format: "count", change: 0.18, comparedTo: "last week", higherIsBetter: true },
+  { id: "success-rate", label: "Run success rate", value: 94.2, format: "percent", change: 1.1, comparedTo: "last week", higherIsBetter: true },
+  { id: "spend", label: "Spend this month", value: 861, format: "usd", change: 0.12, comparedTo: "budget", higherIsBetter: false },
+];
+
+export type MockNotificationKind =
+  | "approval"
+  | "alert"
+  | "insight"
+  | "agent"
+  | "run"
+  | "release"
+  | "escalation"
+  | "deal";
+export type MockNotificationTone = "neutral" | "good" | "warning" | "critical";
+
+export interface MockNotification {
+  id: string;
+  kind: MockNotificationKind;
+  /** One-line header — the feed shows headers only. */
+  title: string;
+  tone: MockNotificationTone;
+  unread: boolean;
+  createdAt: string;
+}
+
+// Run results join the feed from MOCK_RUNS at render time (see runNotification).
+export const MOCK_NOTIFICATIONS: MockNotification[] = [
+  {
+    id: "notif-code-reviewer-approval",
+    kind: "approval",
+    title: "Code Reviewer Agent rollout to all 14 repos is waiting for your approval",
+    tone: "neutral",
+    unread: true,
+    createdAt: "2026-10-23T09:40:00Z",
+  },
+  {
+    id: "notif-spend-pace",
+    kind: "alert",
+    title: "API spend is pacing 12% over the October budget",
+    tone: "warning",
+    unread: true,
+    createdAt: "2026-10-23T08:15:00Z",
+  },
+  {
+    id: "notif-support-csat",
+    kind: "insight",
+    title: "CSAT on agent-drafted support replies fell from 4.6 to 4.1 this week",
+    tone: "warning",
+    unread: true,
+    createdAt: "2026-10-23T06:30:00Z",
+  },
+  {
+    id: "notif-github-token",
+    kind: "alert",
+    title: "GitHub MCP has no token — 3 flows ended with partial results",
+    tone: "critical",
+    unread: true,
+    createdAt: "2026-10-22T22:10:00Z",
+  },
+  {
+    id: "notif-data-analyst-sales",
+    kind: "agent",
+    title: "Data Analyst Agent was added to the Sales pool",
+    tone: "neutral",
+    unread: false,
+    createdAt: "2026-10-22T16:20:00Z",
+  },
+  {
+    id: "notif-engineering-coverage",
+    kind: "insight",
+    title: "Engineering now has agents live on 4 of its 6 Work processes",
+    tone: "good",
+    unread: false,
+    createdAt: "2026-10-21T15:00:00Z",
+  },
+  {
+    id: "notif-pattern-published",
+    kind: "agent",
+    title: "New flow pattern published: Draft → Fact-check → Finalize",
+    tone: "neutral",
+    unread: false,
+    createdAt: "2026-10-21T11:30:00Z",
+  },
+  {
+    id: "notif-sales-prompt-review",
+    kind: "approval",
+    title: "An edit to the Sales outreach tone prompt needs review before it goes live",
+    tone: "neutral",
+    unread: false,
+    createdAt: "2026-10-21T10:00:00Z",
+  },
+];
+
+export interface MockPriorityAction {
+  label: string;
+  /** A screen that exists today; actions without one have no screen yet. */
+  href?: string;
+}
+
+export interface MockPriority {
+  id: string;
+  title: string;
+  /** Omitted for org-wide priorities. */
+  businessUnitId?: string;
+  /** Kept to roughly five lines on the card. */
+  context: string;
+  actions: [MockPriorityAction, MockPriorityAction];
+}
+
+export const MOCK_PRIORITIES: MockPriority[] = [
+  {
+    id: "priority-code-reviewer-rollout",
+    title: "Approve the Code Reviewer rollout",
+    businessUnitId: "engineering",
+    context:
+      "Pilot on 2 repos: 212 PRs reviewed, 9 security issues caught that humans missed, false positives down to 6%. Rolling out to all 14 repos adds about $38/month.",
+    actions: [{ label: "Review pilot", href: "/marketplace" }, { label: "Approve" }],
+  },
+  {
+    id: "priority-support-csat",
+    title: "Fix the dip in first-reply CSAT",
+    businessUnitId: "customer-support",
+    context:
+      "CSAT on agent-drafted first replies fell from 4.6 to 4.1 this week. Low scores cite callbacks promised without a time — the tone prompt doesn't cover that yet.",
+    actions: [
+      { label: "Edit prompt", href: "/prompts" },
+      { label: "Run test", href: "/prompts" },
+    ],
+  },
+  {
+    id: "priority-sales-pre-coverage",
+    title: "Cover Sales pre-work with agents",
+    businessUnitId: "sales",
+    context:
+      "None of the 6 Sales pre-work processes has a live agent. Lead qualification and meeting briefs are still manual, and the Research → Synthesize pattern fits both.",
+    actions: [
+      { label: "Use pattern", href: "/patterns" },
+      { label: "See agents", href: "/marketplace" },
+    ],
+  },
+  {
+    id: "priority-api-spend",
+    title: "Bring API spend back under budget",
+    context:
+      "October is pacing to $1,160 against a $1,035 budget. Two-thirds is the Data Analyst Agent on GPT-5.4, and its nightly batch could move to the local model.",
+    actions: [{ label: "See costs", href: "/builder" }, { label: "Set a cap" }],
+  },
+  {
+    id: "priority-github-token",
+    title: "Unblock the GitHub MCP connection",
+    businessUnitId: "engineering",
+    context:
+      "Three flows attach the GitHub MCP server, but no GITHUB_TOKEN is set, so each run skips its GitHub steps and ends partial. A read-only token unblocks all three.",
+    actions: [{ label: "Add token" }, { label: "View flows", href: "/builder" }],
+  },
+];
+
+export interface MockPhaseCoverage {
+  /** Task-processes with an agent in production. */
+  live: number;
+  /** Task-processes with an agent being piloted. */
+  pilot: number;
+  /** All task-processes mapped for the unit and phase — the rest are uncovered. */
+  total: number;
+}
+
+export interface MockUnitCoverage {
+  businessUnitId: string;
+  name: string;
+  phases: Record<MockTaskProcess["phase"], MockPhaseCoverage>;
+}
+
+// [live, pilot] per phase; totals come from each unit's mapped task-processes.
+const COVERAGE_COUNTS: Record<string, Record<MockTaskProcess["phase"], [live: number, pilot: number]>> = {
+  "customer-support": { pre: [3, 1], work: [3, 1], post: [1, 2] },
+  sales: { pre: [0, 2], work: [1, 1], post: [0, 1] },
+  engineering: { pre: [3, 1], work: [4, 1], post: [2, 1] },
+  "customer-experience": { pre: [2, 1], work: [0, 1], post: [3, 2] },
+};
+
+export const MOCK_UNIT_COVERAGE: MockUnitCoverage[] = MOCK_BUSINESS_UNITS.map((unit) => {
+  const phaseCoverage = (phase: MockTaskProcess["phase"]): MockPhaseCoverage => {
+    const [live, pilot] = COVERAGE_COUNTS[unit.id]?.[phase] ?? [0, 0];
+    const total = MOCK_TASK_PROCESSES.filter((p) => p.businessUnitId === unit.id && p.phase === phase).length;
+    return { live, pilot, total };
+  };
+  return {
+    businessUnitId: unit.id,
+    name: unit.name,
+    phases: { pre: phaseCoverage("pre"), work: phaseCoverage("work"), post: phaseCoverage("post") },
+  };
+});
