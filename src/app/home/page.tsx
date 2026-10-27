@@ -69,10 +69,10 @@ export default async function HomePage({
           <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-balance text-black dark:text-zinc-50">
             Agentic Coworking, we got an AI ready playground to help you run your business
           </h1>
-          <p className="max-w-xl text-zinc-600 dark:text-zinc-400">An iteratively growing toolbox set for AIDevOps.</p>
+          <p className="max-w-xl text-zinc-600 dark:text-zinc-400">An iteratively growing toolbox set for modern businesses.</p>
           <p className="-mt-3 max-w-xl text-sm text-zinc-500">
             Every capacity is supported from onboarding to the output, and works with open source models, or stacks that
-            you prefer from Augure, Anthropic, Claude, OpenAI, Mistral and Copilot ready for you to connect.
+            you prefer from Augure, Azure, Anthropic, Gemini, Mistral and OpenAI ready for you to connect.
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             <Link href="/onboarding" className={PRIMARY_LINK}>
