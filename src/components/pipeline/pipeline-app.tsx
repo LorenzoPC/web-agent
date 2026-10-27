@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Activity, useState } from "react";
 import { MOCK_PIPELINE } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
 import { EcosystemTab } from "./ecosystem-tab";
@@ -24,9 +24,7 @@ export function PipelineApp() {
     setTab("Pipeline");
   }
 
-  // Keep the idea as the Pipeline input too, so it's still there if the user comes back without building.
   function handleExplore(idea: string) {
-    setSeedInput(idea);
     setEcosystemChallenge(idea);
     setTab("Ecosystem");
   }
@@ -60,10 +58,12 @@ export function PipelineApp() {
         ))}
       </div>
 
-      {tab === "Ecosystem" && (
-        <EcosystemTab initialChallenge={ecosystemChallenge} onBuildFlow={handleBuildFlow} />
-      )}
-      {tab === "Pipeline" && (
+      {/* Hidden tabs keep their state: added steps, the Explore panel and an analysis survive a tab switch.
+          A new Explore idea remounts Ecosystem with it; Build flow remounts Pipeline with the new steps. */}
+      <Activity mode={tab === "Ecosystem" ? "visible" : "hidden"}>
+        <EcosystemTab key={ecosystemChallenge} initialChallenge={ecosystemChallenge} onBuildFlow={handleBuildFlow} />
+      </Activity>
+      <Activity mode={tab === "Pipeline" ? "visible" : "hidden"}>
         <PipelineTab
           key={pipelineSteps.map((s) => s.id).join(",")}
           initialSteps={pipelineSteps}
@@ -71,8 +71,10 @@ export function PipelineApp() {
           successCriteria={successCriteria}
           onExplore={handleExplore}
         />
-      )}
-      {tab === "History" && <HistoryTab />}
+      </Activity>
+      <Activity mode={tab === "History" ? "visible" : "hidden"}>
+        <HistoryTab />
+      </Activity>
     </div>
   );
 }

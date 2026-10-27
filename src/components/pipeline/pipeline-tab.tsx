@@ -55,6 +55,11 @@ export function PipelineTab({
     setFocusedStepId(step.id);
   }
 
+  function removeStep(id: string) {
+    setSteps((prev) => prev.filter((s) => s.id !== id));
+    if (focusedStepId === id) setFocusedStepId(null);
+  }
+
   async function runStep(step: PipelineStep) {
     setRuns((prev) => ({ ...prev, [step.id]: { status: "running" } }));
     const result = await callStep(step, input);
@@ -131,13 +136,19 @@ export function PipelineTab({
             focused={focusedStepId === step.id}
             onFocus={() => setFocusedStepId(step.id)}
             onRun={() => runStep(step)}
+            onRemove={() => removeStep(step.id)}
           />
         ))}
+        {steps.length === 0 && (
+          <li className="w-full rounded-lg border border-dashed border-zinc-300 p-4 text-center text-xs text-zinc-500 dark:border-zinc-700">
+            No steps yet. Explore an idea above, or add a model step below.
+          </li>
+        )}
       </ul>
 
       <button
         onClick={runPipeline}
-        disabled={isChainRunning || input.trim() === ""}
+        disabled={isChainRunning || input.trim() === "" || steps.length === 0}
         className="w-full rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
       >
         {isChainRunning ? "Running pipeline…" : "Run pipeline"}

@@ -10,6 +10,7 @@ export function StepCard({
   focused,
   onFocus,
   onRun,
+  onRemove,
 }: {
   step: PipelineStep;
   run: RunState;
@@ -17,6 +18,7 @@ export function StepCard({
   focused: boolean;
   onFocus: () => void;
   onRun: () => void;
+  onRemove: () => void;
 }) {
   const isRunning = run.status === "running";
 
@@ -63,6 +65,13 @@ export function StepCard({
           className="rounded-full bg-black px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
         >
           {isRunning ? "Running…" : "Run"}
+        </button>
+        <button
+          onClick={onRemove}
+          disabled={disabled}
+          className="text-xs text-zinc-500 transition-colors hover:text-red-600 disabled:opacity-50 dark:hover:text-red-400"
+        >
+          Remove
         </button>
         {run.status === "error" && (
           <span className="text-xs text-red-600 dark:text-red-400">{run.message}</span>
