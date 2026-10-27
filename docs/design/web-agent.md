@@ -49,6 +49,22 @@ V1 is built and scoped as a single-user personal tool. Broad-audience SaaS with 
 
 ---
 
+## Colour palette
+
+Semantic tokens are plain CSS variables on `:root` in `src/app/globals.css`, overridden under `prefers-color-scheme: dark` and exposed to Tailwind through `@theme inline` (`--admin` → `--color-admin` → `bg-admin`). The `dark:` variant follows the same media query.
+
+| Token | Tailwind | Light | Dark | Use |
+|---|---|---|---|---|
+| `--background` | `background` | `#ffffff` | `#0a0a0a` | Page surface |
+| `--foreground` | `foreground` | `#171717` | `#ededed` | Body text |
+| `--admin` | `admin` | `#991b1b` | `#c62828` | Fill for admin / privileged options |
+| `--admin-hover` | `admin-hover` | `#7f1d1d` | `#b91c1c` | Hover fill, slightly darker |
+| `--admin-foreground` | `admin-foreground` | `#ffffff` | `#ffffff` | Text and icons on the admin fill |
+
+**Admin (2026-10-26):** a semi-dark red that marks entry points to admin-level capabilities in navigation, menus and cards, e.g. the "Create MCP Server" quick action, which publishes company data to external audiences. Style these with `bg-admin text-admin-foreground hover:bg-admin-hover`, and always pair the color with a text cue (e.g. an "Admin" label) so color isn't the only signal. White text clears 4.5:1 on both fills in both modes (8.3 / 10.0 light, 5.6 / 6.5 dark), and the fill holds at least 3:1 against the page and `zinc-50` / `zinc-950` surfaces (7.96+ light, 3.5 dark). Dark mode uses a lighter red than light mode because `#b91c1c` as the resting fill only just cleared 3:1 against near-black. The admin fill is darker than the reds used for error text and status dots (`red-400`–`red-600`), and it's a filled control rather than text, so the two don't read as the same signal.
+
+---
+
 ## Data model
 
 **Current:** no database. Pipeline config is an in-memory array (`src/lib/pipeline-data.ts`):

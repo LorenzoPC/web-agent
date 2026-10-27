@@ -3,11 +3,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Admin / privileged options (see docs/design/web-agent.md, "Colour palette"). */
+  --admin: #991b1b;
+  --admin-hover: #7f1d1d;
+  --admin-foreground: #ffffff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-admin: var(--admin);
+  --color-admin-hover: var(--admin-hover);
+  --color-admin-foreground: var(--admin-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -50,6 +58,10 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    --admin: #c62828;
+    --admin-hover: #b91c1c;
+    --admin-foreground: #ffffff;
   }
 }
 
