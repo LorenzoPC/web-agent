@@ -6,12 +6,12 @@ import { Orb } from "@/components/ui/orb";
 import { useSidePanel } from "./side-panel";
 
 const LINKS = [
+  { href: "/onboarding", label: "Get started" },
   { href: "/", label: "Dashboard" },
   { href: "/marketplace", label: "Marketplace" },
   { href: "/patterns", label: "Patterns" },
   { href: "/prompts", label: "Prompts" },
   { href: "/builder", label: "Builder" },
-  { href: "/onboarding", label: "Get started" },
 ] as const;
 
 // Sub-screens that keep their parent nav item highlighted.
@@ -30,10 +30,11 @@ export function AppNav({ userName }: { userName: string }) {
   return (
     <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3 dark:border-zinc-800 dark:bg-black">
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2">
+        {/* The brand goes to the landing page. */}
+        <Link href="/home" className="flex items-center gap-2">
           <Orb />
           <span className="text-sm font-semibold text-black dark:text-zinc-50">Web Agent</span>
-        </div>
+        </Link>
         <nav className="flex gap-1">
           {LINKS.map((link) => {
             const active = (NAV_PARENTS[pathname] ?? pathname) === link.href;
