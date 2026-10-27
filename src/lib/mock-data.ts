@@ -312,6 +312,263 @@ export const MOCK_RUNS: MockRun[] = [
   },
 ];
 
+// Model options for the Pipeline tab's "Add a model step" picker, grouped by
+// what the model generates. Text options reuse model refs the real run route
+// already handles; image/voice/video options are stepKind "external", which the
+// run route stubs until those modalities are wired. Prices are illustrative
+// placeholders, not current provider rates.
+export type MockModelType = "text" | "image" | "voice" | "avatar-video";
+
+/** A model option plus a 2-3 word "best for" scenario shown on its picker card. */
+export type MockModelOption = PipelineStep & { bestFor: string };
+
+export interface MockModelTypeGroup {
+  id: MockModelType;
+  title: string;
+  description: string;
+  /** What a step from this group does in a proposed flow, e.g. "Narrate it". */
+  stepLabel: string;
+  /** Lowercase substrings in an idea that suggest this model type; empty means always suggested. */
+  keywords: string[];
+  /** First option is the default suggestion in the Explore panel. */
+  options: MockModelOption[];
+}
+
+export const MOCK_MODEL_TYPE_GROUPS: MockModelTypeGroup[] = [
+  {
+    id: "text",
+    title: "Text generation",
+    description: "Writes, reasons, summarizes, and formats — the core of most flows",
+    stepLabel: "Draft the content",
+    keywords: [],
+    options: [
+      {
+        id: "model:text-gpt-5.4",
+        name: "GPT-5.4",
+        bestFor: "Complex reasoning",
+        description: "Strong general-purpose reasoning and long-form writing",
+        sourceType: "api",
+        sourceLabel: "OpenAI · gpt-5.4",
+        stepKind: "chat",
+        modelRef: "openai > gpt-5.4",
+        unit: "1K tokens",
+        estimatedUnits: 3,
+        cost: { kind: "tokens", inputPerMillion: 2.5, outputPerMillion: 15 },
+      },
+      {
+        id: "model:text-claude-haiku-4.5",
+        name: "Claude Haiku 4.5",
+        bestFor: "Fast summaries",
+        description: "Fast, low-cost drafting and summarization",
+        sourceType: "api",
+        sourceLabel: "Anthropic · claude-haiku-4.5",
+        stepKind: "chat",
+        modelRef: "anthropic > claude-haiku-4.5",
+        unit: "1K tokens",
+        estimatedUnits: 3,
+        cost: { kind: "tokens", inputPerMillion: 1, outputPerMillion: 5 },
+      },
+      {
+        id: "model:text-llama3.2-local",
+        name: "Llama 3.2",
+        bestFor: "Private quick edits",
+        description: "Small open model for formatting and light rewriting",
+        sourceType: "local",
+        sourceLabel: "Ollama · llama3.2:latest",
+        stepKind: "chat",
+        modelRef: "local > llama3.2:latest",
+        unit: "1K tokens",
+        estimatedUnits: 3,
+        cost: { kind: "free" },
+      },
+      {
+        id: "model:text-llama3.2-remote",
+        name: "Llama 3.2 (GPU)",
+        bestFor: "High-volume batches",
+        description: "Same open model on a rented GPU box for faster throughput",
+        sourceType: "remote",
+        sourceLabel: "Rented GPU · llama3.2:latest",
+        stepKind: "chat",
+        modelRef: "remote > llama3.2:latest",
+        unit: "hour",
+        estimatedUnits: 0.015,
+        cost: { kind: "duration", dollarsPerHour: 1.2 },
+      },
+    ],
+  },
+  {
+    id: "image",
+    title: "Image generation",
+    description: "Illustrations, thumbnails, product shots, and diagrams from a prompt",
+    stepLabel: "Create the visuals",
+    keywords: ["image", "picture", "photo", "illustrat", "thumbnail", "visual", "logo", "diagram", "banner", "poster"],
+    options: [
+      {
+        id: "model:image-gpt-image",
+        name: "GPT Image",
+        bestFor: "Text in images",
+        description: "Follows detailed prompts well, including legible text in images",
+        sourceType: "api",
+        sourceLabel: "OpenAI · gpt-image-1",
+        stepKind: "external",
+        unit: "image",
+        estimatedUnits: 1,
+        cost: { kind: "perRequest", dollarsPerRequest: 0.04 },
+      },
+      {
+        id: "model:image-imagen-4",
+        name: "Imagen 4",
+        bestFor: "Photorealistic shots",
+        description: "Photorealistic images with fine detail",
+        sourceType: "api",
+        sourceLabel: "Google · imagen-4",
+        stepKind: "external",
+        unit: "image",
+        estimatedUnits: 1,
+        cost: { kind: "perRequest", dollarsPerRequest: 0.04 },
+      },
+      {
+        id: "model:image-flux-dev",
+        name: "FLUX.1 [dev]",
+        bestFor: "Custom fine-tuned styles",
+        description: "Open-weights image model on a rented GPU box",
+        sourceType: "remote",
+        sourceLabel: "Rented GPU · flux.1-dev",
+        stepKind: "external",
+        unit: "hour",
+        estimatedUnits: 0.01,
+        cost: { kind: "duration", dollarsPerHour: 1.2 },
+      },
+      {
+        id: "model:image-sdxl-local",
+        name: "Stable Diffusion XL",
+        bestFor: "Free bulk drafts",
+        description: "Runs on local hardware via ComfyUI, no per-image cost",
+        sourceType: "local",
+        sourceLabel: "ComfyUI · sdxl-base-1.0",
+        stepKind: "external",
+        unit: "image",
+        estimatedUnits: 1,
+        cost: { kind: "free" },
+      },
+    ],
+  },
+  {
+    id: "voice",
+    title: "Voice generation",
+    description: "Narration, voiceovers, and spoken replies from text",
+    stepLabel: "Give it a voice",
+    keywords: ["voice", "audio", "narrat", "podcast", "speech", "spoken", "speak", "read aloud", "phone call"],
+    options: [
+      {
+        id: "model:voice-elevenlabs",
+        name: "ElevenLabs Multilingual",
+        bestFor: "Multilingual narration",
+        description: "Expressive, natural voices across many languages",
+        sourceType: "api",
+        sourceLabel: "ElevenLabs · multilingual-v2",
+        stepKind: "external",
+        unit: "1K characters",
+        estimatedUnits: 1,
+        cost: { kind: "perRequest", dollarsPerRequest: 0.3 },
+      },
+      {
+        id: "model:voice-openai-tts",
+        name: "OpenAI TTS",
+        bestFor: "Low-cost voice replies",
+        description: "Steerable tone and delivery at a low per-minute cost",
+        sourceType: "api",
+        sourceLabel: "OpenAI · gpt-4o-mini-tts",
+        stepKind: "external",
+        unit: "minute",
+        estimatedUnits: 1,
+        cost: { kind: "perRequest", dollarsPerRequest: 0.015 },
+      },
+      {
+        id: "model:voice-xtts-remote",
+        name: "XTTS v2",
+        bestFor: "Voice cloning",
+        description: "Open voice-cloning model on a rented GPU box",
+        sourceType: "remote",
+        sourceLabel: "Rented GPU · xtts-v2",
+        stepKind: "external",
+        unit: "hour",
+        estimatedUnits: 0.01,
+        cost: { kind: "duration", dollarsPerHour: 1.2 },
+      },
+      {
+        id: "model:voice-kokoro-local",
+        name: "Kokoro",
+        bestFor: "Offline read-aloud",
+        description: "Lightweight text-to-speech that runs on local hardware",
+        sourceType: "local",
+        sourceLabel: "Local · kokoro-82m",
+        stepKind: "external",
+        unit: "minute",
+        estimatedUnits: 1,
+        cost: { kind: "free" },
+      },
+    ],
+  },
+  {
+    id: "avatar-video",
+    title: "Avatar & video generation",
+    description: "Talking-head presenters and short generated video clips",
+    stepLabel: "Render the video",
+    keywords: ["video", "avatar", "clip", "presenter", "animat", "reel", "youtube", "tiktok", "film"],
+    options: [
+      {
+        id: "model:video-heygen-avatar",
+        name: "HeyGen Avatar",
+        bestFor: "Presenter explainer videos",
+        description: "Lip-synced presenter video from a script and a stock or custom avatar",
+        sourceType: "api",
+        sourceLabel: "HeyGen · avatar-iv",
+        stepKind: "external",
+        unit: "minute",
+        estimatedUnits: 1,
+        cost: { kind: "perRequest", dollarsPerRequest: 1 },
+      },
+      {
+        id: "model:video-veo-3",
+        name: "Veo 3",
+        bestFor: "Cinematic short clips",
+        description: "Short cinematic clips with generated audio",
+        sourceType: "api",
+        sourceLabel: "Google · veo-3",
+        stepKind: "external",
+        unit: "8-second clip",
+        estimatedUnits: 1,
+        cost: { kind: "perRequest", dollarsPerRequest: 3.2 },
+      },
+      {
+        id: "model:video-runway-gen4",
+        name: "Runway Gen-4",
+        bestFor: "Consistent characters",
+        description: "Image-to-video with consistent characters across shots",
+        sourceType: "api",
+        sourceLabel: "Runway · gen-4",
+        stepKind: "external",
+        unit: "5-second clip",
+        estimatedUnits: 1,
+        cost: { kind: "perRequest", dollarsPerRequest: 0.5 },
+      },
+      {
+        id: "model:video-wan-remote",
+        name: "Wan 2.1",
+        bestFor: "Self-hosted video batches",
+        description: "Open-weights video model on a rented GPU box",
+        sourceType: "remote",
+        sourceLabel: "Rented GPU · wan-2.1",
+        stepKind: "external",
+        unit: "hour",
+        estimatedUnits: 0.05,
+        cost: { kind: "duration", dollarsPerHour: 2.4 },
+      },
+    ],
+  },
+];
+
 // See docs/project/pattern_libraries.md — V1 Flow Patterns are curated/seeded,
 // linear only. Each slot is a placeholder agent-task, bound to a real agent +
 // task instructions when a pattern is used to build a flow.

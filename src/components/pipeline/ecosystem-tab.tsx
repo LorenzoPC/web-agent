@@ -134,12 +134,14 @@ function CardOptionCard({
 }
 
 export function EcosystemTab({
+  initialChallenge,
   onBuildFlow,
 }: {
+  initialChallenge?: string;
   onBuildFlow: (steps: PipelineStep[], seedInput: string, successCriteria: string) => void;
 }) {
   const [challenge, setChallenge] = useState(
-    "I want a daily summary of game results for American basketball, in email format.",
+    initialChallenge ?? "I want a daily summary of game results for American basketball, in email format.",
   );
   const [analysis, setAnalysis] = useState<AnalysisState>({ status: "idle" });
   const [refinedGoal, setRefinedGoal] = useState("");

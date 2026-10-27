@@ -10,12 +10,11 @@ import { PipelineTab } from "./pipeline-tab";
 const TABS = ["Ecosystem", "Pipeline", "History"] as const;
 type Tab = (typeof TABS)[number];
 
-const DEFAULT_INPUT = "Summarize the latest deployment status for this project.";
-
 export function PipelineApp() {
   const [tab, setTab] = useState<Tab>("Ecosystem");
   const [pipelineSteps, setPipelineSteps] = useState<PipelineStep[]>(MOCK_PIPELINE);
-  const [seedInput, setSeedInput] = useState(DEFAULT_INPUT);
+  const [seedInput, setSeedInput] = useState("");
+  const [ecosystemChallenge, setEcosystemChallenge] = useState<string>();
   const [successCriteria, setSuccessCriteria] = useState("");
 
   function handleBuildFlow(steps: PipelineStep[], input: string, criteria: string) {
@@ -23,6 +22,13 @@ export function PipelineApp() {
     setSeedInput(input);
     setSuccessCriteria(criteria);
     setTab("Pipeline");
+  }
+
+  // Keep the idea as the Pipeline input too, so it's still there if the user comes back without building.
+  function handleExplore(idea: string) {
+    setSeedInput(idea);
+    setEcosystemChallenge(idea);
+    setTab("Ecosystem");
   }
 
   return (
@@ -54,13 +60,16 @@ export function PipelineApp() {
         ))}
       </div>
 
-      {tab === "Ecosystem" && <EcosystemTab onBuildFlow={handleBuildFlow} />}
+      {tab === "Ecosystem" && (
+        <EcosystemTab initialChallenge={ecosystemChallenge} onBuildFlow={handleBuildFlow} />
+      )}
       {tab === "Pipeline" && (
         <PipelineTab
           key={pipelineSteps.map((s) => s.id).join(",")}
-          steps={pipelineSteps}
+          initialSteps={pipelineSteps}
           initialInput={seedInput}
           successCriteria={successCriteria}
+          onExplore={handleExplore}
         />
       )}
       {tab === "History" && <HistoryTab />}
