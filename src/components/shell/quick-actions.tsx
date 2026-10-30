@@ -19,7 +19,7 @@ const ITEM_TONE = {
 const ACTIONS: { label: string; href?: string; opens?: "conversation"; hint?: string; admin?: boolean }[] = [
   { label: "Start Conversation", opens: "conversation" },
   { label: "Create Agent", href: "/builder", hint: "Builder" },
-  { label: "See Dashboard", href: "/" },
+  { label: "See Dashboard", href: "/dashboard" },
   { label: "Create Tool", href: "/tools/new" },
   { label: "Create MCP Server", href: "/mcp-servers/new", hint: "Admin", admin: true },
   { label: "Create Skill" },

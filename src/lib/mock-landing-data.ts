@@ -1,4 +1,4 @@
-// Mock data for the landing page (/home): what the platform offers at a
+// Mock data for the landing page (/): what the platform offers at a
 // glance, what shipped recently, where the docs start, and why to trust it.
 // Signed in, the page adds the visitor's account. Nothing here is live yet.
 
