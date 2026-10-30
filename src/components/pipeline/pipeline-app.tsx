@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Activity, useState } from "react";
 import { MOCK_PIPELINE } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
 import { EcosystemTab } from "./ecosystem-tab";
@@ -10,12 +10,11 @@ import { PipelineTab } from "./pipeline-tab";
 const TABS = ["Ecosystem", "Pipeline", "History"] as const;
 type Tab = (typeof TABS)[number];
 
-const DEFAULT_INPUT = "Summarize the latest deployment status for this project.";
-
 export function PipelineApp() {
   const [tab, setTab] = useState<Tab>("Ecosystem");
   const [pipelineSteps, setPipelineSteps] = useState<PipelineStep[]>(MOCK_PIPELINE);
-  const [seedInput, setSeedInput] = useState(DEFAULT_INPUT);
+  const [seedInput, setSeedInput] = useState("");
+  const [ecosystemChallenge, setEcosystemChallenge] = useState<string>();
   const [successCriteria, setSuccessCriteria] = useState("");
 
   function handleBuildFlow(steps: PipelineStep[], input: string, criteria: string) {
@@ -23,6 +22,11 @@ export function PipelineApp() {
     setSeedInput(input);
     setSuccessCriteria(criteria);
     setTab("Pipeline");
+  }
+
+  function handleExplore(idea: string) {
+    setEcosystemChallenge(idea);
+    setTab("Ecosystem");
   }
 
   return (
@@ -54,16 +58,23 @@ export function PipelineApp() {
         ))}
       </div>
 
-      {tab === "Ecosystem" && <EcosystemTab onBuildFlow={handleBuildFlow} />}
-      {tab === "Pipeline" && (
+      {/* Hidden tabs keep their state: added steps, the Explore panel and an analysis survive a tab switch.
+          A new Explore idea remounts Ecosystem with it; Build flow remounts Pipeline with the new steps. */}
+      <Activity mode={tab === "Ecosystem" ? "visible" : "hidden"}>
+        <EcosystemTab key={ecosystemChallenge} initialChallenge={ecosystemChallenge} onBuildFlow={handleBuildFlow} />
+      </Activity>
+      <Activity mode={tab === "Pipeline" ? "visible" : "hidden"}>
         <PipelineTab
           key={pipelineSteps.map((s) => s.id).join(",")}
-          steps={pipelineSteps}
+          initialSteps={pipelineSteps}
           initialInput={seedInput}
           successCriteria={successCriteria}
+          onExplore={handleExplore}
         />
-      )}
-      {tab === "History" && <HistoryTab />}
+      </Activity>
+      <Activity mode={tab === "History" ? "visible" : "hidden"}>
+        <HistoryTab />
+      </Activity>
     </div>
   );
 }
