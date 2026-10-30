@@ -7,6 +7,28 @@ const CHECK_ICON: Record<RecipeCheck["level"], { glyph: string; className: strin
   fail: { glyph: "✕", className: "text-red-600 dark:text-red-400", srLabel: "Required:" },
 };
 
+/** ✓ / ! / ✕ list of lint results. Also used by Create MCP server. */
+export function CheckList({ checks }: { checks: RecipeCheck[] }) {
+  return (
+    <ul className="mt-3 flex flex-col gap-1.5">
+      {checks.map((check) => {
+        const icon = CHECK_ICON[check.level];
+        return (
+          <li key={check.label} className="flex gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+            <span aria-hidden="true" className={`w-3 shrink-0 text-center font-semibold ${icon.className}`}>
+              {icon.glyph}
+            </span>
+            <span>
+              <span className="sr-only">{icon.srLabel} </span>
+              {check.label}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 /** Live recipe lint + the model-facing definition, beside the form. */
 export function RecipePanel({
   recipe,
@@ -30,22 +52,7 @@ export function RecipePanel({
             {passing}/{checks.length} passing
           </span>
         </div>
-        <ul className="mt-3 flex flex-col gap-1.5">
-          {checks.map((check) => {
-            const icon = CHECK_ICON[check.level];
-            return (
-              <li key={check.label} className="flex gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                <span aria-hidden="true" className={`w-3 shrink-0 text-center font-semibold ${icon.className}`}>
-                  {icon.glyph}
-                </span>
-                <span>
-                  <span className="sr-only">{icon.srLabel} </span>
-                  {check.label}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+        <CheckList checks={checks} />
 
         <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
           {createdName ? (

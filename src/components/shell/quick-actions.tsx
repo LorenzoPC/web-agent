@@ -7,13 +7,21 @@ import type { MockStarterInstruction } from "@/lib/mock-data";
 import type { PipelineStep } from "@/lib/types";
 import { useSidePanel } from "./side-panel";
 
+// Admin items lead to privileged screens and use the admin palette color, with
+// an "Admin" hint so color isn't the only cue.
+const ITEM_TONE = {
+  neutral: { row: "text-zinc-900 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-900", hint: "text-zinc-500" },
+  admin: { row: "bg-admin text-admin-foreground hover:bg-admin-hover", hint: "text-admin-foreground/80" },
+};
+
 // Items with neither an href nor a panel to open have no screen yet and render
 // as disabled "Soon" rows.
-const ACTIONS: { label: string; href?: string; opens?: "conversation"; hint?: string }[] = [
+const ACTIONS: { label: string; href?: string; opens?: "conversation"; hint?: string; admin?: boolean }[] = [
   { label: "Start Conversation", opens: "conversation" },
   { label: "Create Agent", href: "/builder", hint: "Builder" },
   { label: "See Dashboard", href: "/" },
   { label: "Create Tool", href: "/tools/new" },
+  { label: "Create MCP Server", href: "/mcp-servers/new", hint: "Admin", admin: true },
   { label: "Create Skill" },
 ];
 
@@ -62,17 +70,18 @@ export function QuickActions({
             aria-label="Quick actions"
             className="w-60 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-lg dark:border-zinc-800 dark:bg-zinc-950"
           >
-            {ACTIONS.map((action) =>
-              action.href ? (
+            {ACTIONS.map((action) => {
+              const tone = ITEM_TONE[action.admin ? "admin" : "neutral"];
+              return action.href ? (
                 <Link
                   key={action.label}
                   role="menuitem"
                   href={action.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-zinc-900 transition-colors hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-900"
+                  className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${tone.row}`}
                 >
                   {action.label}
-                  {action.hint && <span className="text-xs text-zinc-500">{action.hint}</span>}
+                  {action.hint && <span className={`text-xs ${tone.hint}`}>{action.hint}</span>}
                 </Link>
               ) : action.opens ? (
                 <button
@@ -83,10 +92,10 @@ export function QuickActions({
                     setOpen(false);
                     setPanel("conversation");
                   }}
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-zinc-900 transition-colors hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-900"
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${tone.row}`}
                 >
                   {action.label}
-                  {action.hint && <span className="text-xs text-zinc-500">{action.hint}</span>}
+                  {action.hint && <span className={`text-xs ${tone.hint}`}>{action.hint}</span>}
                 </button>
               ) : (
                 <div
@@ -100,8 +109,8 @@ export function QuickActions({
                     Soon
                   </span>
                 </div>
-              ),
-            )}
+              );
+            })}
           </div>
         )}
         <button
