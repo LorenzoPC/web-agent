@@ -71,6 +71,24 @@ Running an AI pipeline across different execution sources — hardware you own, 
 
 A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config (`MOCK_PIPELINE`) describing each step's source, cost model, and provider registry key. A server-side Route Handler (`/api/pipeline/run`) resolves each step's model through a shared AI SDK provider registry — local/remote hardware as OpenAI-compatible endpoints, APIs as direct provider SDKs — executes it, and returns real usage. The pipeline builder (Ecosystem / Pipeline / History tabs, as below) now lives at `/builder`; `/` is a signed-in **Dashboard** and `/marketplace` is the **Agent Marketplace**, both new, both currently rendered from static mock data (`src/lib/mock-data.ts`) rather than the database, tied together by a shared nav shell and a mocked `getCurrentUser()`. The builder itself is three tabs on one page: **Ecosystem** (describe a challenge, get back an editable refined goal, real costed options for data source/agent-persona/delivery plus optional tools/MCP servers/RAG sources, an editable success-criteria draft, and a "Build flow" action), **Pipeline** (a primary "Run pipeline" action chains the active flow's steps in order, output feeding the next step's input; each step also keeps its own standalone "Run" button), and **History** (past full-pipeline runs, once persistence is wired). `MOCK_PIPELINE` remains the default flow shown in the Pipeline tab until a flow is built in Ecosystem. Ecosystem's catalog (`catalog_entries`, task-categorized, ~300 models synced live from the AI Gateway plus a curated set of services/agent-personas/hooks/RAG-patterns/MCP-servers) lives in Neon Postgres — the first real database work in this project. Three catalog entries (a search tool, a GitHub MCP connection, a local-documents RAG source) execute for real when attached to an agent; everything else is captured on the flow but decorative. Run history will use the same database (one row per pipeline run with child rows per step result), provisioned but not yet wired into the app as of this writing — the Dashboard's run headers in its newsfeed and the History tab are, for now, two separate unwired placeholders pointing at the same eventual data.
 
+## Sitemap (draft)
+
+**Status:** Draft, 2026-10-30. This is the target structure, not what's live. The signed-in areas depend on auth and roles, which are V2 (see Non-goals). Until then, every area renders for the mock user. What this settles now is where each screen lives, so URLs don't move once auth lands.
+
+The app splits into one public area and four signed-in areas, one per audience:
+
+| Area | Route prefix | For | Lands on |
+|---|---|---|---|
+| Public | `/` | Anyone, not signed in | Landing page |
+| Client workspace | `/app` | People at client organizations who buy and run services: business owners, function managers, client admins | Overview dashboard |
+| Learn | `/learn` | Employees who work alongside the services and want to understand them and AI in general | Learn home, tailored to their role |
+| Developers | `/developers` | Developers building on the platform's services and components | Developer home: quickstart and status |
+| Admin | `/admin` | Platform admins who create and run agents, prompts, tools and MCP servers, plus the product-side team | Product overview |
+
+**One account, several roles.** People sign in once, with a work email over OAuth, which matches them to their company's account. They land in the area of their primary role, and the nav gets an area switcher if they hold more than one (for example, an admin is usually also an employee). The quick-actions launcher only shows actions the current role can use: Create Agent, Tool, Skill and MCP Server for admins, and Start Conversation for clients and employees.
+
+**Full sitemap:** [`sitemap.html`](sitemap.html). Open it in a browser. It shows every page in each area with its purpose and status (built as a mockup, partly there today, or planned), a filter by status, where each of today's screens moves to, and the open questions listed below.
+
 ## Dependencies
 
 | Dependency | Status | Owner |
@@ -87,6 +105,10 @@ A Next.js app (App Router, deployed on Vercel) with an in-memory pipeline config
 
 ## Open questions
 
+- [ ] **Sitemap:** are "employees" the clients' staff, who work alongside the services (the draft's assumption), or our own staff, or both?
+- [ ] **Sitemap:** does the Product screen's audience (the product's PM and supporting-function managers) belong in Admin, as drafted, or in a separate internal area apart from the people who build agents?
+- [ ] **Sitemap:** for clients, what separates a "service" from a "product page"? The draft treats services as what's running for the organization, and product pages as offerings it can adopt.
+- [ ] **Sitemap:** should the route moves (for example, the landing to `/` and the Dashboard to `/app`) happen now, while everything is mock data, or together with auth?
 - [ ] What does "review past runs" need beyond a list — filtering by step/date, cost threshold, re-running a past prompt?
 - [ ] Should the Vercel project's GitHub auto-deploy be fixed now, or is local dev sufficient for the current phase?
 - [ ] Should candidate selection for the analyze prompt get smarter (rank by task-category match to the challenge) instead of the current 15-per-group alphabetical cap?

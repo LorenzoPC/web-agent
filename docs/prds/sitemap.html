@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web Agent Sitemap</title>
+  <meta name="description" content="Draft sitemap for Web Agent: one public area and four signed-in areas, one per audience.">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --muted: #71717a;
+      --faint: #a1a1aa;
+      --line: #d4d4d8;
+      --built-bg: #ecfdf5; --built-fg: #047857;
+      --partial-bg: #fffbeb; --partial-fg: #b45309;
+      --planned-bg: #f4f4f5; --planned-fg: #52525b;
+      --public: #52525b;
+      --client: #4f46e5;
+      --learn: #059669;
+      --developers: #0284c7;
+      --admin: #991b1b;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0a0a0a;
+        --surface: #18181b;
+        --border: #27272a;
+        --text: #f4f4f5;
+        --muted: #a1a1aa;
+        --faint: #71717a;
+        --line: #3f3f46;
+        --built-bg: #022c22; --built-fg: #6ee7b7;
+        --partial-bg: #2b1d05; --partial-fg: #fcd34d;
+        --planned-bg: #27272a; --planned-fg: #d4d4d8;
+        --public: #a1a1aa;
+        --client: #818cf8;
+        --learn: #34d399;
+        --developers: #38bdf8;
+        --admin: #f87171;
+        color-scheme: dark;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    main { max-width: 1280px; margin: 0 auto; padding: 48px 24px 64px; }
+    h1 { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
+    h2 { margin: 0; font-size: 16px; }
+    h3 { margin: 0 0 8px; font-size: 16px; }
+    p { margin: 0; }
+    .intro { margin-top: 8px; max-width: 72ch; color: var(--muted); }
+    .status-pill {
+      display: inline-block; margin-top: 12px; padding: 2px 10px; border-radius: 999px;
+      background: var(--partial-bg); color: var(--partial-fg); font-size: 12px; font-weight: 600;
+    }
+
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin: 28px 0 20px; }
+    .totals { color: var(--muted); font-size: 13px; }
+    .filter { display: flex; flex-wrap: wrap; gap: 4px; padding: 3px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+    .filter button {
+      border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 500;
+      padding: 4px 12px; border-radius: 7px; cursor: pointer;
+    }
+    .filter button:hover { color: var(--text); }
+    .filter button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+
+    .areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+    .area {
+      background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent);
+      border-radius: 12px; padding: 18px 18px 10px;
+    }
+    .area-public { --accent: var(--public); }
+    .area-client { --accent: var(--client); }
+    .area-learn { --accent: var(--learn); }
+    .area-developers { --accent: var(--developers); }
+    .area-admin { --accent: var(--admin); }
+    .area-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .prefix { color: var(--accent); font-size: 13px; font-weight: 600; }
+    .who { margin-top: 6px; color: var(--muted); font-size: 13px; }
+    .lands { margin-top: 6px; font-size: 13px; }
+    .counts { margin-top: 6px; color: var(--faint); font-size: 12px; }
+
+    .tree { list-style: none; margin: 14px 0 0; padding: 0; border-top: 1px solid var(--border); }
+    .page { padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .page:last-child { border-bottom: 0; }
+    .page.depth-1 { margin-left: 14px; padding-left: 12px; border-left: 2px solid var(--line); }
+    .page[hidden] { display: none; }
+    .page-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .route { color: var(--accent); font-size: 13px; font-weight: 600; }
+    .page-name { margin-top: 2px; font-size: 13px; }
+    .purpose { color: var(--muted); }
+    .today { display: block; margin-top: 4px; color: var(--faint); font-size: 12px; }
+    .today .mono { color: var(--muted); }
+    .chip { flex-shrink: 0; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .chip-built { background: var(--built-bg); color: var(--built-fg); }
+    .chip-partial { background: var(--partial-bg); color: var(--partial-fg); }
+    .chip-planned { background: var(--planned-bg); color: var(--planned-fg); }
+    .empty { padding: 10px 0; color: var(--faint); font-size: 13px; }
+
+    .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 32px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .panel p, .panel li { font-size: 14px; color: var(--muted); }
+    .panel p + p { margin-top: 8px; }
+    .panel strong { color: var(--text); }
+    .panel ol { margin: 0; padding-left: 20px; }
+    .panel li + li { margin-top: 8px; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 500; }
+    tr:last-child td { border-bottom: 0; }
+    td.mono { white-space: nowrap; }
+    .dot { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; }
+    .dot-public { background: var(--public); }
+    .dot-client { background: var(--client); }
+    .dot-learn { background: var(--learn); }
+    .dot-developers { background: var(--developers); }
+    .dot-admin { background: var(--admin); }
+    footer { margin-top: 32px; color: var(--faint); font-size: 12px; }
+    footer a { color: inherit; }
+
+    @media (max-width: 640px) {
+      main { padding: 32px 16px 48px; }
+      h1 { font-size: 24px; }
+      .areas { grid-template-columns: 1fr; }
+      .panels { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Web Agent sitemap</h1>
+    <p class="intro">One public area and four signed-in areas, one per audience. This is the target structure, not what&rsquo;s live: the signed-in areas depend on auth and roles, which are V2 in the PRD. Until then, every area renders for the mock user. What this settles now is where each screen lives, so URLs don&rsquo;t move once auth lands.</p>
+    <span class="status-pill">Draft · 30 Oct 2026</span>
+
+    <div class="toolbar">
+      <div class="filter" role="group" aria-label="Show pages">
+        <button type="button" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" data-filter="built" aria-pressed="false">Built</button>
+        <button type="button" data-filter="partial" aria-pressed="false">Partly there</button>
+        <button type="button" data-filter="planned" aria-pressed="false">Planned</button>
+      </div>
+      <p class="totals">49 pages · 11 built as mockups · 9 partly there today · 29 planned</p>
+    </div>
+
+    <div class="areas">
+      <section class="area area-public" aria-labelledby="area-public">
+        <header class="area-head">
+          <div class="area-title">
+            <h2 id="area-public">Public</h2>
+            <span class="prefix mono">/</span>
+          </div>
+          <p class="who">Anyone, not signed in</p>
+          <p class="lands">Lands on: <strong>Landing page</strong></p>
+          <p class="counts">6 pages · 1 built · 0 partly there · 5 planned</p>
+        </header>
+        <ul class="tree">
+          <li class="page depth-0" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr></span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Landing</strong> <span class="purpose">What the platform does, featured services</span></p>
+            <span class="today">Today: <span class="mono">/<wbr>home</span> (landing mockup, on a branch)</span>
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>services</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Services</strong> <span class="purpose">Public catalog of services</span></p>
+            
+          </li>
+          <li class="page depth-1" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>services/<wbr>[slug]</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Service overview</strong> <span class="purpose">What it does, who it&#x27;s for, how to get it</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>pricing</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Pricing</strong> <span class="purpose">Plans and how usage is billed</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>sign-in</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Sign in</strong> <span class="purpose">Work-email sign-in (OAuth), matched to the company&#x27;s account</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>request-access</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Request access</strong> <span class="purpose">For companies without an account yet</span></p>
+            
+          </li>
+        </ul>
+      </section>
+      <section class="area area-client" aria-labelledby="area-client">
+        <header class="area-head">
+          <div class="area-title">
+            <h2 id="area-client">Client workspace</h2>
+            <span class="prefix mono">/app</span>
+          </div>
+          <p class="who">People at client organizations who buy and run services: business owners, function managers, client admins</p>
+          <p class="lands">Lands on: <strong>Overview dashboard</strong></p>
+          <p class="counts">11 pages · 3 built · 3 partly there · 5 planned</p>
+        </header>
+        <ul class="tree">
+          <li class="page depth-0" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app</span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Overview</strong> <span class="purpose">How the organization is adopting agents</span></p>
+            <span class="today">Today: <span class="mono">/<wbr></span> (Dashboard Overview)</span>
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app/<wbr>services</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Services</strong> <span class="purpose">Services running for the organization</span></p>
+            
+          </li>
+          <li class="page depth-1" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app/<wbr>services/<wbr>[slug]</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Service</strong> <span class="purpose">Its agents, recent runs, cost, status</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app/<wbr>products/<wbr>[slug]</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Product pages</strong> <span class="purpose">What each offering does, plans, how to adopt it</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app/<wbr>marketplace</span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Agent Marketplace</strong> <span class="purpose">Browse agents and pools, request one</span></p>
+            <span class="today">Today: <span class="mono">/<wbr>marketplace</span></span>
+          </li>
+          <li class="page depth-0" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app/<wbr>onboarding</span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Get started</strong> <span class="purpose">Connect the platform to Claude or ChatGPT over MCP</span></p>
+            <span class="today">Today: <span class="mono">/<wbr>onboarding</span></span>
+          </li>
+          <li class="page depth-0" data-status="partial">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app/<wbr>conversations</span>
+              <span class="chip chip-partial" title="Exists today as a panel, tab, script or doc">Partly there</span>
+            </div>
+            <p class="page-name"><strong>Conversations</strong> <span class="purpose">Conversations with agents</span></p>
+            <span class="today">Today: Start Conversation panel (launcher)</span>
+          </li>
+          <li class="page depth-0" data-status="partial">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app/<wbr>runs</span>
+              <span class="chip chip-partial" title="Exists today as a panel, tab, script or doc">Partly there</span>
+            </div>
+            <p class="page-name"><strong>Runs</strong> <span class="purpose">Run history and results</span></p>
+            <span class="today">Today: Builder&#x27;s History tab (not wired yet)</span>
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app/<wbr>usage</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Usage and cost</strong> <span class="purpose">Projected vs. actual cost per service</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="partial">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app/<wbr>requests</span>
+              <span class="chip chip-partial" title="Exists today as a panel, tab, script or doc">Partly there</span>
+            </div>
+            <p class="page-name"><strong>Feature requests</strong> <span class="purpose">Requests and their status</span></p>
+            <span class="today">Today: Ask a feature panel (nav)</span>
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>app/<wbr>settings</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Settings</strong> <span class="purpose">Organization, team members and roles, billing</span></p>
+            
+          </li>
+        </ul>
+      </section>
+      <section class="area area-learn" aria-labelledby="area-learn">
+        <header class="area-head">
+          <div class="area-title">
+            <h2 id="area-learn">Learn</h2>
+            <span class="prefix mono">/learn</span>
+          </div>
+          <p class="who">Employees who work alongside the services and want to understand them, and AI in general</p>
+          <p class="lands">Lands on: <strong>Learn home, tailored to their role</strong></p>
+          <p class="counts">8 pages · 0 built · 3 partly there · 5 planned</p>
+        </header>
+        <ul class="tree">
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>learn</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Learn home</strong> <span class="purpose">What&#x27;s new, recommended for the employee&#x27;s role</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>learn/<wbr>services</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Services explained</strong> <span class="purpose">What each service does, in plain language</span></p>
+            
+          </li>
+          <li class="page depth-1" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>learn/<wbr>services/<wbr>[slug]</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Service guide</strong> <span class="purpose">How it changes day-to-day work (Pre / Work / Post)</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>learn/<wbr>ai</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>AI basics</strong> <span class="purpose">Agents, prompts, limits, safety, data handling</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>learn/<wbr>guides</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Role guides</strong> <span class="purpose">Working with agents in Support, Sales, CX, Engineering</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="partial">
+            <div class="page-head">
+              <span class="route mono">/<wbr>learn/<wbr>try</span>
+              <span class="chip chip-partial" title="Exists today as a panel, tab, script or doc">Partly there</span>
+            </div>
+            <p class="page-name"><strong>Practice</strong> <span class="purpose">Safe sandbox conversations with agents</span></p>
+            <span class="today">Today: Start Conversation panel (launcher)</span>
+          </li>
+          <li class="page depth-0" data-status="partial">
+            <div class="page-head">
+              <span class="route mono">/<wbr>learn/<wbr>glossary</span>
+              <span class="chip chip-partial" title="Exists today as a panel, tab, script or doc">Partly there</span>
+            </div>
+            <p class="page-name"><strong>Glossary</strong> <span class="purpose">Terms used across the platform</span></p>
+            <span class="today">Today: <span class="mono">docs/<wbr>reference/<wbr>glossary.md</span></span>
+          </li>
+          <li class="page depth-0" data-status="partial">
+            <div class="page-head">
+              <span class="route mono">/<wbr>learn/<wbr>ask</span>
+              <span class="chip chip-partial" title="Exists today as a panel, tab, script or doc">Partly there</span>
+            </div>
+            <p class="page-name"><strong>Ask</strong> <span class="purpose">Ask a question or suggest a feature</span></p>
+            <span class="today">Today: Ask a feature panel (nav)</span>
+          </li>
+        </ul>
+      </section>
+      <section class="area area-developers" aria-labelledby="area-developers">
+        <header class="area-head">
+          <div class="area-title">
+            <h2 id="area-developers">Developers</h2>
+            <span class="prefix mono">/developers</span>
+          </div>
+          <p class="who">Developers building on the platform&#x27;s services and components</p>
+          <p class="lands">Lands on: <strong>Developer home: quickstart and status</strong></p>
+          <p class="counts">9 pages · 1 built · 2 partly there · 6 planned</p>
+        </header>
+        <ul class="tree">
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>developers</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Developer home</strong> <span class="purpose">Quickstart, service status</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>developers/<wbr>services</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Services</strong> <span class="purpose">Endpoints, MCP server, per-call pricing</span></p>
+            
+          </li>
+          <li class="page depth-1" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>developers/<wbr>services/<wbr>[slug]</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Service reference</strong> <span class="purpose">One service in detail</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="partial">
+            <div class="page-head">
+              <span class="route mono">/<wbr>developers/<wbr>components</span>
+              <span class="chip chip-partial" title="Exists today as a panel, tab, script or doc">Partly there</span>
+            </div>
+            <p class="page-name"><strong>Components</strong> <span class="purpose">Tools, MCP servers, RAG patterns, agent personas, flow patterns</span></p>
+            <span class="today">Today: Ecosystem catalog and /patterns</span>
+          </li>
+          <li class="page depth-1" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>developers/<wbr>components/<wbr>[kind]/<wbr>[id]</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Component</strong> <span class="purpose">Interface, schema, examples, cost</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="partial">
+            <div class="page-head">
+              <span class="route mono">/<wbr>developers/<wbr>docs</span>
+              <span class="chip chip-partial" title="Exists today as a panel, tab, script or doc">Partly there</span>
+            </div>
+            <p class="page-name"><strong>Docs</strong> <span class="purpose">Quickstarts, guides, API reference, MCP connection</span></p>
+            <span class="today">Today: MCP steps on /onboarding</span>
+          </li>
+          <li class="page depth-0" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr>developers/<wbr>playground</span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Playground</strong> <span class="purpose">Try a pipeline or service: projected vs. actual cost</span></p>
+            <span class="today">Today: <span class="mono">/<wbr>builder</span> (Pipeline tab)</span>
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>developers/<wbr>keys</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Keys</strong> <span class="purpose">API keys and MCP access</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>developers/<wbr>changelog</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Changelog</strong> <span class="purpose">API and component changes, deprecations, model retirements</span></p>
+            
+          </li>
+        </ul>
+      </section>
+      <section class="area area-admin" aria-labelledby="area-admin">
+        <header class="area-head">
+          <div class="area-title">
+            <h2 id="area-admin">Admin</h2>
+            <span class="prefix mono">/admin</span>
+          </div>
+          <p class="who">Platform admins who create and run agents, prompts, tools and MCP servers, plus the product-side team</p>
+          <p class="lands">Lands on: <strong>Product overview</strong></p>
+          <p class="counts">15 pages · 6 built · 1 partly there · 8 planned</p>
+        </header>
+        <ul class="tree">
+          <li class="page depth-0" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin</span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Product overview</strong> <span class="purpose">Product health, evals, cost per task, signals</span></p>
+            <span class="today">Today: <span class="mono">/<wbr>product</span> (Dashboard Product screen)</span>
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>agents</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Agents</strong> <span class="purpose">Every agent on the platform</span></p>
+            
+          </li>
+          <li class="page depth-1" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>agents/<wbr>new</span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Build an agent</strong> <span class="purpose">The Ecosystem builder</span></p>
+            <span class="today">Today: <span class="mono">/<wbr>builder</span></span>
+          </li>
+          <li class="page depth-0" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>patterns</span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Flow Patterns</strong> <span class="purpose">Reusable multi-agent templates</span></p>
+            <span class="today">Today: <span class="mono">/<wbr>patterns</span></span>
+          </li>
+          <li class="page depth-0" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>prompts</span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Prompts</strong> <span class="purpose">Prompts library</span></p>
+            <span class="today">Today: <span class="mono">/<wbr>prompts</span></span>
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>tools</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Tools</strong> <span class="purpose">Every tool on the platform</span></p>
+            
+          </li>
+          <li class="page depth-1" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>tools/<wbr>new</span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Create a tool</strong> <span class="purpose">Recipe editor and Discovery session</span></p>
+            <span class="today">Today: <span class="mono">/<wbr>tools/<wbr>new</span></span>
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>skills/<wbr>new</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Create a skill</strong> <span class="purpose">Not designed yet</span></p>
+            <span class="today">Today: Create Skill (launcher, “Soon”)</span>
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>mcp-servers</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>MCP servers</strong> <span class="purpose">Every MCP server on the platform</span></p>
+            
+          </li>
+          <li class="page depth-1" data-status="built">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>mcp-servers/<wbr>new</span>
+              <span class="chip chip-built" title="Exists today as a mock screen">Built</span>
+            </div>
+            <p class="page-name"><strong>Create an MCP server</strong> <span class="purpose">MCP server setup</span></p>
+            <span class="today">Today: <span class="mono">/<wbr>mcp-servers/<wbr>new</span></span>
+          </li>
+          <li class="page depth-0" data-status="partial">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>catalog</span>
+              <span class="chip chip-partial" title="Exists today as a panel, tab, script or doc">Partly there</span>
+            </div>
+            <p class="page-name"><strong>Catalog</strong> <span class="purpose">Models and services: sync, curation</span></p>
+            <span class="today">Today: Catalog sync and seed scripts</span>
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>clients</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Clients</strong> <span class="purpose">Client organizations, their services and access</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>users</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Users and roles</strong> <span class="purpose">Users and roles across all areas</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>requests</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Request triage</strong> <span class="purpose">Feature requests from clients and employees</span></p>
+            
+          </li>
+          <li class="page depth-0" data-status="planned">
+            <div class="page-head">
+              <span class="route mono">/<wbr>admin/<wbr>governance</span>
+              <span class="chip chip-planned" title="Not built yet">Planned</span>
+            </div>
+            <p class="page-name"><strong>Governance</strong> <span class="purpose">Approvals, audit log, MCP policies</span></p>
+            
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="panels">
+      <section class="panel">
+        <h3>Sign-in and roles</h3>
+        <p><strong>One account, several roles.</strong> People sign in once, with a work email over OAuth, which matches them to their company&rsquo;s account.</p>
+        <p>They land in the area of their primary role. The nav gets an area switcher if they hold more than one; for example, an admin is usually also an employee.</p>
+        <p>The quick-actions launcher only shows actions the current role can use: Create Agent, Tool, Skill and MCP Server for admins, and Start Conversation for clients and employees.</p>
+      </section>
+      <section class="panel">
+        <h3>Open questions</h3>
+        <ol><li>Are “employees” the clients’ staff, who work alongside the services (this draft’s assumption), or our own staff, or both?</li><li>Does the Product screen’s audience (the product’s PM and supporting-function managers) belong in Admin, as drafted, or in a separate internal area apart from the people who build agents?</li><li>For clients, what separates a “service” from a “product page”? The draft treats services as what’s running for the organization, and product pages as offerings it can adopt.</li><li>Should the route moves (for example, the landing to / and the Dashboard to /app) happen now, while everything is mock data, or together with auth?</li></ol>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top: 16px">
+      <h3>Where today&rsquo;s screens go</h3>
+      <p>Every screen built so far has a home in this structure. Moving them is a route change only.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Today</th><th>Moves to</th><th>Area</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mono">/<wbr>home</span> (landing mockup, on a branch)</td><td class="mono">/</td><td><span class="dot dot-public" aria-hidden="true"></span>Public</td></tr>
+            <tr><td><span class="mono">/<wbr></span> (Dashboard Overview)</td><td class="mono">/app</td><td><span class="dot dot-client" aria-hidden="true"></span>Client workspace</td></tr>
+            <tr><td><span class="mono">/<wbr>marketplace</span></td><td class="mono">/app/marketplace</td><td><span class="dot dot-client" aria-hidden="true"></span>Client workspace</td></tr>
+            <tr><td><span class="mono">/<wbr>onboarding</span></td><td class="mono">/app/onboarding</td><td><span class="dot dot-client" aria-hidden="true"></span>Client workspace</td></tr>
+            <tr><td>Start Conversation panel (launcher)</td><td class="mono">/app/conversations</td><td><span class="dot dot-client" aria-hidden="true"></span>Client workspace</td></tr>
+            <tr><td>Builder&#x27;s History tab (not wired yet)</td><td class="mono">/app/runs</td><td><span class="dot dot-client" aria-hidden="true"></span>Client workspace</td></tr>
+            <tr><td>Ask a feature panel (nav)</td><td class="mono">/app/requests</td><td><span class="dot dot-client" aria-hidden="true"></span>Client workspace</td></tr>
+            <tr><td>Start Conversation panel (launcher)</td><td class="mono">/learn/try</td><td><span class="dot dot-learn" aria-hidden="true"></span>Learn</td></tr>
+            <tr><td><span class="mono">docs/<wbr>reference/<wbr>glossary.md</span></td><td class="mono">/learn/glossary</td><td><span class="dot dot-learn" aria-hidden="true"></span>Learn</td></tr>
+            <tr><td>Ask a feature panel (nav)</td><td class="mono">/learn/ask</td><td><span class="dot dot-learn" aria-hidden="true"></span>Learn</td></tr>
+            <tr><td>Ecosystem catalog and /patterns</td><td class="mono">/developers/components</td><td><span class="dot dot-developers" aria-hidden="true"></span>Developers</td></tr>
+            <tr><td>MCP steps on /onboarding</td><td class="mono">/developers/docs</td><td><span class="dot dot-developers" aria-hidden="true"></span>Developers</td></tr>
+            <tr><td><span class="mono">/<wbr>builder</span> (Pipeline tab)</td><td class="mono">/developers/playground</td><td><span class="dot dot-developers" aria-hidden="true"></span>Developers</td></tr>
+            <tr><td><span class="mono">/<wbr>product</span> (Dashboard Product screen)</td><td class="mono">/admin</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td><span class="mono">/<wbr>builder</span></td><td class="mono">/admin/agents/new</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td><span class="mono">/<wbr>patterns</span></td><td class="mono">/admin/patterns</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td><span class="mono">/<wbr>prompts</span></td><td class="mono">/admin/prompts</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td><span class="mono">/<wbr>tools/<wbr>new</span></td><td class="mono">/admin/tools/new</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td>Create Skill (launcher, “Soon”)</td><td class="mono">/admin/skills/new</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td><span class="mono">/<wbr>mcp-servers/<wbr>new</span></td><td class="mono">/admin/mcp-servers/new</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td>Catalog sync and seed scripts</td><td class="mono">/admin/catalog</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>Summary and open questions are also in the &ldquo;Sitemap (draft)&rdquo; section of the PRD, <a href="web-agent.md">web-agent.md</a>.</footer>
+  </main>
+  <script>
+    // Filter pages by status; an area with nothing left shows a short note instead.
+    const buttons = document.querySelectorAll(".filter button");
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const filter = button.dataset.filter;
+        buttons.forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+        document.querySelectorAll(".area").forEach((area) => {
+          let shown = 0;
+          area.querySelectorAll(".page").forEach((page) => {
+            const match = filter === "all" || page.dataset.status === filter;
+            page.hidden = !match;
+            if (match) shown++;
+          });
+          let empty = area.querySelector(".empty");
+          if (!shown && !empty) {
+            empty = document.createElement("p");
+            empty.className = "empty";
+            empty.textContent = "Nothing in this area yet.";
+            area.querySelector(".tree").after(empty);
+          }
+          if (empty) empty.hidden = shown > 0;
+        });
+      });
+    });
+  </script>
+</body>
+</html>
