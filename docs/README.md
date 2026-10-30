@@ -22,7 +22,7 @@ web-agent is a **standalone project** (deployed on Vercel, not joining the share
 |---|---|
 | [`prds/`](prds/) | Product Requirements Documents. `web-agent.md` is the current whole-project PRD. |
 | [`design/`](design/) | Architecture and data model design docs. `web-agent.md` is the current whole-project design doc, including the system architecture (no separate `architecture/` folder — see the tier note above). |
-| [`adr/`](adr/) | Architecture Decision Records — one file per significant decision. Smaller decisions are still tracked in the design doc's "Key decisions" table. [`0001`](adr/0001-discovery-session-realtime-voice.md) — Discovery session: realtime voice interview that drafts a tool recipe (Proposed; UI mockup built). |
+| [`adr/`](adr/) | Architecture Decision Records — one file per significant decision. Smaller decisions are still tracked in the design doc's "Key decisions" table. [`0001`](adr/0001-discovery-session-realtime-voice.md) — Discovery session: realtime voice interview that drafts a tool recipe (Proposed; UI mockup built). [`0003`](adr/0003-mcp-server-security-and-governance.md) — MCP servers: security and governance for publishing company data to AI clients (Proposed; UI mockup built before the research, backed by [`research/`](research/)). |
 
 ## Technical reference
 
