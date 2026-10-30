@@ -81,13 +81,15 @@ The app splits into one public area and four signed-in areas, one per audience:
 |---|---|---|---|
 | Public | `/` | Anyone, not signed in | Landing page |
 | Client workspace | `/app` | People at client organizations who buy and run services: business owners, function managers, client admins | Overview dashboard |
-| Learn | `/learn` | Employees who work alongside the services and want to understand them and AI in general | Learn home, tailored to their role |
+| Learn | `/learn` | Our own staff, learning about the platform's services and about AI | Learn home, tailored to their team |
 | Developers | `/developers` | Developers building on the platform's services and components | Developer home: quickstart and status |
 | Admin | `/admin` | Platform admins who create and run agents, prompts, tools and MCP servers, plus the product-side team | Product overview |
 
 **One account, several roles.** People sign in once, with a work email over OAuth, which matches them to their company's account. They land in the area of their primary role, and the nav gets an area switcher if they hold more than one (for example, an admin is usually also an employee). The quick-actions launcher only shows actions the current role can use: Create Agent, Tool, Skill and MCP Server for admins, and Start Conversation for clients and employees.
 
-**Full sitemap:** [`sitemap.html`](sitemap.html). Open it in a browser. It shows every page in each area with its purpose and status (built as a mockup, partly there today, or planned), a filter by status, where each of today's screens moves to, and the open questions listed below.
+**Decided 2026-10-30:** Learn is for our own staff; clients' people use the Client workspace. The product-side team stays in Admin. Clients keep both services (what's running for them) and product pages (offerings they could adopt). Today's screens move to their sitemap routes now, while everything is mock data. That move hasn't started yet.
+
+**Full sitemap:** [`sitemap.html`](sitemap.html). Open it in a browser. It shows every page in each area with its purpose and status (built as a mockup, partly there today, or planned), a filter by status, where each of today's screens moves to, and these decisions.
 
 ## Dependencies
 
@@ -105,10 +107,10 @@ The app splits into one public area and four signed-in areas, one per audience:
 
 ## Open questions
 
-- [ ] **Sitemap:** are "employees" the clients' staff, who work alongside the services (the draft's assumption), or our own staff, or both?
-- [ ] **Sitemap:** does the Product screen's audience (the product's PM and supporting-function managers) belong in Admin, as drafted, or in a separate internal area apart from the people who build agents?
-- [ ] **Sitemap:** for clients, what separates a "service" from a "product page"? The draft treats services as what's running for the organization, and product pages as offerings it can adopt.
-- [ ] **Sitemap:** should the route moves (for example, the landing to `/` and the Dashboard to `/app`) happen now, while everything is mock data, or together with auth?
+- [x] ~~**Sitemap:** are "employees" the clients' staff, our own staff, or both?~~ Resolved 2026-10-30: our own staff. Clients' people use the Client workspace.
+- [x] ~~**Sitemap:** does the Product screen's audience belong in Admin or in a separate internal area?~~ Resolved 2026-10-30: Admin, as drafted.
+- [x] ~~**Sitemap:** for clients, what separates a "service" from a "product page"?~~ Resolved 2026-10-30: keep both, as drafted. Services are what's running for the organization; product pages are offerings it can adopt.
+- [x] ~~**Sitemap:** should the route moves happen now or together with auth?~~ Resolved 2026-10-30: now, while everything is mock data. Not started yet.
 - [ ] What does "review past runs" need beyond a list — filtering by step/date, cost threshold, re-running a past prompt?
 - [ ] Should the Vercel project's GitHub auto-deploy be fixed now, or is local dev sufficient for the current phase?
 - [ ] Should candidate selection for the analyze prompt get smarter (rank by task-category match to the challenge) instead of the current 15-per-group alphabetical cap?
