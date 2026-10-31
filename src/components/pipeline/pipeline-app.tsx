@@ -36,9 +36,10 @@ export function PipelineApp() {
           Agent flows
         </h1>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Describe a goal and get back a proposed agent flow — a model, tools, and data
-          sources — ready to run against local hardware, rented remote hardware, or a paid
-          API, with projected vs. actual cost at every step.
+          Describe your agent coworker job-to-be-done, its goals, information and get back a
+          proposed agent flow, a model, tools, and data sources. Ready to run against local
+          hardware, rented remote hardware, or a paid API, with projected vs. actual cost at
+          every step.
         </p>
       </div>
 
