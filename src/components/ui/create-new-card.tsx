@@ -1,8 +1,7 @@
 /**
- * Generalized from the Ecosystem builder's "Search something else" card —
- * a dashed-border "+" affordance. Pass `width` for a fixed-size card in a
- * flex-wrap row (matches SelectableCard's sizing); omit it to fill the
- * parent grid cell instead.
+ * A dashed-border "+" affordance, first built as the former Ecosystem view's
+ * "Search something else" card. Pass `width` for a fixed-size card in a
+ * flex-wrap row; omit it to fill the parent grid cell instead.
  */
 export function CreateNewCard({
   label,

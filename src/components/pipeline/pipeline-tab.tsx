@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { actualCost, formatCost, stepCost, totalCost } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
+import { DisplayGrid } from "./display-grid";
 import { ExplorePanel } from "./explore-panel";
 import { ModelTypePicker } from "./model-type-picker";
-import { StepCard } from "./step-card";
+import { StepCard, StepDetails } from "./step-card";
 import type { RunState } from "./types";
 
 type StepResult = Extract<RunState, { status: "done" | "error" }>;
@@ -30,19 +31,11 @@ async function callStep(step: PipelineStep, input: string): Promise<StepResult> 
   }
 }
 
-export function PipelineTab({
-  initialSteps,
-  initialInput,
-  successCriteria,
-  onExplore,
-}: {
-  initialSteps: PipelineStep[];
-  initialInput?: string;
-  successCriteria?: string;
-  onExplore: (idea: string) => void;
-}) {
+const IDLE: RunState = { status: "idle" };
+
+export function PipelineTab({ initialSteps }: { initialSteps: PipelineStep[] }) {
   const [steps, setSteps] = useState(initialSteps);
-  const [input, setInput] = useState(initialInput ?? "");
+  const [input, setInput] = useState("");
   const [runs, setRuns] = useState<Record<string, RunState>>({});
   const [isChainRunning, setIsChainRunning] = useState(false);
   const [focusedStepId, setFocusedStepId] = useState<string | null>(steps[0]?.id ?? null);
@@ -112,39 +105,41 @@ export function PipelineTab({
           idea={exploredIdea}
           disabled={isChainRunning}
           onAdd={addStep}
-          onOpenEcosystem={() => onExplore(exploredIdea)}
           onClose={() => setExploredIdea(null)}
         />
       )}
 
-      {successCriteria && (
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
-          <h3 className="text-xs font-medium text-zinc-500 dark:text-zinc-500">Success criteria</h3>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
-            {successCriteria}
+      <div className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-medium text-black dark:text-zinc-50">Pipeline steps</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-500">
+            Steps run in order. Hover a step to preview it, click to select it.
           </p>
         </div>
-      )}
-
-      <ul className="flex flex-wrap items-start gap-3">
-        {steps.map((step) => (
-          <StepCard
-            key={step.id}
-            step={step}
-            run={runs[step.id] ?? { status: "idle" }}
-            disabled={isChainRunning || runs[step.id]?.status === "running"}
-            focused={focusedStepId === step.id}
-            onFocus={() => setFocusedStepId(step.id)}
-            onRun={() => runStep(step)}
-            onRemove={() => removeStep(step.id)}
+        {steps.length > 0 ? (
+          <DisplayGrid
+            items={steps}
+            selectedId={focusedStepId}
+            onSelect={setFocusedStepId}
+            renderCard={(step, index) => <StepCard step={step} index={index} run={runs[step.id] ?? IDLE} />}
+            renderDisplay={(step, index) => (
+              <StepDetails
+                step={step}
+                index={index}
+                total={steps.length}
+                run={runs[step.id] ?? IDLE}
+                disabled={isChainRunning || runs[step.id]?.status === "running"}
+                onRun={() => runStep(step)}
+                onRemove={() => removeStep(step.id)}
+              />
+            )}
           />
-        ))}
-        {steps.length === 0 && (
-          <li className="w-full rounded-lg border border-dashed border-zinc-300 p-4 text-center text-xs text-zinc-500 dark:border-zinc-700">
+        ) : (
+          <p className="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-xs text-zinc-500 dark:border-zinc-700">
             No steps yet. Explore an idea above, or add a model step below.
-          </li>
+          </p>
         )}
-      </ul>
+      </div>
 
       <button
         onClick={runPipeline}

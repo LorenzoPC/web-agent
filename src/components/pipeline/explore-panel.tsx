@@ -14,13 +14,11 @@ export function ExplorePanel({
   idea,
   disabled,
   onAdd,
-  onOpenEcosystem,
   onClose,
 }: {
   idea: string;
   disabled: boolean;
   onAdd: (option: PipelineStep) => void;
-  onOpenEcosystem: () => void;
   onClose: () => void;
 }) {
   const proposal = proposeFlow(idea);
@@ -74,25 +72,17 @@ export function ExplorePanel({
         <span className="text-xs text-zinc-500 dark:text-zinc-500">
           Estimated: {formatCost(totalCost(proposal.map((p) => p.model)))} per run
         </span>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onOpenEcosystem}
-            className="text-xs text-zinc-500 underline-offset-2 hover:text-zinc-800 hover:underline dark:hover:text-zinc-200"
-          >
-            Full analysis in Ecosystem →
-          </button>
-          <button
-            onClick={() => proposal.forEach((p) => onAdd(p.model))}
-            disabled={disabled}
-            className="rounded-full bg-black px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-          >
-            Add all to pipeline
-          </button>
-        </div>
+        <button
+          onClick={() => proposal.forEach((p) => onAdd(p.model))}
+          disabled={disabled}
+          className="rounded-full bg-black px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+        >
+          Add all to pipeline
+        </button>
       </div>
 
       <p className="mt-3 text-[11px] text-zinc-400 dark:text-zinc-600">
-        Mock proposal matched from keywords in your description — not an AI analysis yet.
+        Mock proposal matched from keywords in your description, not an AI analysis yet.
       </p>
     </section>
   );
