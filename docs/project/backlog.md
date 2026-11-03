@@ -121,3 +121,8 @@ Priority definitions:
   - Systems heartbeat top right (`system-heartbeat.tsx`): red/yellow/green per service, problems first, summary counts
   - Coverage toggle: Our customers (share of workspaces) / Our team (process counts); the viewer's own function row is marked
   - Mock data in `src/lib/mock-product-data.ts`; shared section components gained small props (descriptions, "+" label, coverage row header/total label/format/highlight)
+- [x] **Services catalog (UI only, mock data)**: shipped 2026-11-01, see design doc's "Services catalog":
+  - Public `/services`: how the hub works, services by team (filter in `?team=`), what every service includes
+  - `/services/[slug]`: facts row, How it works steps with human checkpoints, Built from, Connects to, controls, prerequisites, related services
+  - Cost estimator (`cost-estimator.tsx`): our cloud / your cloud account / your hardware, times a monthly volume
+  - Mock data in `src/lib/mock-services-data.ts`: 8 services, 2 per team
