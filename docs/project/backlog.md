@@ -132,3 +132,8 @@ Priority definitions:
   - Two flow phases per row: the intent gets its own row and the two next phases sit side by side as cards
   - Recommended actions hide after a failed or stopped reply, until the next successful one
   - The Key points/Flow model is resolved server-side from `CONVERSATION_ANALYSIS_MODEL` (default `local > llama3.2:latest`) by a new `/api/conversation/analyze` route. If that model fails, the route retries on the chat agent's own model, and the section header shows "via {agent} · {cost}"
+- [x] **Marketplace views (UI only, mock data)**: shipped 2026-11-03, see design doc's "Marketplace views":
+  - The page title switches between Agent, Model, and MCP & Tools Marketplace (`marketplace-header.tsx`), with the view in `?view=`
+  - Model Marketplace (`model-marketplace.tsx`): `MOCK_MODEL_TYPE_GROUPS`, one section per output type
+  - MCP & Tools Marketplace (`mcp-tools-marketplace.tsx`): curated MCP servers and tools from `src/lib/mock-marketplace-data.ts`, with links to Create MCP server (admin) and Create tool
+  - The agent pools toggle now reads Roles | Capabilities and opens on Roles

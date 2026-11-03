@@ -4,8 +4,8 @@ import { useState } from "react";
 import type { MockAgentPool } from "@/lib/mock-data";
 
 const VIEWS = [
-  { id: "capabilities", label: "Capabilities" },
   { id: "roles", label: "Roles" },
+  { id: "capabilities", label: "Capabilities" },
 ] as const;
 
 type View = (typeof VIEWS)[number]["id"];
@@ -92,7 +92,7 @@ export function AgentPoolsSection({
   capabilityPools: MockAgentPool[];
   rolePools: MockAgentPool[];
 }) {
-  const [view, setView] = useState<View>("capabilities");
+  const [view, setView] = useState<View>("roles");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const pools = view === "capabilities" ? capabilityPools : rolePools;
 
