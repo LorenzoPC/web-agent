@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { actualCost, formatCost, stepCost, totalCost } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
+import { CreateNewCard } from "@/components/ui/create-new-card";
 import { DisplayGrid } from "./display-grid";
 import { ExplorePanel } from "./explore-panel";
 import { ModelTypePicker } from "./model-type-picker";
+import { PatternPicker } from "./pattern-picker";
 import { StepCard, StepDetails } from "./step-card";
 import type { RunState } from "./types";
 
@@ -32,6 +34,11 @@ async function callStep(step: PipelineStep, input: string): Promise<StepResult> 
 }
 
 const IDLE: RunState = { status: "idle" };
+const MODEL_PICKER_ID = "add-model-step";
+
+function scrollToModelPicker() {
+  document.getElementById(MODEL_PICKER_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 export function PipelineTab({ initialSteps }: { initialSteps: PipelineStep[] }) {
   const [steps, setSteps] = useState(initialSteps);
@@ -133,6 +140,7 @@ export function PipelineTab({ initialSteps }: { initialSteps: PipelineStep[] }) 
                 onRemove={() => removeStep(step.id)}
               />
             )}
+            trailing={<CreateNewCard label="Add a step" onClick={scrollToModelPicker} />}
           />
         ) : (
           <p className="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-xs text-zinc-500 dark:border-zinc-700">
@@ -140,6 +148,8 @@ export function PipelineTab({ initialSteps }: { initialSteps: PipelineStep[] }) 
           </p>
         )}
       </div>
+
+      <PatternPicker />
 
       <button
         onClick={runPipeline}
@@ -159,7 +169,7 @@ export function PipelineTab({ initialSteps }: { initialSteps: PipelineStep[] }) 
         Projected total: {formatCost(totalCost(steps))}
       </p>
 
-      <ModelTypePicker disabled={isChainRunning} onAdd={addStep} />
+      <ModelTypePicker id={MODEL_PICKER_ID} disabled={isChainRunning} onAdd={addStep} />
     </div>
   );
 }

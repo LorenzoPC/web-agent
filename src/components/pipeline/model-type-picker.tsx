@@ -70,9 +70,11 @@ function ModelDetails({
 }
 
 export function ModelTypePicker({
+  id,
   disabled,
   onAdd,
 }: {
+  id?: string;
   disabled: boolean;
   onAdd: (option: PipelineStep) => void;
 }) {
@@ -80,7 +82,10 @@ export function ModelTypePicker({
   const [selectedIds, setSelectedIds] = useState<Record<string, string>>({});
 
   return (
-    <div className="flex flex-col gap-6 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+    <div
+      id={id}
+      className="flex scroll-mt-6 flex-col gap-6 border-t border-zinc-200 pt-6 dark:border-zinc-800"
+    >
       <div>
         <h2 className="font-medium text-black dark:text-zinc-50">Add a model step</h2>
         <p className="text-sm text-zinc-500 dark:text-zinc-500">

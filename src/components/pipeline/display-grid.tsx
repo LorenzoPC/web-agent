@@ -6,6 +6,7 @@ import { useState, type ReactNode } from "react";
  * A display card beside a grid of compact cards. The display shows the hovered
  * (or keyboard-focused) card, falling back to the selected one, then the first.
  * Actions live in the display card: hover to preview, click to select, then act.
+ * `trailing` renders after the last card, such as a CreateNewCard.
  */
 export function DisplayGrid<T extends { id: string }>({
   items,
@@ -13,12 +14,16 @@ export function DisplayGrid<T extends { id: string }>({
   onSelect,
   renderCard,
   renderDisplay,
+  trailing,
+  gridClassName = "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
 }: {
   items: T[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   renderCard: (item: T, index: number) => ReactNode;
   renderDisplay: (item: T, index: number) => ReactNode;
+  trailing?: ReactNode;
+  gridClassName?: string;
 }) {
   const [previewId, setPreviewId] = useState<string | null>(null);
 
@@ -39,7 +44,7 @@ export function DisplayGrid<T extends { id: string }>({
 
       <ul
         onMouseLeave={() => setPreviewId(null)}
-        className="grid flex-1 grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+        className={`grid flex-1 gap-3 ${gridClassName}`}
       >
         {items.map((item, index) => {
           const isSelected = item.id === selected.id;
@@ -63,6 +68,7 @@ export function DisplayGrid<T extends { id: string }>({
             </li>
           );
         })}
+        {trailing && <li onMouseEnter={() => setPreviewId(null)}>{trailing}</li>}
       </ul>
     </div>
   );
