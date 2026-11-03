@@ -70,3 +70,54 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/*
+ * Landing theme: the colour palette from sherweb.com's stylesheet (read
+ * 2026-10-31), with open source display fonts (all SIL OFL). Sherweb names the
+ * greys "black"; they're "steel" here. steel-500 and steel-700 to steel-900
+ * aren't on their site and are interpolated.
+ */
+@theme {
+  --color-brand-50: #f0f8ff;
+  --color-brand-100: #dff0ff;
+  --color-brand-200: #b9e1fe;
+  --color-brand-300: #7bcafe;
+  --color-brand-400: #34affc;
+  --color-brand-500: #0a96ed;
+  --color-brand-600: #0076cb;
+  --color-brand-700: #0061aa;
+  --color-brand-800: #055087;
+  --color-brand-900: #0a4270;
+  --color-brand-950: #072a4a;
+
+  --color-coral-50: #fef4f2;
+  --color-coral-100: #fee6e2;
+  --color-coral-200: #fed2ca;
+  --color-coral-300: #fbb3a6;
+  --color-coral-400: #f78672;
+  --color-coral-500: #ed573c;
+  --color-coral-600: #db4227;
+  --color-coral-700: #b8351d;
+  --color-coral-800: #982f1c;
+
+  --color-steel-50: #f4f6f7;
+  --color-steel-100: #e2e7eb;
+  --color-steel-200: #c9d1d8;
+  --color-steel-300: #a3b0bd;
+  --color-steel-400: #76889a;
+  --color-steel-500: #627183;
+  --color-steel-600: #4e5b6c;
+  --color-steel-700: #3a4553;
+  --color-steel-800: #262e38;
+  --color-steel-900: #12161c;
+  --color-steel-950: #090a0c;
+
+  --color-glow: #9fe2fd;
+}
+
+/* Loaded by src/components/landing/fonts.ts on the pages that use them. */
+@theme inline {
+  --font-display: var(--font-oxanium);
+  --font-body: var(--font-sora);
+  --font-label: var(--font-jetbrains-mono);
+}
