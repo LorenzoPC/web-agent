@@ -44,11 +44,6 @@ Priority definitions:
 - [ ] **A browsing UI for `hook`/`rag-pattern`/`mcp-server` catalog data outside the Ecosystem flow** — undecided whether this is worth building.
 - [ ] **Revisit flagged Pre/Work/Post phase classifications** — a handful of business-process items were genuinely ambiguous when drafted (e.g. "Summarize discovery calls into CRM notes" called Work, "Recommend proactive outreach for customers nearing renewal" called Pre) — flagged in chat, not yet re-reviewed with the user.
 - [ ] **Real auth for the Dashboard/Marketplace** — currently a hardcoded `getCurrentUser()` (`src/lib/auth.ts`); revisit once/if these screens need to be more than single-user (see PRD Non-goals on multi-tenancy).
-- [ ] **Conversation panel: fit two flow chips per row on desktop** — the Flow section's chips (`src/components/conversation/conversation-flow.tsx`) are capped at `max-w-56`, so at the panel's 1/3 width the intent and the two next phases usually wrap to one chip per line. Narrower chips or tighter labels would let two sit side by side.
-- [ ] **Conversation panel: render Markdown in agent replies** — replies are plain `whitespace-pre-wrap` text (`conversation-panel.tsx`), so the lists, headings and code blocks models usually return show up as raw `-`, `#` and backticks. Needs a Markdown renderer; none is installed yet.
-- [ ] **Conversation panel: link flow phases to agents** — the two likely next phases are labels only. Each could suggest the agent best suited to it (e.g. Data Analyst for a costing phase) with a one-click switch; the agent picker already supports switching mid-conversation.
-- [ ] **Conversation panel: hide recommended actions after a failed reply** — when a reply errors or is stopped, the flow isn't re-derived, so the actions above the composer still come from the previous successful exchange. Hide them, or mark them stale, until the next successful reply.
-- [ ] **Conversation panel: make the Key points/Flow model configurable** — both always call the free local `llama3.2:latest` (`LOCAL_ANALYSIS_MODEL` in `use-transcript-analysis.ts`), so without Ollama running both sections show an error even when the chat agent is a paid API model. Needs a fallback or a setting, along the lines of the server-side `ECOSYSTEM_ANALYZE_MODEL`; the step is built client-side today, so the model would have to be resolved on the server.
 
 ---
 
@@ -131,3 +126,9 @@ Priority definitions:
   - `/services/[slug]`: facts row, How it works steps with human checkpoints, Built from, Connects to, controls, prerequisites, related services
   - Cost estimator (`cost-estimator.tsx`): our cloud / your cloud account / your hardware, times a monthly volume
   - Mock data in `src/lib/mock-services-data.ts`: 8 services, 2 per team
+- [x] **Conversation panel follow-ups** (shipped 2026-11-03):
+  - Agent replies render as GitHub-flavored Markdown (`message-markdown.tsx`, new deps `react-markdown` + `remark-gfm`). Wide tables scroll sideways, raw HTML shows as text, and images aren't fetched (shown as `[alt]`), so a reply can't load a third-party URL
+  - Flow phases suggest an agent: the Flow prompt writes an `AGENT:` role after each `NEXT:`, matched against the agents' roles, and each phase card offers a one-click Switch (or shows "Current"). llama3.2 named a valid role in most test runs; when it doesn't, the card shows no switch
+  - Two flow phases per row: the intent gets its own row and the two next phases sit side by side as cards
+  - Recommended actions hide after a failed or stopped reply, until the next successful one
+  - The Key points/Flow model is resolved server-side from `CONVERSATION_ANALYSIS_MODEL` (default `local > llama3.2:latest`) by a new `/api/conversation/analyze` route. If that model fails, the route retries on the chat agent's own model, and the section header shows "via {agent} · {cost}"

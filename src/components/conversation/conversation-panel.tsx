@@ -8,6 +8,7 @@ import type { ActualUsage, PipelineStep } from "@/lib/types";
 import { ConversationComposer } from "./conversation-composer";
 import { ConversationFlow, NextActions, useConversationFlow } from "./conversation-flow";
 import { ConversationSummary, useConversationSummary } from "./conversation-summary";
+import { MessageMarkdown } from "./message-markdown";
 import { formatTranscript, type ChatMessage } from "./transcript";
 
 // Free local model, so a conversation costs nothing until someone picks a paid agent.
@@ -26,7 +27,7 @@ function buildInput(history: ChatMessage[], text: string): string {
 
 /**
  * Right-hand chat sidebar (1/3 of the screen, full width on small screens),
- * opened from the Quick Actions menu. Non-modal — the page stays usable —
+ * opened from the Quick Actions menu. Non-modal (the page stays usable),
  * and stays mounted while closed so the conversation survives a close/reopen.
  * Turns run for real against the chosen agent via /api/pipeline/run, the same
  * execution path as the Builder and the Prompts test panel.
@@ -54,10 +55,12 @@ export function ConversationPanel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const summary = useConversationSummary();
-  const flow = useConversationFlow();
+  const flow = useConversationFlow(agents);
 
   const agent = agents.find((a) => a.id === agentId) ?? agents[0];
   const instructions = agent.role ? (roleInstructions[agent.role] ?? []) : [];
+  const latest = messages.at(-1);
+  const latestReplyDone = latest?.role === "agent" && latest.status === "done";
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -68,9 +71,14 @@ export function ConversationPanel({
     el?.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages, thinking]);
 
-  // Fills the draft rather than sending — most instructions expect content pasted after them.
+  // Fills the draft rather than sending: most instructions expect content pasted after them.
   function applyInstruction(instruction: string) {
     setDraft(instruction);
+    inputRef.current?.focus();
+  }
+
+  function switchAgent(id: string) {
+    setAgentId(id);
     inputRef.current?.focus();
   }
 
@@ -79,7 +87,7 @@ export function ConversationPanel({
     const history = messages;
     const controller = new AbortController();
     requestRef.current = controller;
-    // A reset (New) swaps the ref out — a late reply must not land in the new conversation.
+    // A reset (New) swaps the ref out, so a late reply can't land in the new conversation.
     const isCurrent = () => requestRef.current === controller;
 
     const withUser: ChatMessage[] = [...history, { id: crypto.randomUUID(), role: "user", text }];
@@ -87,7 +95,7 @@ export function ConversationPanel({
     setThinking(step.name);
 
     // Sending is disabled mid-turn and reset fails isCurrent(), so nothing else can
-    // change messages before the reply — it's safe to build on withUser directly.
+    // change messages before the reply. It's safe to build on withUser directly.
     const reply = (fields: Omit<Extract<ChatMessage, { role: "agent" }>, "id" | "role" | "agentName">) => {
       const next: ChatMessage[] = [...withUser, { id: crypto.randomUUID(), role: "agent", agentName: step.name, ...fields }];
       setMessages(next);
@@ -105,9 +113,9 @@ export function ConversationPanel({
       if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
       if (!isCurrent()) return;
       const next = reply({ text: data.output ?? "", status: "done", cost: actualCost(step, data.usage ?? {}) });
-      summary.refresh(next);
+      summary.refresh(next, step);
       if (next.filter((m) => m.role === "agent" && m.status === "done").length >= FLOW_AFTER_REPLIES) {
-        flow.refresh(next);
+        flow.refresh(next, step);
       }
     } catch (error) {
       if (!isCurrent()) return;
@@ -152,7 +160,7 @@ export function ConversationPanel({
         if (e.key === "Escape") onClose();
       }}
       // `invisible` waits out the slide-out before hiding, so the closed panel's shadow doesn't
-      // peek in. Visibility only transitions on close — on open it must flip at once, or the
+      // peek in. Visibility only transitions on close. On open it must flip at once, or the
       // composer's focus() lands on a still-hidden textarea.
       className={`fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l border-zinc-200 bg-white duration-200 ease-out motion-reduce:transition-none md:w-1/3 md:min-w-96 dark:border-zinc-800 dark:bg-zinc-950 ${
         open
@@ -182,9 +190,19 @@ export function ConversationPanel({
         </div>
       </header>
 
-      {messages.length > 0 && <ConversationSummary points={summary.result} status={summary.status} error={summary.error} />}
+      {messages.length > 0 && (
+        <ConversationSummary points={summary.result} status={summary.status} error={summary.error} fallback={summary.fallback} />
+      )}
       {(flow.result.intent || flow.result.next.length > 0 || flow.status !== "idle") && (
-        <ConversationFlow plan={flow.result} status={flow.status} error={flow.error} />
+        <ConversationFlow
+          plan={flow.result}
+          status={flow.status}
+          error={flow.error}
+          fallback={flow.fallback}
+          agents={agents}
+          currentAgentId={agent.id}
+          onSwitchAgent={switchAgent}
+        />
       )}
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5">
@@ -214,7 +232,7 @@ export function ConversationPanel({
               </div>
             )}
             <p className="max-w-xs text-xs text-zinc-400 dark:text-zinc-600">
-              Switch agents from the picker below — anytime, even mid-conversation.
+              Switch agents from the picker below, anytime, even mid-conversation.
             </p>
           </div>
         ) : (
@@ -232,17 +250,17 @@ export function ConversationPanel({
                     {m.agentName}
                     {m.cost !== undefined && <span className="font-normal text-zinc-400 dark:text-zinc-600"> · {formatCost(m.cost)}</span>}
                   </p>
-                  <p
-                    className={`mt-1 whitespace-pre-wrap text-sm ${
-                      m.status === "error"
-                        ? "text-red-600 dark:text-red-400"
-                        : m.status === "stopped"
-                          ? "italic text-zinc-400 dark:text-zinc-600"
-                          : "text-zinc-800 dark:text-zinc-200"
-                    }`}
-                  >
-                    {m.text}
-                  </p>
+                  {m.status === "done" ? (
+                    <MessageMarkdown text={m.text} />
+                  ) : (
+                    <p
+                      className={`mt-1 whitespace-pre-wrap text-sm ${
+                        m.status === "error" ? "text-red-600 dark:text-red-400" : "italic text-zinc-400 dark:text-zinc-600"
+                      }`}
+                    >
+                      {m.text}
+                    </p>
+                  )}
                 </div>
               ),
             )}
@@ -265,8 +283,9 @@ export function ConversationPanel({
       </div>
 
       <div className="px-4 pb-4">
-        {/* Only while the plan matches the latest reply — hidden mid-turn and while it re-derives. */}
-        {!thinking && flow.status === "idle" && flow.result.actions.length > 0 && (
+        {/* Only while the plan matches the latest reply: hidden mid-turn, while it re-derives, and
+            after a failed or stopped reply, which doesn't re-derive it. */}
+        {latestReplyDone && flow.status === "idle" && flow.result.actions.length > 0 && (
           <NextActions actions={flow.result.actions} onSelect={send} />
         )}
         <ConversationComposer

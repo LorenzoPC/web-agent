@@ -1,27 +1,29 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { PipelineStep } from "@/lib/types";
+import { actualCost } from "@/lib/pipeline-data";
+import type { ActualUsage, PipelineStep } from "@/lib/types";
 import { formatTranscript, type ChatMessage } from "./transcript";
 
 /**
- * Model fields for steps that analyze the conversation (key points, draft flow).
- * Always the free local model, whichever agent is chatting, so keeping them
- * current never adds cost.
+ * A prompt that analyzes the conversation (key points, draft flow). The model
+ * isn't part of it: /api/conversation/analyze picks it server-side, the free
+ * local one by default, so keeping these current normally adds no cost.
  */
-export const LOCAL_ANALYSIS_MODEL: Omit<PipelineStep, "id" | "name" | "description" | "systemPrompt"> = {
-  sourceType: "local",
-  sourceLabel: "Ollama · llama3.2:latest",
-  stepKind: "chat",
-  modelRef: "local > llama3.2:latest",
-  unit: "1K tokens",
-  estimatedUnits: 1,
-  cost: { kind: "free" },
-};
+export interface AnalysisTask {
+  name: string;
+  systemPrompt: string;
+}
+
+/** Set when the analysis model failed and the chat agent's model stood in, at that agent's rate. */
+export interface AnalysisFallback {
+  agentName: string;
+  cost: number;
+}
 
 const LIST_MARKER = /^(?:[-*•]|\d+[.)])\s+/;
 
-// Small local models don't always follow the format — take the bulleted/numbered
+// Small local models don't always follow the format. Take the bulleted/numbered
 // lines when there are any (dropping a "Here are the key points:" preamble),
 // otherwise every non-empty line.
 export function parseListLines(text: string): string[] {
@@ -33,17 +35,20 @@ export function parseListLines(text: string): string[] {
 export type AnalysisStatus = "idle" | "loading" | "error";
 
 /**
- * Runs `step` over the whole conversation via /api/pipeline/run and parses the
- * output. A newer refresh supersedes one still in flight, and the last good
- * result stays available while a refresh runs.
+ * Runs `task` over the whole conversation via /api/conversation/analyze and
+ * parses the output. A newer refresh supersedes one still in flight, and the
+ * last good result stays available while a refresh runs.
  */
-export function useTranscriptAnalysis<T>(step: PipelineStep, parse: (output: string) => T, initial: T) {
+export function useTranscriptAnalysis<T>(task: AnalysisTask, parse: (output: string) => T, initial: T) {
   const [result, setResult] = useState<T>(initial);
   const [status, setStatus] = useState<AnalysisStatus>("idle");
   const [error, setError] = useState<string>();
+  /** Describes `result`, so it's kept alongside it when a refresh fails. */
+  const [fallback, setFallback] = useState<AnalysisFallback>();
   const requestRef = useRef<AbortController | null>(null);
 
-  async function refresh(messages: ChatMessage[]) {
+  /** `agent` is the one chatting now. Its model is only used if the analysis model fails. */
+  async function refresh(messages: ChatMessage[], agent: PipelineStep) {
     requestRef.current?.abort();
     const controller = new AbortController();
     requestRef.current = controller;
@@ -51,20 +56,25 @@ export function useTranscriptAnalysis<T>(step: PipelineStep, parse: (output: str
     setStatus("loading");
 
     try {
-      const res = await fetch("/api/pipeline/run", {
+      const res = await fetch("/api/conversation/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ step, input: `Conversation:\n\n${formatTranscript(messages)}` }),
+        body: JSON.stringify({
+          systemPrompt: task.systemPrompt,
+          input: `Conversation:\n\n${formatTranscript(messages)}`,
+          fallbackAgent: agent,
+        }),
         signal: controller.signal,
       });
-      const data = (await res.json()) as { output?: string; error?: string };
+      const data = (await res.json()) as { output?: string; usage?: ActualUsage; usedFallback?: boolean; error?: string };
       if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
       if (!isCurrent()) return;
       setResult(parse(data.output ?? ""));
+      setFallback(data.usedFallback ? { agentName: agent.name, cost: actualCost(agent, data.usage ?? {}) } : undefined);
       setStatus("idle");
     } catch (err) {
       if (!isCurrent()) return;
-      setError(err instanceof Error ? err.message : `${step.name} failed`);
+      setError(err instanceof Error ? err.message : `${task.name} failed`);
       setStatus("error");
     } finally {
       if (isCurrent()) requestRef.current = null;
@@ -76,9 +86,10 @@ export function useTranscriptAnalysis<T>(step: PipelineStep, parse: (output: str
     requestRef.current = null;
     request?.abort();
     setResult(initial);
+    setFallback(undefined);
     setStatus("idle");
     setError(undefined);
   }
 
-  return { result, status, error, refresh, reset };
+  return { result, status, error, fallback, refresh, reset };
 }

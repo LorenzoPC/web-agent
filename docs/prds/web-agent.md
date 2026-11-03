@@ -101,6 +101,7 @@ The app splits into one public area and four signed-in areas, one per audience:
 | Vercel project (`lorenzopcs-projects/web-agent`) | Linked 2026-07-17; GitHub auto-connect failed, not yet retried | user |
 | Neon Postgres (Vercel Marketplace) | Provisioned 2026-07-17 (`neon-alizarin-queen`), holding the catalog; run-history tables still pending | user |
 | Ecosystem builder's analysis model | Defaults to local Ollama (`ECOSYSTEM_ANALYZE_MODEL`, no API key needed); works with `llama3.2:latest` as of 2026-07-17 | user |
+| Conversation panel's analysis model | Defaults to local Ollama (`CONVERSATION_ANALYSIS_MODEL`, `llama3.2:latest`); falls back to the chat agent's model, at that agent's rate, when it fails | user |
 | Exa Search API (Vercel Marketplace) | Provisioned 2026-07-17 (`exa-search-api-cordovan-compass`); confirmed working via a direct API test — real current results returned | user |
 | `GITHUB_TOKEN` env var | Needed for the real GitHub MCP connection (user-supplied PAT, not a Marketplace resource); code path confirmed correct (clean error without it) but the real success path is untested — nobody has supplied a token yet | user |
 | `nomic-embed-text` (Ollama) | Pulled locally 2026-07-21; required for local RAG retrieval and the `retrieve-context`/`postprocess` mock pipeline steps | user |
