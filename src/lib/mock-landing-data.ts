@@ -1,5 +1,5 @@
 // Mock data for the landing page (/): what the platform offers at a
-// glance, what shipped recently, where the docs start, and why to trust it.
+// glance, featured services, what shipped recently, where the docs start, and why to trust it.
 // Signed in, the page adds the visitor's account. Nothing here is live yet.
 
 import { MOCK_AGENTS } from "./mock-data";
@@ -36,6 +36,14 @@ export const COMPONENT_TYPES: ComponentTypeTile[] = [
     description: "Single actions like web search, email and data extraction.",
     href: "/builder",
   },
+];
+
+/** Services featured on the landing page, one per team. They match the success stories below. */
+export const FEATURED_SERVICE_SLUGS = [
+  "support-reply-drafting",
+  "call-notes-to-crm",
+  "pull-request-review",
+  "feedback-themes",
 ];
 
 export type SearchKind = "Agent" | "MCP server" | "Tool" | "Doc";

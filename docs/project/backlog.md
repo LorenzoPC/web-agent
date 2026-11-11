@@ -137,3 +137,7 @@ Priority definitions:
   - Model Marketplace (`model-marketplace.tsx`): `MOCK_MODEL_TYPE_GROUPS`, one section per output type
   - MCP & Tools Marketplace (`mcp-tools-marketplace.tsx`): curated MCP servers and tools from `src/lib/mock-marketplace-data.ts`, with links to Create MCP server (admin) and Create tool
   - The agent pools toggle now reads Roles | Capabilities and opens on Roles
+- [x] **Services in the landing theme, linked from the landing page (UI only, mock data)**: shipped 2026-11-11, see design doc's "Services in the landing theme":
+  - `/services` and `/services/[slug]` restyled with the landing theme: coral hero, splits with ruled lists, light blue band, navy close
+  - Services render as rows in ruled lists (`service-row.tsx`, replacing `service-card.tsx`)
+  - Landing page: Services section under the hero with four featured services (`FEATURED_SERVICE_SLUGS`) and an All services link

@@ -3,11 +3,13 @@ import { LinkToggle } from "@/components/dashboard/link-toggle";
 import { LANDING_FONT_VARIABLES } from "@/components/landing/fonts";
 import { LandingHeading } from "@/components/landing/landing-heading";
 import { LandingSearch } from "@/components/landing/landing-search";
+import { ServiceRow } from "@/components/services/service-row";
 import { getCurrentUser } from "@/lib/auth";
 import { MOCK_ROLE_POOLS } from "@/lib/mock-data";
 import {
   COMPONENT_TYPES,
   DOC_ENTRIES,
+  FEATURED_SERVICE_SLUGS,
   MOCK_LANDING_ACCOUNT,
   PLACEHOLDER_QUOTE,
   RELEASE_NOTES,
@@ -15,8 +17,10 @@ import {
   SUCCESS_STORIES,
   TRUST_POINTS,
 } from "@/lib/mock-landing-data";
+import { getService, SERVICES } from "@/lib/mock-services-data";
 
 const teamNames = new Map(MOCK_ROLE_POOLS.map((team) => [team.id, team.name]));
+const featuredServices = FEATURED_SERVICE_SLUGS.map(getService).filter((service) => service !== undefined);
 
 // Sherweb's buttons use coral-600, but white text on it is only 4.4:1. One step darker clears 4.5:1.
 const PRIMARY_LINK =
@@ -37,7 +41,7 @@ function formatDate(date: string): string {
 
 /**
  * The front door the Web Agent brand links to: one line on what the platform
- * is, the way in (Get started), the catalog at a glance, then what's new,
+ * is, the way in (Get started), the catalog at a glance, featured services, then what's new,
  * success stories, documentation and trust. Signed in, it adds the visitor's account.
  * Styled with the landing theme (Sherweb's palette, see globals.css).
  * Mockup: ?view=signed-in stands in for a real session.
@@ -143,7 +147,24 @@ export default async function HomePage({
           </div>
         </section>
 
-        <section id="whats-new" className={`${SECTION} ${SPLIT} scroll-mt-6`}>
+        <section className={`${SECTION} ${SPLIT}`}>
+          <div className="flex flex-col items-start gap-6">
+            <LandingHeading title="Services" description="Each one does a job end to end for a team, priced per task." />
+            <Link
+              href="/services"
+              className="font-semibold text-brand-700 underline-offset-4 hover:underline dark:text-brand-300"
+            >
+              All {SERVICES.length} services →
+            </Link>
+          </div>
+          <ul className="divide-y divide-steel-100 border-y border-steel-100 lg:col-span-2 dark:divide-white/10 dark:border-white/10">
+            {featuredServices.map((service) => (
+              <ServiceRow key={service.slug} service={service} showTeam />
+            ))}
+          </ul>
+        </section>
+
+        <section id="whats-new" className={`${SECTION} ${SPLIT} scroll-mt-6 border-t border-steel-100 dark:border-white/10`}>
           <LandingHeading title="What's new" description="Released or updated in the last month." />
           <ul className="divide-y divide-steel-100 border-y border-steel-100 lg:col-span-2 dark:divide-white/10 dark:border-white/10">
             {RELEASE_NOTES.map((note) => (
