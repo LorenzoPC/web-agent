@@ -31,14 +31,16 @@ export function AppNav({ userName }: { userName: string }) {
   const featureOpen = panel === "feature-request";
 
   return (
-    <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3 dark:border-zinc-800 dark:bg-black">
-      <div className="flex items-center gap-6">
+    <header className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-3 sm:px-6 dark:border-zinc-800 dark:bg-black">
+      <div className="flex min-w-0 items-center gap-4 sm:gap-6">
         {/* The brand goes to the landing page. */}
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
           <Orb />
-          <span className="text-sm font-semibold text-black dark:text-zinc-50">Web Agent</span>
+          <span className="text-sm font-semibold text-black max-sm:sr-only dark:text-zinc-50">Web Agent</span>
         </Link>
-        <nav className="flex gap-1">
+        {/* On narrow screens the links scroll sideways inside the nav, so the page doesn't. `relative` keeps the
+            tabs' absolutely positioned sr-only cues inside that scroll area, and pb-px stops it clipping the -mb-px underline. */}
+        <nav className="relative flex min-w-0 gap-1 overflow-x-auto pb-px">
           {LINKS.map((link) => {
             const active = (NAV_PARENTS[pathname] ?? pathname) === link.href;
             const audience = routeAudience(link.href);
@@ -47,7 +49,7 @@ export function AppNav({ userName }: { userName: string }) {
                 key={link.href}
                 href={link.href}
                 // The pill brings its own padding, so the tab trims its own to keep the spacing even.
-                className={`group -mb-px border-b-2 py-2 text-sm font-medium transition-colors ${audience ? "px-1.5" : "px-3"} ${
+                className={`group -mb-px shrink-0 whitespace-nowrap border-b-2 py-2 text-sm font-medium transition-colors ${audience ? "px-1.5" : "px-3"} ${
                   active
                     ? "border-black text-black dark:border-white dark:text-zinc-50"
                     : "border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200"
@@ -59,7 +61,7 @@ export function AppNav({ userName }: { userName: string }) {
           })}
         </nav>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3">
         {/* The full-height panel slides in over this corner, and its own Close button takes over from here. */}
         <button
           type="button"
@@ -80,7 +82,7 @@ export function AppNav({ userName }: { userName: string }) {
           </svg>
           <span className="max-sm:sr-only">Ask a feature</span>
         </button>
-        <span className="text-sm text-zinc-500 dark:text-zinc-500">{userName}</span>
+        <span className="text-sm text-zinc-500 max-sm:hidden dark:text-zinc-500">{userName}</span>
       </div>
     </header>
   );

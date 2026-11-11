@@ -58,7 +58,7 @@ export function PromptsLibrary({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end gap-2">
-        <div>
+        <div className="min-w-0 max-w-full">
           <label className="text-xs font-medium text-zinc-500 dark:text-zinc-500">Business unit</label>
           <select
             value={businessUnitFilter}
@@ -66,7 +66,7 @@ export function PromptsLibrary({
               setBusinessUnitFilter(e.target.value);
               setTaskProcessFilter("");
             }}
-            className="mt-1 rounded-lg border border-zinc-300 bg-white p-2 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            className="mt-1 max-w-full rounded-lg border border-zinc-300 bg-white p-2 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
           >
             <option value="">All</option>
             {businessUnits.map((unit) => (
@@ -76,12 +76,12 @@ export function PromptsLibrary({
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0 max-w-full">
           <label className="text-xs font-medium text-zinc-500 dark:text-zinc-500">Role</label>
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="mt-1 rounded-lg border border-zinc-300 bg-white p-2 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            className="mt-1 max-w-full rounded-lg border border-zinc-300 bg-white p-2 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
           >
             <option value="">All</option>
             {roles.map((r) => (
@@ -91,12 +91,12 @@ export function PromptsLibrary({
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0 max-w-full">
           <label className="text-xs font-medium text-zinc-500 dark:text-zinc-500">Task/process</label>
           <select
             value={taskProcessFilter}
             onChange={(e) => setTaskProcessFilter(e.target.value)}
-            className="mt-1 rounded-lg border border-zinc-300 bg-white p-2 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            className="mt-1 max-w-full rounded-lg border border-zinc-300 bg-white p-2 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
           >
             <option value="">All</option>
             {scopedTaskProcesses.map((t) => (
