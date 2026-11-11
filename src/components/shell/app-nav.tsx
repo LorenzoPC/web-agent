@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AudienceTabLabel } from "@/components/ui/audience-label";
 import { Orb } from "@/components/ui/orb";
+import { routeAudience } from "@/lib/audience";
 import { useSidePanel } from "./side-panel";
 
 const LINKS = [
@@ -39,17 +41,19 @@ export function AppNav({ userName }: { userName: string }) {
         <nav className="flex gap-1">
           {LINKS.map((link) => {
             const active = (NAV_PARENTS[pathname] ?? pathname) === link.href;
+            const audience = routeAudience(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+                // The pill brings its own padding, so the tab trims its own to keep the spacing even.
+                className={`group -mb-px border-b-2 py-2 text-sm font-medium transition-colors ${audience ? "px-1.5" : "px-3"} ${
                   active
                     ? "border-black text-black dark:border-white dark:text-zinc-50"
                     : "border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200"
                 }`}
               >
-                {link.label}
+                {audience ? <AudienceTabLabel audience={audience}>{link.label}</AudienceTabLabel> : link.label}
               </Link>
             );
           })}

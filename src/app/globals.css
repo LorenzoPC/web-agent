@@ -8,6 +8,11 @@
   --admin: #991b1b;
   --admin-hover: #7f1d1d;
   --admin-foreground: #ffffff;
+
+  /* Developer screens and sections (same doc). One resting fill works in both modes. */
+  --developer: #c2410c;
+  --developer-hover: #9a3412;
+  --developer-foreground: #ffffff;
 }
 
 @theme inline {
@@ -16,6 +21,9 @@
   --color-admin: var(--admin);
   --color-admin-hover: var(--admin-hover);
   --color-admin-foreground: var(--admin-foreground);
+  --color-developer: var(--developer);
+  --color-developer-hover: var(--developer-hover);
+  --color-developer-foreground: var(--developer-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -62,6 +70,9 @@
     --admin: #c62828;
     --admin-hover: #b91c1c;
     --admin-foreground: #ffffff;
+
+    /* A darker hover would drop under 3:1 against near-black. */
+    --developer-hover: #b93d0b;
   }
 }
 

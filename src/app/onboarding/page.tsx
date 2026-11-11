@@ -1,4 +1,5 @@
 import { CopyButton } from "@/components/onboarding/copy-button";
+import { AudienceBadge } from "@/components/ui/audience-label";
 import { CLIENT_GUIDES, MCP_URL, SETUP_STEPS } from "@/lib/mock-onboarding-data";
 
 /**
@@ -48,14 +49,15 @@ export default function OnboardingPage() {
           ))}
         </ol>
 
+        {/* Per-client MCP steps: the seed of the sitemap's Developer docs, so they carry the Developer colour. */}
         <div className="flex w-full max-w-xl flex-col gap-2 text-left">
           {CLIENT_GUIDES.map((guide) => (
-            <details
-              key={guide.id}
-              className="group rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
-            >
+            <details key={guide.id} className="group rounded-lg border border-developer/40 bg-developer/5">
               <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-medium text-black dark:text-zinc-50 [&::-webkit-details-marker]:hidden">
-                Exact steps for {guide.name}
+                <span className="flex items-center gap-2">
+                  Exact steps for {guide.name}
+                  <AudienceBadge audience="developer" />
+                </span>
                 <svg
                   viewBox="0 0 16 16"
                   aria-hidden="true"

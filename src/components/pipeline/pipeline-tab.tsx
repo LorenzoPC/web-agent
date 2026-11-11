@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { actualCost, formatCost, stepCost, totalCost } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
+import { AudienceBadge } from "@/components/ui/audience-label";
 import { CreateNewCard } from "@/components/ui/create-new-card";
 import { DisplayGrid } from "./display-grid";
 import { ExplorePanel } from "./explore-panel";
@@ -116,9 +117,13 @@ export function PipelineTab({ initialSteps }: { initialSteps: PipelineStep[] }) 
         />
       )}
 
-      <div className="flex flex-col gap-3">
+      {/* The sitemap's Developer Playground: running steps against projected vs. actual cost. */}
+      <div className="flex flex-col gap-3 rounded-xl border border-developer/40 bg-developer/5 p-4">
         <div>
-          <h2 className="font-medium text-black dark:text-zinc-50">Pipeline steps</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="font-medium text-black dark:text-zinc-50">Pipeline steps</h2>
+            <AudienceBadge audience="developer" />
+          </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-500">
             Steps run in order. Hover a step to preview it, click to select it.
           </p>

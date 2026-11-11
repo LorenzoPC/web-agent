@@ -113,11 +113,13 @@ export function McpToolsMarketplace({
           title="Tools"
           description="Single actions an agent can call while it works."
           action={
+            // Creating a tool is an Admin screen in the sitemap, so it matches the server button above.
             <Link
               href="/tools/new"
-              className="shrink-0 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:border-zinc-700"
+              className="flex shrink-0 items-center gap-2 rounded-lg bg-admin px-3 py-1.5 text-xs font-medium text-admin-foreground transition-colors hover:bg-admin-hover"
             >
               Create tool
+              <span className="text-admin-foreground/80">Admin</span>
             </Link>
           }
         />

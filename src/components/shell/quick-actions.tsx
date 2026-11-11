@@ -3,26 +3,28 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ConversationPanel } from "@/components/conversation/conversation-panel";
+import { AUDIENCE_LABEL, routeAudience, type Audience } from "@/lib/audience";
 import type { MockStarterInstruction } from "@/lib/mock-data";
 import type { PipelineStep } from "@/lib/types";
 import { useSidePanel } from "./side-panel";
 
-// Admin items lead to privileged screens and use the admin palette color, with
-// an "Admin" hint so color isn't the only cue.
-const ITEM_TONE = {
-  neutral: { row: "text-zinc-900 hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-900", hint: "text-zinc-500" },
-  admin: { row: "bg-admin text-admin-foreground hover:bg-admin-hover", hint: "text-admin-foreground/80" },
+// Items leading to an Admin or Developer screen (per the sitemap) use that
+// area's palette color, with its name as the hint so color isn't the only cue.
+const ITEM_TONE: Record<"neutral" | Audience, { fill: string; hover: string; hint: string }> = {
+  neutral: { fill: "text-zinc-900 dark:text-zinc-100", hover: "hover:bg-zinc-100 dark:hover:bg-zinc-900", hint: "text-zinc-500" },
+  admin: { fill: "bg-admin text-admin-foreground", hover: "hover:bg-admin-hover", hint: "text-admin-foreground/80" },
+  developer: { fill: "bg-developer text-developer-foreground", hover: "hover:bg-developer-hover", hint: "text-developer-foreground/80" },
 };
 
 // Items with neither an href nor a panel to open have no screen yet and render
-// as disabled "Soon" rows.
-const ACTIONS: { label: string; href?: string; opens?: "conversation"; hint?: string; admin?: boolean }[] = [
+// as disabled "Soon" rows. Those set `audience` themselves, since there's no route to look up.
+const ACTIONS: { label: string; href?: string; opens?: "conversation"; hint?: string; audience?: Audience }[] = [
   { label: "Start Conversation", opens: "conversation" },
-  { label: "Create Agent", href: "/builder", hint: "Builder" },
+  { label: "Create Agent", href: "/builder" },
   { label: "See Dashboard", href: "/dashboard" },
   { label: "Create Tool", href: "/tools/new" },
-  { label: "Create MCP Server", href: "/mcp-servers/new", hint: "Admin", admin: true },
-  { label: "Create Skill" },
+  { label: "Create MCP Server", href: "/mcp-servers/new" },
+  { label: "Create Skill", audience: "admin" },
 ];
 
 /**
@@ -71,17 +73,19 @@ export function QuickActions({
             className="w-60 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-lg dark:border-zinc-800 dark:bg-zinc-950"
           >
             {ACTIONS.map((action) => {
-              const tone = ITEM_TONE[action.admin ? "admin" : "neutral"];
+              const audience = action.href ? routeAudience(action.href) : action.audience;
+              const tone = ITEM_TONE[audience ?? "neutral"];
+              const hint = audience ? AUDIENCE_LABEL[audience] : action.hint;
               return action.href ? (
                 <Link
                   key={action.label}
                   role="menuitem"
                   href={action.href}
                   onClick={() => setOpen(false)}
-                  className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${tone.row}`}
+                  className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${tone.fill} ${tone.hover}`}
                 >
                   {action.label}
-                  {action.hint && <span className={`text-xs ${tone.hint}`}>{action.hint}</span>}
+                  {hint && <span className={`text-xs ${tone.hint}`}>{hint}</span>}
                 </Link>
               ) : action.opens ? (
                 <button
@@ -92,20 +96,27 @@ export function QuickActions({
                     setOpen(false);
                     setPanel("conversation");
                   }}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${tone.row}`}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${tone.fill} ${tone.hover}`}
                 >
                   {action.label}
-                  {action.hint && <span className={`text-xs ${tone.hint}`}>{action.hint}</span>}
+                  {hint && <span className={`text-xs ${tone.hint}`}>{hint}</span>}
                 </button>
               ) : (
                 <div
                   key={action.label}
                   role="menuitem"
                   aria-disabled="true"
-                  className="flex cursor-not-allowed items-center justify-between rounded-lg px-3 py-2 text-sm text-zinc-400 dark:text-zinc-600"
+                  title={audience ? `${AUDIENCE_LABEL[audience]}, not built yet` : undefined}
+                  className={`flex cursor-not-allowed items-center justify-between rounded-lg px-3 py-2 text-sm ${
+                    audience ? `opacity-50 ${tone.fill}` : "text-zinc-400 dark:text-zinc-600"
+                  }`}
                 >
                   {action.label}
-                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-500 dark:bg-zinc-900 dark:text-zinc-500">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[11px] ${
+                      audience ? "bg-white/20" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-900 dark:text-zinc-500"
+                    }`}
+                  >
                     Soon
                   </span>
                 </div>

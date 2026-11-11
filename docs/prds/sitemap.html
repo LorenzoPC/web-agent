@@ -20,8 +20,9 @@
       --public: #52525b;
       --client: #4f46e5;
       --learn: #059669;
-      --developers: #0284c7;
+      --developers: #c2410c;
       --admin: #991b1b;
+      --muted-tint: #52525b;
       color-scheme: light;
     }
     @media (prefers-color-scheme: dark) {
@@ -39,8 +40,9 @@
         --public: #a1a1aa;
         --client: #818cf8;
         --learn: #34d399;
-        --developers: #38bdf8;
+        --developers: #fb923c;
         --admin: #f87171;
+        --muted-tint: #a1a1aa;
         color-scheme: dark;
       }
     }
@@ -106,6 +108,15 @@
     .chip-planned { background: var(--planned-bg); color: var(--planned-fg); }
     .empty { padding: 10px 0; color: var(--faint); font-size: 13px; }
 
+    /* Developer pages are tinted orange and Admin pages red, the colours the app gives those screens.
+       Muted text steps darker on the tint to keep 4.5:1. */
+    .area-developers .page, .area-admin .page {
+      --muted: var(--muted-tint);
+      margin-top: 6px; padding: 10px 12px; border-bottom: 0; border-radius: 8px;
+      background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+    }
+    .area-developers .page.depth-1, .area-admin .page.depth-1 { border-radius: 0 8px 8px 0; }
+
     .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 32px; }
     .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
     .panel p, .panel li { font-size: 14px; color: var(--muted); }
@@ -126,6 +137,13 @@
     .dot-learn { background: var(--learn); }
     .dot-developers { background: var(--developers); }
     .dot-admin { background: var(--admin); }
+    .cell-developers { --accent: var(--developers); }
+    .cell-admin { --accent: var(--admin); }
+    td.cell-developers, td.cell-admin {
+      --muted: var(--muted-tint);
+      padding-left: 10px;
+      background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+    }
     footer { margin-top: 32px; color: var(--faint); font-size: 12px; }
     footer a { color: inherit; }
 
@@ -140,7 +158,7 @@
 <body>
   <main>
     <h1>Web Agent sitemap</h1>
-    <p class="intro">One public area and four signed-in areas, one per audience. This is the target structure, not what&rsquo;s live: the signed-in areas depend on auth and roles, which are V2 in the PRD. Until then, every area renders for the mock user. What this settles now is where each screen lives, so URLs don&rsquo;t move once auth lands.</p>
+    <p class="intro">One public area and four signed-in areas, one per audience. This is the target structure, not what&rsquo;s live: the signed-in areas depend on auth and roles, which are V2 in the PRD. Until then, every area renders for the mock user. What this settles now is where each screen lives, so URLs don&rsquo;t move once auth lands. Developer pages are tinted orange and Admin pages red, the same colours the app gives those screens.</p>
     <span class="status-pill">Draft · 30 Oct 2026</span>
 
     <div class="toolbar">
@@ -643,17 +661,17 @@
             <tr><td>Start Conversation panel (launcher)</td><td class="mono">/learn/try</td><td><span class="dot dot-learn" aria-hidden="true"></span>Learn</td></tr>
             <tr><td><span class="mono">docs/<wbr>reference/<wbr>glossary.md</span></td><td class="mono">/learn/glossary</td><td><span class="dot dot-learn" aria-hidden="true"></span>Learn</td></tr>
             <tr><td>Ask a feature panel (nav)</td><td class="mono">/learn/ask</td><td><span class="dot dot-learn" aria-hidden="true"></span>Learn</td></tr>
-            <tr><td>Ecosystem catalog and /patterns</td><td class="mono">/developers/components</td><td><span class="dot dot-developers" aria-hidden="true"></span>Developers</td></tr>
-            <tr><td>MCP steps on /onboarding</td><td class="mono">/developers/docs</td><td><span class="dot dot-developers" aria-hidden="true"></span>Developers</td></tr>
-            <tr><td><span class="mono">/<wbr>builder</span> (Pipeline tab)</td><td class="mono">/developers/playground</td><td><span class="dot dot-developers" aria-hidden="true"></span>Developers</td></tr>
-            <tr><td><span class="mono">/<wbr>product</span> (Dashboard Product screen)</td><td class="mono">/admin</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
-            <tr><td><span class="mono">/<wbr>builder</span></td><td class="mono">/admin/agents/new</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
-            <tr><td><span class="mono">/<wbr>patterns</span></td><td class="mono">/admin/patterns</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
-            <tr><td><span class="mono">/<wbr>prompts</span></td><td class="mono">/admin/prompts</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
-            <tr><td><span class="mono">/<wbr>tools/<wbr>new</span></td><td class="mono">/admin/tools/new</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
-            <tr><td>Create Skill (launcher, “Soon”)</td><td class="mono">/admin/skills/new</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
-            <tr><td><span class="mono">/<wbr>mcp-servers/<wbr>new</span></td><td class="mono">/admin/mcp-servers/new</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
-            <tr><td>Catalog sync and seed scripts</td><td class="mono">/admin/catalog</td><td><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td>Ecosystem catalog and /patterns</td><td class="mono">/developers/components</td><td class="cell-developers"><span class="dot dot-developers" aria-hidden="true"></span>Developers</td></tr>
+            <tr><td>MCP steps on /onboarding</td><td class="mono">/developers/docs</td><td class="cell-developers"><span class="dot dot-developers" aria-hidden="true"></span>Developers</td></tr>
+            <tr><td><span class="mono">/<wbr>builder</span> (Pipeline tab)</td><td class="mono">/developers/playground</td><td class="cell-developers"><span class="dot dot-developers" aria-hidden="true"></span>Developers</td></tr>
+            <tr><td><span class="mono">/<wbr>product</span> (Dashboard Product screen)</td><td class="mono">/admin</td><td class="cell-admin"><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td><span class="mono">/<wbr>builder</span></td><td class="mono">/admin/agents/new</td><td class="cell-admin"><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td><span class="mono">/<wbr>patterns</span></td><td class="mono">/admin/patterns</td><td class="cell-admin"><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td><span class="mono">/<wbr>prompts</span></td><td class="mono">/admin/prompts</td><td class="cell-admin"><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td><span class="mono">/<wbr>tools/<wbr>new</span></td><td class="mono">/admin/tools/new</td><td class="cell-admin"><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td>Create Skill (launcher, “Soon”)</td><td class="mono">/admin/skills/new</td><td class="cell-admin"><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td><span class="mono">/<wbr>mcp-servers/<wbr>new</span></td><td class="mono">/admin/mcp-servers/new</td><td class="cell-admin"><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
+            <tr><td>Catalog sync and seed scripts</td><td class="mono">/admin/catalog</td><td class="cell-admin"><span class="dot dot-admin" aria-hidden="true"></span>Admin</td></tr>
           </tbody>
         </table>
       </div>
