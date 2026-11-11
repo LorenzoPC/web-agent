@@ -48,7 +48,7 @@ Each section below: what exists/is planned, the gap, and a concrete proposed des
 
 **Proposed decision, two parts:**
 1. **Keep RAG's data shape separate** (it needs a `documents` text blob, not a callable interface) but **document it as a specialized built-in tool** in the mental model going forward, so the next new attachment type (e.g. a database-lookup tool) has an obvious home instead of prompting a 4th top-level category.
-2. **Make "real execution vs. decorative" visible in the UI** — a small badge ("Runs for real" / "Reference only") on catalog cards wherever tools/MCP/RAG are selectable (Ecosystem tab, Marketplace, the new Flow tab). Currently a user can attach 11 of 13 tools with zero effect and no indication of that. Cheap, honest, no architecture change — just surfaces `metadata.executor` (already the exact flag the backend uses) in the UI that currently hides it.
+2. **Make "real execution vs. decorative" visible in the UI** — a small badge ("Runs for real" / "Reference only") on catalog cards wherever tools/MCP/RAG are selectable (Marketplace, the new Flow tab; this first named the Ecosystem tab, removed on 2026-11-01). Currently a user can attach 11 of 13 tools with zero effect and no indication of that. Cheap, honest, no architecture change — just surfaces `metadata.executor` (already the exact flag the backend uses) in the UI that currently hides it.
 
 **Scope:** V1, UI-only (the badge); RAG's separate data shape stays as-is (just re-framed in docs, no code change).
 
