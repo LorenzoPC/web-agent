@@ -3,7 +3,7 @@ import { createMCPClient } from "@ai-sdk/mcp";
 type MCPToolSet = Awaited<ReturnType<Awaited<ReturnType<typeof createMCPClient>>["tools"]>>;
 
 /**
- * Real GitHub MCP connection — the only "mcp-server" catalog entry with
+ * Real GitHub MCP connection: the only "mcp-server" catalog entry with
  * metadata.executor === "github-mcp". Connects to GitHub's public remote MCP
  * server per-call (no persistent connection) and always closes the client,
  * even on error.

@@ -84,7 +84,7 @@ export default function OnboardingPage() {
 
         <div className="flex flex-col gap-1 text-xs text-zinc-500">
           <p>
-            For client, partner and reseller accounts — sign in with your work email. Access mirrors your own
+            For client, partner and reseller accounts. Sign in with your work email. Access mirrors your own
             permissions.
           </p>
           <p className="text-zinc-400 dark:text-zinc-600">Mockup: the URL and sign-in aren&apos;t live yet.</p>

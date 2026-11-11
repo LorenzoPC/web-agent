@@ -69,7 +69,7 @@ export function PromptFormModal({
               {initialPrompt ? "Edit prompt" : "Create a prompt"}
             </h2>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
-              Not persisted yet — this draft only lives in this browser session.
+              Not persisted yet: this draft only lives in this browser session.
             </p>
           </div>
           <button
@@ -106,7 +106,7 @@ export function PromptFormModal({
 
           <div>
             <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Scope <span className="font-normal text-zinc-400 dark:text-zinc-600">(optional — broader scopes act as a fallback when nothing more specific matches)</span>
+              Scope <span className="font-normal text-zinc-400 dark:text-zinc-600">(optional; broader scopes act as a fallback when nothing more specific matches)</span>
             </label>
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
               <select
@@ -114,7 +114,7 @@ export function PromptFormModal({
                 onChange={(e) => handleBusinessUnitChange(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 bg-white p-2 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
               >
-                <option value="">Business unit — any</option>
+                <option value="">Business unit: any</option>
                 {businessUnits.map((unit) => (
                   <option key={unit.id} value={unit.id}>
                     {unit.name}
@@ -126,7 +126,7 @@ export function PromptFormModal({
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 bg-white p-2 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
               >
-                <option value="">Role — any</option>
+                <option value="">Role: any</option>
                 {roles.map((r) => (
                   <option key={r} value={r}>
                     {r}
@@ -138,7 +138,7 @@ export function PromptFormModal({
                 onChange={(e) => setTaskProcessId(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 bg-white p-2 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
               >
-                <option value="">Task/process — any</option>
+                <option value="">Task/process: any</option>
                 {scopedTaskProcesses.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.label}

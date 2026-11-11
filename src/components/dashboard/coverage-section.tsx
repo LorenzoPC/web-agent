@@ -3,7 +3,7 @@ import type { MockPhaseCoverage, MockUnitCoverage } from "@/lib/mock-data";
 import { SectionHeading } from "./section-heading";
 
 const PHASES = [
-  { id: "pre", label: "Pre", hint: "Before work happens — a user asks, or a system notices something" },
+  { id: "pre", label: "Pre", hint: "Before work happens: a user asks, or a system notices something" },
   { id: "work", label: "Work", hint: "The work done in direct response to that trigger" },
   { id: "post", label: "Post", hint: "Follow-up or enhancement work, uncalled for by the user" },
 ] as const;
@@ -110,7 +110,7 @@ export function CoverageSection({
   totalLabel?: string;
   /** "counts" prints live/total per phase; "percent" prints shares, for totals too large to read as fractions. */
   cellFormat?: CellFormat;
-  /** Row to emphasize — the viewer's own function. */
+  /** Row to emphasize: the viewer's own function. */
   highlightId?: string;
   /** Extra heading controls, e.g. a view toggle, shown before the legend. */
   children?: ReactNode;

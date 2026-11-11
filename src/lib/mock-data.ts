@@ -112,7 +112,7 @@ export interface MockPoolAgent {
 
 /** Business processes a role could support, grouped by when they happen relative to the triggering work. */
 export interface MockProcessPhases {
-  /** Before work happens — a user asks something, or a system notices something. */
+  /** Before work happens: a user asks something, or a system notices something. */
   pre: string[];
   /** The work done to create value in direct response to that trigger. */
   work: string[];
@@ -125,9 +125,9 @@ export interface MockAgentPool {
   name: string;
   description: string;
   entryCount: number;
-  /** Agents mapped into this pool so far — shown when the pool card is expanded. Empty until mapped. */
+  /** Agents mapped into this pool so far, shown when the pool card is expanded. Empty until mapped. */
   agents?: MockPoolAgent[];
-  /** Business processes this role could support, grouped by phase — shown when the pool card is expanded. */
+  /** Business processes this role could support, grouped by phase, shown when the pool card is expanded. */
   processes?: MockProcessPhases;
 }
 
@@ -863,7 +863,7 @@ export const MOCK_MODEL_TYPE_GROUPS: MockModelTypeGroup[] = [
   },
 ];
 
-// See docs/project/pattern_libraries.md — V1 Flow Patterns are curated/seeded,
+// See docs/project/pattern_libraries.md: V1 Flow Patterns are curated/seeded,
 // linear only. Each slot is a placeholder agent-task, bound to a real agent +
 // task instructions when a pattern is used to build a flow.
 export interface MockPatternSlot {
@@ -882,7 +882,7 @@ export const MOCK_FLOW_PATTERNS: MockFlowPattern[] = [
   {
     id: "single-agent",
     name: "Single Agent",
-    description: "One agent handles the entire task end to end. The default pattern — equivalent to today's Ecosystem builder.",
+    description: "One agent handles the entire task end to end. The default pattern.",
     slots: [
       {
         taskLabel: "Complete the task",
@@ -1028,10 +1028,10 @@ export const MOCK_FLOW_PATTERNS: MockFlowPattern[] = [
   },
 ];
 
-// See docs/project/pattern_libraries.md — Prompts are scoped to Business Unit
+// See docs/project/pattern_libraries.md: Prompts are scoped to Business Unit
 // (today's MOCK_ROLE_POOLS, renamed conceptually per the doc's rename decision)
 // / Role (an agent's `role` field) / Task-process, with specificity fallback.
-// Task/processes need stable ids to be scoped against — derived here from the
+// Task/processes need stable ids to be scoped against, derived here from the
 // existing MOCK_ROLE_POOLS content rather than hand-duplicated.
 function slugify(text: string): string {
   return text
@@ -1088,7 +1088,7 @@ export const MOCK_PROMPTS: MockPrompt[] = [
   {
     id: "prompt-support-tone",
     name: "Support tone guidelines",
-    body: "Always respond in a warm, empathetic tone. Never promise a refund or credit without escalating to a human first — offer to escalate instead.",
+    body: "Always respond in a warm, empathetic tone. Never promise a refund or credit without escalating to a human first; offer to escalate instead.",
     businessUnitId: "customer-support",
     archived: false,
   },
@@ -1109,7 +1109,7 @@ export const MOCK_PROMPTS: MockPrompt[] = [
   },
   {
     id: "prompt-pr-review-detailed",
-    name: "PR review — detailed pass",
+    name: "PR review: detailed pass",
     body: "Review this pull request diff. For each file changed: 1) flag correctness issues, 2) flag security concerns, 3) flag style/consistency issues. End with a one-line overall verdict (approve, approve with comments, or request changes).",
     businessUnitId: "engineering",
     taskProcessId: taskProcessId("engineering", "work", "Review pull requests for correctness, security, and style"),
@@ -1147,7 +1147,7 @@ export const MOCK_PROMPTS: MockPrompt[] = [
   },
 ];
 
-// Dashboard — headline metrics, a newsfeed of notification headers, ranked top
+// Dashboard: headline metrics, a newsfeed of notification headers, ranked top
 // priorities, and agent coverage of each business unit's task-processes.
 
 export interface MockMetric {
@@ -1158,7 +1158,7 @@ export interface MockMetric {
   /** Fractional change vs `comparedTo` (0.18 = +18%); for percent and score metrics, the change in points. */
   change: number;
   comparedTo: string;
-  /** Whether an increase is good news — decides the delta's color. */
+  /** Whether an increase is good news; decides the delta's color. */
   higherIsBetter: boolean;
 }
 
@@ -1183,7 +1183,7 @@ export type MockNotificationTone = "neutral" | "good" | "warning" | "critical";
 export interface MockNotification {
   id: string;
   kind: MockNotificationKind;
-  /** One-line header — the feed shows headers only. */
+  /** One-line header; the feed shows headers only. */
   title: string;
   tone: MockNotificationTone;
   unread: boolean;
@@ -1219,7 +1219,7 @@ export const MOCK_NOTIFICATIONS: MockNotification[] = [
   {
     id: "notif-github-token",
     kind: "alert",
-    title: "GitHub MCP has no token — 3 flows ended with partial results",
+    title: "GitHub MCP has no token: 3 flows ended with partial results",
     tone: "critical",
     unread: true,
     createdAt: "2026-10-22T22:10:00Z",
@@ -1288,7 +1288,7 @@ export const MOCK_PRIORITIES: MockPriority[] = [
     title: "Fix the dip in first-reply CSAT",
     businessUnitId: "customer-support",
     context:
-      "CSAT on agent-drafted first replies fell from 4.6 to 4.1 this week. Low scores cite callbacks promised without a time — the tone prompt doesn't cover that yet.",
+      "CSAT on agent-drafted first replies fell from 4.6 to 4.1 this week. Low scores cite callbacks promised without a time, and the tone prompt doesn't cover that yet.",
     actions: [
       { label: "Edit prompt", href: "/prompts" },
       { label: "Run test", href: "/prompts" },
@@ -1327,7 +1327,7 @@ export interface MockPhaseCoverage {
   live: number;
   /** Task-processes with an agent being piloted. */
   pilot: number;
-  /** All task-processes mapped for the unit and phase — the rest are uncovered. */
+  /** All task-processes mapped for the unit and phase; the rest are uncovered. */
   total: number;
 }
 
@@ -1358,7 +1358,7 @@ export const MOCK_UNIT_COVERAGE: MockUnitCoverage[] = MOCK_BUSINESS_UNITS.map((u
   };
 });
 
-// Tool recipes — everything an agent needs to call a tool well: a callable name
+// Tool recipes: everything an agent needs to call a tool well: a callable name
 // and model-facing description, a typed input schema with an example, how the
 // call executes, auth, what comes back, guardrails, and per-call cost. The
 // model-facing half mirrors the AI SDK `tool()` shape (see src/lib/tools/*);
@@ -1382,7 +1382,7 @@ export type MockToolExecution =
   | { kind: "mcp"; serverUrl: string; toolName: string }
   | { kind: "function"; code: string };
 
-/** Secrets are referenced by env var name only — never stored in the recipe. */
+/** Secrets are referenced by env var name only, never stored in the recipe. */
 export type MockToolAuth =
   | { kind: "none" }
   | { kind: "apiKey"; header: string; envVar: string }
@@ -1484,7 +1484,7 @@ export const MOCK_TOOL_TEMPLATES: MockToolTemplate[] = [
         {
           name: "owner",
           type: "string",
-          description: "Repository owner — a GitHub user or organization login, e.g. vercel",
+          description: "Repository owner: a GitHub user or organization login, e.g. vercel",
           required: true,
         },
         {
@@ -1531,7 +1531,7 @@ export const MOCK_TOOL_TEMPLATES: MockToolTemplate[] = [
       sideEffects: "write",
       requiresApproval: true,
       timeoutMs: 15000,
-      // Creating an issue isn't idempotent — a retry after a slow success files a duplicate.
+      // Creating an issue isn't idempotent: a retry after a slow success files a duplicate.
       retries: 0,
       cost: { kind: "free" },
     },
@@ -1542,7 +1542,7 @@ export const MOCK_TOOL_TEMPLATES: MockToolTemplate[] = [
       id: "template-days-between",
       name: "days_between",
       description:
-        "Count the calendar days between two dates. Use it whenever an answer depends on an exact day count — deadlines, ages, SLAs — instead of computing it yourself, since day counts across months are easy to get wrong.",
+        "Count the calendar days between two dates. Use it whenever an answer depends on an exact day count (deadlines, ages, SLAs) instead of computing it yourself, since day counts across months are easy to get wrong.",
       parameters: [
         {
           name: "start",
@@ -1583,10 +1583,10 @@ export interface MockStarterInstruction {
 /** Four common instructions per agent role, shown as starter cards in the Conversation panel. */
 export const MOCK_ROLE_INSTRUCTIONS: Record<string, MockStarterInstruction[]> = {
   "Research Analyst": [
-    { title: "Brief me on a topic", instruction: "Give me a concise, sourced briefing on the topic below — key facts, recent developments, and open questions:" },
-    { title: "Compare options", instruction: "Compare the options below side by side — strengths, weaknesses, and which fits best for what situation:" },
+    { title: "Brief me on a topic", instruction: "Give me a concise, sourced briefing on the topic below, covering key facts, recent developments, and open questions:" },
+    { title: "Compare options", instruction: "Compare the options below side by side, covering strengths, weaknesses, and which fits best for what situation:" },
     { title: "Check the evidence", instruction: "What does the evidence say about the claim below? Separate well-supported findings from weaker or disputed ones:" },
-    { title: "Map a market", instruction: "Map the competitive landscape for the market below — main players, how they differ, and where the gaps are:" },
+    { title: "Map a market", instruction: "Map the competitive landscape for the market below, covering the main players, how they differ, and where the gaps are:" },
   ],
   "Content Summarizer": [
     { title: "Key bullet points", instruction: "Summarize the content below into 5 key bullet points, keeping any important figures:" },
@@ -1609,7 +1609,7 @@ export const MOCK_ROLE_INSTRUCTIONS: Record<string, MockStarterInstruction[]> = 
   "Data Analyst": [
     { title: "Spot trends", instruction: "Identify the main trends and anomalies in the data below:" },
     { title: "Explain a metric change", instruction: "This metric changed unexpectedly. Walk me through the likely causes and how to confirm each one:" },
-    { title: "Plan an analysis", instruction: "Help me plan an analysis for the question below — what data I need, which metrics, and how to present it:" },
+    { title: "Plan an analysis", instruction: "Help me plan an analysis for the question below, covering what data I need, which metrics, and how to present it:" },
     { title: "Leadership takeaways", instruction: "Turn these numbers into three plain-language takeaways for a leadership update:" },
   ],
   "General Assistant": [
@@ -1622,7 +1622,7 @@ export const MOCK_ROLE_INSTRUCTIONS: Record<string, MockStarterInstruction[]> = 
 
 // Scripted Discovery session for the Create Tool mockup (docs/adr/0001-discovery-session-realtime-voice.md).
 // Each user answer carries the patch the interviewer would write into the form
-// after hearing it — the same contract the realtime version will use.
+// after hearing it: the same contract the realtime version will use.
 
 export interface MockDiscoveryTurn {
   speaker: "interviewer" | "user";

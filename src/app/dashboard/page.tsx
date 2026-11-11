@@ -29,7 +29,7 @@ export default async function DashboardPage() {
             Welcome back, {user.name}
           </h1>
           <p className="mt-0.5 text-sm text-zinc-600 dark:text-zinc-400">
-            Your agents at a glance — what changed, what needs you, and where they&apos;re working.
+            Your agents at a glance: what changed, what needs you, and where they&apos;re working.
           </p>
         </div>
 

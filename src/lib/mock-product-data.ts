@@ -9,7 +9,7 @@ import {
   type MockUnitCoverage,
 } from "./mock-data";
 
-// Product dashboard (/product) — the same bands as the Overview, for the PM of the
+// Product dashboard (/product): the same bands as the Overview, for the PM of the
 // agentic product or the manager of one of its supporting functions. Those
 // functions are MOCK_BUSINESS_UNITS; a "lens" scopes the screen to one of them.
 // Kept apart from mock-data.ts so the two screens' data can evolve separately.
@@ -99,7 +99,7 @@ export const MOCK_PRODUCT_NOTIFICATIONS: MockProductNotification[] = [
     id: "pn-anthropic-latency",
     kind: "alert",
     functionId: "engineering",
-    title: "Anthropic API latency elevated — Summarizer and Code Reviewer runs are slower",
+    title: "Anthropic API latency elevated: Summarizer and Code Reviewer runs are slower",
     tone: "warning",
     unread: true,
     createdAt: "2026-10-23T08:55:00Z",
@@ -108,7 +108,7 @@ export const MOCK_PRODUCT_NOTIFICATIONS: MockProductNotification[] = [
     id: "pn-gpt-retirement",
     kind: "alert",
     functionId: "engineering",
-    title: "OpenAI retires GPT-5.4 on Dec 1 — 3 agents still use it",
+    title: "OpenAI retires GPT-5.4 on Dec 1: 3 agents still use it",
     tone: "warning",
     unread: true,
     createdAt: "2026-10-23T08:30:00Z",
@@ -289,7 +289,7 @@ export interface MockSystem {
   id: string;
   name: string;
   status: MockSystemStatus;
-  /** Short reading beside the status — latency, queue depth, or what's failing. */
+  /** Short reading beside the status: latency, queue depth, or what's failing. */
   detail: string;
 }
 
@@ -305,7 +305,7 @@ export const MOCK_SYSTEMS: MockSystem[] = [
   { id: "vercel", name: "Vercel deploys", status: "operational", detail: "Last one 2h ago" },
 ];
 
-// "Our team": how much of our own functions' work runs on agents — the Overview's data.
+// "Our team": how much of our own functions' work runs on agents (the Overview's data).
 export const MOCK_TEAM_COVERAGE: MockUnitCoverage[] = MOCK_UNIT_COVERAGE;
 
 // "Our customers": workspaces with an agent on each target use case's processes,

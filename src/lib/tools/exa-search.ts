@@ -2,7 +2,7 @@ import Exa from "exa-js";
 import { tool } from "ai";
 import { z } from "zod";
 
-/** Real web search — the only "hook" catalog entry with metadata.executor === "exa-search". */
+/** Real web search: the only "hook" catalog entry with metadata.executor === "exa-search". */
 export function createExaSearchTool() {
   const apiKey = process.env.EXA_API_KEY;
   if (!apiKey) {

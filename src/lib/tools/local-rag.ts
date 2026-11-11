@@ -26,7 +26,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 /**
- * Real local RAG — the only "rag-pattern" catalog entry with
+ * Real local RAG: the only "rag-pattern" catalog entry with
  * metadata.executor === "local-rag". No vector DB: chunks + embeds the
  * user-pasted reference text and the query with the existing local Ollama
  * embedding path, ranks by in-memory cosine similarity, and returns the top-K

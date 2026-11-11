@@ -6,7 +6,7 @@ import type { CostModel, PipelineStep } from "./types";
 
 // Capped per section: with 300+ synced models, dumping every candidate into the
 // analyze prompt would bloat it and overwhelm smaller local models. No
-// popularity/quality ranking yet (see backlog) — alphabetical is a placeholder.
+// popularity/quality ranking yet (see backlog); alphabetical is a placeholder.
 const MAX_OPTIONS = 15;
 
 export interface CatalogCard {
@@ -75,7 +75,7 @@ export const CATALOG_CATEGORY_COPY: Record<CatalogCategory, { title: string; sub
   },
 };
 
-/** Uncapped, paginated fetch for a category's full catalog — backs the "Search something else" modal. */
+/** Uncapped, paginated fetch for a category's full catalog; backs the "Search something else" modal. */
 export async function searchCatalogCategory(
   category: CatalogCategory,
   offset: number,
@@ -141,7 +141,7 @@ export async function getCatalogOptionsForBlock(blockType: BlockType): Promise<P
     .map(toPipelineStep);
 }
 
-/** Agent personas (kind='agent') — runnable as the "processing" step, carrying a systemPrompt. */
+/** Agent personas (kind='agent'): runnable as the "processing" step, carrying a systemPrompt. */
 export async function getAgentOptions(): Promise<PipelineStep[]> {
   const db = getDb();
   const rows = await db
@@ -153,7 +153,7 @@ export async function getAgentOptions(): Promise<PipelineStep[]> {
   return rows.map(toPipelineStep);
 }
 
-/** Catalog-only cards (hook/mcp-server/rag-pattern) — attached to an agent step, not runnable steps themselves. */
+/** Catalog-only cards (hook/mcp-server/rag-pattern): attached to an agent step, not runnable steps themselves. */
 export async function getCatalogCardsByKind(
   kind: "hook" | "mcp-server" | "rag-pattern",
 ): Promise<CatalogCard[]> {

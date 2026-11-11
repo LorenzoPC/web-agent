@@ -10,14 +10,14 @@ import type { ActualUsage, PipelineStep } from "@/lib/types";
 // modelRef is a runtime-configured string, so it's narrowed here rather than in the shared type.
 type RegistryModelRef = Parameters<typeof registry.languageModel>[0];
 
-// Only these specific catalog ids actually do anything when attached — everything
+// Only these specific catalog ids actually do anything when attached; everything
 // else selectable in the Ecosystem builder's Tools/MCP sections is catalog-only for
 // now. See docs/design/web-agent.md "Ecosystem builder v2".
 const EXA_SEARCH_TOOL_ID = "curated:tool-web-search";
 const GITHUB_MCP_ID = "curated:mcp-github";
 
 export async function POST(req: Request) {
-  // The client sends the full step config (not just an id) — a built flow's steps
+  // The client sends the full step config (not just an id): a built flow's steps
   // (from the Ecosystem catalog) aren't in any server-side list, so there's nothing
   // to look up by id alone.
   const { step, input } = (await req.json()) as { step?: PipelineStep; input?: string };
@@ -53,9 +53,9 @@ export async function POST(req: Request) {
       });
     }
 
-    // Chat step — resolve tools/MCP/RAG attachments. Only the executor-flagged ids
+    // Chat step: resolve tools/MCP/RAG attachments. Only the executor-flagged ids
     // above do real work; anything else in toolRefs/mcpServerRefs is ignored here
-    // (captured on the flow, but decorative — see design doc).
+    // (captured on the flow, but decorative; see design doc).
     let prompt = input ?? "";
 
     if (step.ragSource) {

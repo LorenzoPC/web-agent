@@ -57,7 +57,7 @@ export function RecipePanel({
         <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
           {createdName ? (
             <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-              Created <span className="font-mono">{createdName}</span>. Not persisted yet — this draft only lives in
+              Created <span className="font-mono">{createdName}</span>. Not persisted yet: this draft only lives in
               this browser session.
             </p>
           ) : (
@@ -73,7 +73,7 @@ export function RecipePanel({
               <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-500">
                 {blocked
                   ? "Fix the ✕ items to create this tool."
-                  : "Not persisted yet — this draft only lives in this browser session."}
+                  : "Not persisted yet: this draft only lives in this browser session."}
               </p>
             </>
           )}

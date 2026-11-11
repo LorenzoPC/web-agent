@@ -61,7 +61,7 @@ export function CreatePatternModal({
           <div>
             <h2 className="text-lg font-semibold text-black dark:text-zinc-50">Create a Flow Pattern</h2>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
-              Not persisted yet — this draft only lives in this browser session.
+              Not persisted yet: this draft only lives in this browser session.
             </p>
           </div>
           <button

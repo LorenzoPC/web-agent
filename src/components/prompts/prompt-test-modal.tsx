@@ -53,7 +53,7 @@ export function PromptTestModal({
           <div>
             <h2 className="text-lg font-semibold text-black dark:text-zinc-50">Test &ldquo;{prompt.name}&rdquo;</h2>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
-              Runs for real against the chosen agent&apos;s model — same execution path as the Builder.
+              Runs for real against the chosen agent&apos;s model, the same execution path as the Builder.
             </p>
           </div>
           <button
@@ -76,7 +76,7 @@ export function PromptTestModal({
               {agents.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
-                  {a.role ? ` — ${a.role}` : ""}
+                  {a.role ? ` (${a.role})` : ""}
                 </option>
               ))}
             </select>

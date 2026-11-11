@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { formatCostModel } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
 
-/** The composer's model-selector slot — picks which agent answers the next message. Opens upward. */
+/** The composer's model-selector slot: picks which agent answers the next message. Opens upward. */
 export function AgentPicker({
   agents,
   value,

@@ -28,7 +28,7 @@ const ACTIONS: { label: string; href?: string; opens?: "conversation"; hint?: st
 ];
 
 /**
- * Floating bottom-left launcher — takes the spot of the Next.js dev
+ * Floating bottom-left launcher. It takes the spot of the Next.js dev
  * indicator (disabled in next.config.ts) and, unlike it, ships to production.
  */
 export function QuickActions({

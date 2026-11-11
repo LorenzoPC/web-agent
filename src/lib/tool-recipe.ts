@@ -33,7 +33,7 @@ function paramSchema(param: MockToolParam) {
   }
 }
 
-/** JSON Schema for the tool's input — what the model fills in when it calls the tool. */
+/** JSON Schema for the tool's input: what the model fills in when it calls the tool. */
 export function toInputSchema(parameters: MockToolParam[]) {
   const named = parameters.filter((p) => p.name.trim());
   const required = named.filter((p) => p.required).map((p) => p.name.trim());
@@ -80,7 +80,7 @@ export interface RecipeCheck {
   label: string;
 }
 
-/** Recipe lint, in form order — what separates a tool an agent can use well from one it will misuse. */
+/** Recipe lint, in form order: what separates a tool an agent can use well from one it will misuse. */
 export function checkRecipe(recipe: MockToolRecipe): RecipeCheck[] {
   const checks: RecipeCheck[] = [];
   const add = (level: RecipeCheck["level"], label: string) => checks.push({ level, label });
@@ -91,7 +91,7 @@ export function checkRecipe(recipe: MockToolRecipe): RecipeCheck[] {
 
   const description = recipe.description.trim();
   if (!description) add("fail", "Description says what the tool does and when to use it");
-  else if (description.length < 80) add("warn", "Description is short — say when to use it, and when not to");
+  else if (description.length < 80) add("warn", "Description is short. Say when to use it, and when not to");
   else add("pass", "Description explains what it does and when to use it");
 
   // Inputs
@@ -115,7 +115,7 @@ export function checkRecipe(recipe: MockToolRecipe): RecipeCheck[] {
   if (!example.ok) {
     add("fail", "Example input must be a JSON object");
   } else if (!example.value) {
-    add("warn", "Add an example input — it shows the model what a good call looks like");
+    add("warn", "Add an example input. It shows the model what a good call looks like");
   } else {
     const keys = Object.keys(example.value);
     const known = new Set(params.map((p) => p.name.trim()));
@@ -157,7 +157,7 @@ export function checkRecipe(recipe: MockToolRecipe): RecipeCheck[] {
   // Guardrails
   if (recipe.sideEffects === "write") {
     if (recipe.requiresApproval) add("pass", "Writes wait for a person to approve");
-    else add("warn", "Writes data without approval — consider requiring it");
+    else add("warn", "Writes data without approval. Consider requiring it");
     if (recipe.retries > 0) add("warn", "Retrying a write can apply it twice");
   }
   if (recipe.timeoutMs <= 0) add("fail", "Timeout must be more than 0 seconds");

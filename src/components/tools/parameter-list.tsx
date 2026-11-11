@@ -18,7 +18,7 @@ export function ParameterList({
     <div className="flex flex-col gap-2">
       {parameters.length === 0 && (
         <p className="rounded-lg border border-dashed border-zinc-300 p-3 text-center text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-500">
-          No inputs — the model will call this tool with no arguments.
+          No inputs: the model will call this tool with no arguments.
         </p>
       )}
       {parameters.map((param, index) => (

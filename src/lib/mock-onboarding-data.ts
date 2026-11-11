@@ -7,7 +7,7 @@ export const MCP_URL = "https://mcp.webagent.dev";
 
 export const SETUP_STEPS: { title: string; note: string }[] = [
   { title: "Add a custom connector", note: "In Claude or ChatGPT settings." },
-  { title: "Paste the URL above", note: "No API keys — it uses OAuth." },
+  { title: "Paste the URL above", note: "No API keys: it uses OAuth." },
   { title: "Sign in and approve", note: "Then enable it in your chat." },
 ];
 

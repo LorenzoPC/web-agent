@@ -2,10 +2,10 @@ import { integer, jsonb, numeric, pgTable, primaryKey, text, timestamp } from "d
 
 // Catalog entry kinds: 'model' | 'service' | 'agent' | 'hook' | 'rag-pattern' | 'mcp-server'.
 // Model/service/agent are directly usable as a PipelineStep (blockType/sourceType/
-// stepKind/modelRef set); hook/rag-pattern/mcp-server are catalog-only by default —
+// stepKind/modelRef set); hook/rag-pattern/mcp-server are catalog-only by default:
 // browsable reference data. A few specific rows carry metadata.executor, which
 // /api/pipeline/run recognizes to wire real behavior (Exa search, GitHub MCP,
-// local RAG retrieval) — see docs/design/web-agent.md.
+// local RAG retrieval); see docs/design/web-agent.md.
 export const catalogEntries = pgTable("catalog_entries", {
   id: text("id").primaryKey(),
   kind: text("kind").notNull(),
@@ -47,7 +47,7 @@ export const catalogEntryCategories = pgTable(
   (t) => [primaryKey({ columns: [t.entryId, t.categoryId] })],
 );
 
-// One row per completed "Run pipeline" chain (not per step — see docs/design/web-agent.md
+// One row per completed "Run pipeline" chain (not per step; see docs/design/web-agent.md
 // for the normalized per-step design this deliberately simplifies away from for now).
 // `userId` has no `users` table behind it yet; it's the mock-auth constant from src/lib/auth.ts.
 export const pipelineRuns = pgTable("pipeline_runs", {
@@ -58,7 +58,7 @@ export const pipelineRuns = pgTable("pipeline_runs", {
   status: text("status").notNull(), // 'success' | 'partial' | 'error'
   totalCostUsd: numeric("total_cost_usd").notNull(),
   stepCount: integer("step_count").notNull(),
-  steps: jsonb("steps").notNull(), // RunStepSummary[] snapshot — see src/lib/types.ts
+  steps: jsonb("steps").notNull(), // RunStepSummary[] snapshot, see src/lib/types.ts
   startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
   completedAt: timestamp("completed_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

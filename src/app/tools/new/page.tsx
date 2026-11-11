@@ -10,8 +10,8 @@ export default function NewToolPage() {
             Create a tool
           </h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Give an agent a new capability. A tool recipe is what the model reads to decide when to call it — a name,
-            description, and typed inputs — plus how the call runs, and the guardrails and cost around it.
+            Give an agent a new capability. A tool recipe is what the model reads to decide when to call it (a name,
+            description, and typed inputs), plus how the call runs, and the guardrails and cost around it.
           </p>
         </div>
         <ToolRecipeEditor

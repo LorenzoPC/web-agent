@@ -18,7 +18,7 @@ const KIND_LABELS: Record<MockNotificationKind, string> = {
   deal: "Deal",
 };
 
-/** `source`, when set, replaces the kind on the chip — e.g. the function a product signal came from. */
+/** `source`, when set, replaces the kind on the chip, e.g. the function a product signal came from. */
 export type FeedItem = MockNotification & { source?: string };
 
 const TONE_STYLES: Record<MockNotificationTone, string> = {

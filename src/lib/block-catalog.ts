@@ -1,5 +1,5 @@
 // "processing" remains a valid blockType value (catalog_entries.block_type, and the
-// middle slot in a built PipelineStep[]) — it's just no longer part of the generic
+// middle slot in a built PipelineStep[]); it's just no longer part of the generic
 // block loop below, since the Agent section (kind='agent') owns that role now.
 export type BlockType = "data-source" | "processing" | "delivery";
 

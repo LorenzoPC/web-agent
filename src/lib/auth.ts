@@ -10,7 +10,7 @@ const MOCK_USER: CurrentUser = {
   email: "demo@example.com",
 };
 
-/** Single seam for "who is signed in" — swap the body for a real session lookup later. */
+/** Single seam for "who is signed in": swap the body for a real session lookup later. */
 export async function getCurrentUser(): Promise<CurrentUser> {
   return MOCK_USER;
 }

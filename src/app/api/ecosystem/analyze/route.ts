@@ -18,7 +18,7 @@ const pickSchema = z.object({
 // One call per group rather than one big call: the local default analysis model
 // (llama3.2:latest) produced hallucinated/cross-contaminated "rationale" text
 // (e.g. an MCP server id showing up in the RAG rationale) whenever more than one
-// group shared a call — even a 2-group "attachments" call still bled. Only
+// group shared a call; even a 2-group "attachments" call still bled. Only
 // per-group calls (goal+blocks+agent bundled since that one held up fine; tools,
 // MCP, and RAG each fully separate) produced clean text in testing.
 const goalAndBlocksSchema = z.object({
@@ -37,7 +37,7 @@ const goalAndBlocksSchema = z.object({
 });
 
 function summarizeGroup(title: string, options: { id: string; name: string; description: string }[]) {
-  return `${title}\n` + options.map((o) => `  - ${o.id}: ${o.name} — ${o.description}`).join("\n");
+  return `${title}\n` + options.map((o) => `  - ${o.id}: ${o.name}. ${o.description}`).join("\n");
 }
 
 type Recommendation = { id: string; rationale: string };
@@ -113,10 +113,10 @@ export async function POST(req: Request) {
       `options for each group. For each item you recommend, give a short one-sentence rationale ` +
       `specific to that item, not a generic blurb:\n\n` +
       BLOCK_TYPES.map((b) =>
-        summarizeGroup(`${b.name} (${b.id}) — ${b.description}:`, blockCandidatesByType[b.id]),
+        summarizeGroup(`${b.name} (${b.id}). ${b.description}:`, blockCandidatesByType[b.id]),
       ).join("\n\n") +
       "\n\n" +
-      summarizeGroup("Agent (the persona/model that does the work) — pick exactly one, ranked:", agentCandidates);
+      summarizeGroup("Agent (the persona/model that does the work). Pick exactly one, ranked:", agentCandidates);
 
     const { output: goalAndBlocks } = await generateText({
       model,

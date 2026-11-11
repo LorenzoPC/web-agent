@@ -5,7 +5,7 @@ import type { PipelineStep } from "@/lib/types";
 import { AgentPicker } from "./agent-picker";
 
 /**
- * Two-line message box with a footer row, modeled on Claude Code's input —
+ * Two-line message box with a footer row, modeled on Claude Code's input,
  * except the footer's model selector is an agent selector. Enter sends,
  * Shift+Enter adds a line. The draft is controlled by the panel so starter
  * cards can fill it in.
