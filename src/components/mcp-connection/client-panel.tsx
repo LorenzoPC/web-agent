@@ -27,6 +27,7 @@ import {
   type HarnessActivity,
   type HarnessSetting,
   type Organization,
+  type SettingPick,
   type SharedCredential,
 } from "@/lib/mock-mcp-connection-data";
 
@@ -123,6 +124,29 @@ function StepList({ steps }: { steps: string[] }) {
 
 function SubHeading({ children }: { children: React.ReactNode }) {
   return <h3 className="text-sm font-medium text-black dark:text-zinc-50">{children}</h3>;
+}
+
+/** The client's own fields and the one value to pick in each, so the admin matches values instead of reading don'ts. */
+function PickTable({ picks }: { picks: SettingPick[] }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div>
+        <SubHeading>Set these exactly</SubHeading>
+        <p className="mt-0.5 text-xs text-zinc-500">They keep every call tied to the person who made it.</p>
+      </div>
+      <dl className="divide-y divide-zinc-100 rounded-lg border border-zinc-200 px-3 dark:divide-zinc-900 dark:border-zinc-800">
+        {picks.map((pick) => (
+          <div key={pick.field} className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:gap-3">
+            <dt className="text-xs text-zinc-500 sm:w-56 sm:shrink-0 sm:pt-0.5">{pick.field}</dt>
+            <dd className="min-w-0 text-sm [overflow-wrap:anywhere]">
+              <span className="font-medium text-black dark:text-zinc-50">{pick.value}</span>
+              {pick.not && <span className="block text-xs text-zinc-500">Not: {pick.not}</span>}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
 }
 
 function MethodOption({
@@ -427,6 +451,7 @@ export function ClientPanel({
     ...(method.values ?? []).map((v) => ({ ...v, value: fill(v.value, vars) })),
   ];
   const prerequisites = harness.prerequisites?.map((p) => fill(p, vars));
+  const picks = method.picks.map((pick) => ({ ...pick, value: fill(pick.value, vars) }));
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
@@ -521,6 +546,8 @@ export function ClientPanel({
           <StepList steps={adminSteps} />
         </div>
 
+        {picks.length > 0 && <PickTable picks={picks} />}
+
         {values.length > 0 && <ValueList values={values} />}
 
         {method.redirectFromClient && (
@@ -536,15 +563,6 @@ export function ClientPanel({
         )}
 
         {config && <CodeBlock filename={config.filename} code={config.code} />}
-
-        <div className="flex flex-col gap-2">
-          <SubHeading>Don&apos;t use these: everyone would share one sign-in</SubHeading>
-          <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm text-zinc-700 marker:text-red-500 dark:text-zinc-300">
-            {harness.avoid.map((item) => (
-              <li key={item}>{fill(item, vars)}</li>
-            ))}
-          </ul>
-        </div>
 
         <div className="flex flex-col gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-900">
           <SubHeading>Then each person</SubHeading>

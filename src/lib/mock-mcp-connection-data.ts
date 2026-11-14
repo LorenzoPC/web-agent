@@ -63,6 +63,14 @@ export interface CopyValue {
  */
 export type AuthKind = "client-metadata" | "org-client" | "enterprise-managed" | "agent-token";
 
+/** One field in the client's own settings, and the value that keeps every call tied to one person. */
+export interface SettingPick {
+  field: string;
+  value: string;
+  /** The tempting wrong choice, named so the admin can tell it apart. */
+  not?: string;
+}
+
 export interface AuthMethod {
   id: string;
   kind: AuthKind;
@@ -93,6 +101,8 @@ export interface AuthMethod {
   };
   /** Set when the client generates a redirect URL that we need to register. */
   redirectFromClient?: { label: string; hint: string; placeholder: string };
+  /** The client's fields and the one value to pick in each. */
+  picks: SettingPick[];
   /** Values to paste into the client. {placeholders} are filled on the page. */
   values?: CopyValue[];
   /** Replace the harness's steps when this method needs different ones. */
@@ -115,8 +125,6 @@ export interface Harness {
   prerequisites?: string[];
   adminSteps: string[];
   memberSteps: string[];
-  /** Settings in the client that would make everyone share one sign-in. */
-  avoid: string[];
   methods: AuthMethod[];
 }
 
@@ -178,20 +186,21 @@ export const HARNESSES: Harness[] = [
     adminSteps: [
       "Open Organization settings → Connectors → Add → Custom → Web.",
       "Name it Web Agent, paste {url} and click Continue.",
-      "Under Authentication pick Sign in when needed. Under OAuth client pick Use Claude's published identity.",
-      "Click Add. Don't pick Register automatically: it registers a new client on every connection.",
+      "Set each field as in the table below, then click Add.",
     ],
     memberSteps: [
       "Open Customize → Connectors, find Web Agent and click Connect.",
       "Sign in with their work email through {idp}. The token is theirs alone.",
       "In a chat, turn on Web Agent from the tools menu.",
     ],
-    avoid: [
-      "Request headers on the connector. An Owner enters them once, and every member's calls carry them.",
-    ],
     methods: [
       {
         id: "claude-cimd",
+        picks: [
+          { field: "Authentication", value: "Sign in when needed", not: "No sign in" },
+          { field: "OAuth client", value: "Use Claude's published identity", not: "Register automatically" },
+          { field: "Request headers", value: "Leave empty" },
+        ],
         kind: "client-metadata",
         label: "Claude's published identity",
         summary:
@@ -202,6 +211,11 @@ export const HARNESSES: Harness[] = [
       },
       {
         id: "claude-org-client",
+        picks: [
+          { field: "Authentication", value: "Sign in when needed", not: "No sign in" },
+          { field: "OAuth client", value: "Use your own OAuth client, with the client ID and secret above", not: "Register automatically" },
+          { field: "Request headers", value: "Leave empty" },
+        ],
         kind: "org-client",
         label: "Your own client ID",
         summary:
@@ -218,11 +232,15 @@ export const HARNESSES: Harness[] = [
         adminSteps: [
           "Open Organization settings → Connectors → Add → Custom → Web.",
           "Name it Web Agent, paste {url} and click Continue.",
-          "Under OAuth client pick Use your own OAuth client, paste the client ID and secret above, and click Add.",
+          "Set each field as in the table below, then click Add.",
         ],
       },
       {
         id: "claude-ema",
+        picks: [
+          { field: "Managed authorization: Identity source", value: "IdP-managed (Okta)" },
+          { field: "Request headers", value: "Leave empty" },
+        ],
         kind: "enterprise-managed",
         label: "Enterprise-managed (Okta)",
         summary:
@@ -236,7 +254,7 @@ export const HARNESSES: Harness[] = [
         adminSteps: [
           "Add the connector with Claude's published identity first, if it isn't there yet.",
           "Open Organization settings → Connectors → Web Agent → Configuration, and click Set up next to Managed authorization.",
-          "Pick IdP-managed (Okta) as the identity source and run the test.",
+          "Set the identity source as in the table below and run the test.",
           "Choose the roles and scopes, then click Save & turn on.",
         ],
         memberSteps: [
@@ -255,20 +273,20 @@ export const HARNESSES: Harness[] = [
     adminSteps: [
       "In Workspace settings → Permissions & roles, turn on Create plugins with MCPs and Publish plugins to workspace for admins.",
       "Go to chatgpt.com/plugins, click + → Add custom MCP server and paste {url}.",
-      "Set Authentication to OAuth and click Create as a plugin. Sign in once to check it.",
+      "Set each field as in the table below, click Create as a plugin, and sign in once to check it.",
       "Publish it to the workspace from the Admin Console's Plugins page. Enterprise and Edu can limit it by role; Business makes it workspace-wide.",
     ],
     memberSteps: [
       "In ChatGPT, open Plugins and add Web Agent.",
       "Connect with their work email through {idp} the first time they use it. The token is theirs alone.",
     ],
-    avoid: [
-      "No authentication, or OAuth or no authentication. Calls without a sign-in can't be tied to anyone.",
-      "Connecting the plugin with one shared {org} account. Each person connects with their own.",
-    ],
     methods: [
       {
         id: "chatgpt-cimd",
+        picks: [
+          { field: "Authentication", value: "OAuth", not: "No authentication, or OAuth or no authentication" },
+          { field: "Client ID and secret", value: "Leave empty" },
+        ],
         kind: "client-metadata",
         label: "ChatGPT's client ID",
         summary:
@@ -279,6 +297,10 @@ export const HARNESSES: Harness[] = [
       },
       {
         id: "chatgpt-org-client",
+        picks: [
+          { field: "Authentication", value: "OAuth", not: "No authentication, or OAuth or no authentication" },
+          { field: "Client ID and secret", value: "The ones issued above" },
+        ],
         kind: "org-client",
         label: "Your own client ID",
         summary:
@@ -308,13 +330,15 @@ export const HARNESSES: Harness[] = [
       "Open the agent in Microsoft 365 Copilot or Teams.",
       "The first time it uses Web Agent, sign in from the card it shows, with their work email through {idp}. The token is theirs alone.",
     ],
-    avoid: [
-      "Maker-provided credentials. Everyone who uses the agent would share the maker's sign-in.",
-      "None or API key as the tool's authentication. Neither carries the person's sign-in.",
-    ],
     methods: [
       {
         id: "m365-studio",
+        picks: [
+          { field: "Power Platform: Control maker credential options", value: "End-user credentials only" },
+          { field: "Tool: Authentication", value: "OAuth 2.0", not: "None or API key" },
+          { field: "Tool: OAuth type", value: "Manual", not: "Dynamic discovery or Dynamic" },
+          { field: "Tool details: Authentication", value: "End user", not: "Maker-provided" },
+        ],
         kind: "org-client",
         label: "Copilot Studio agent",
         summary:
@@ -337,17 +361,21 @@ export const HARNESSES: Harness[] = [
         },
         values: AUTH_URLS,
         adminSteps: [
-          "In the Power Platform admin center, open Manage → Environments → your environment → Settings → Product → Features. Under Copilot Studio agents, use Control maker credential options to allow end-user credentials only, so no one can share the maker's sign-in.",
+          "In the Power Platform admin center, open Manage → Environments → your environment → Settings → Product → Features, and set Control maker credential options as in the table below.",
           "In Copilot Studio, open your agent → Tools → Add a tool → New tool → Model Context Protocol.",
-          "Name it Web Agent, paste {url}, set Authentication to OAuth 2.0 with type Manual, and paste the values below.",
+          "Name it Web Agent, paste {url}, set the tool's fields as in the table below, and paste the values under it.",
           "Click Create, then copy the redirect URL Copilot Studio shows and paste it below.",
-          "In the tool's Details → Additional details, check that Authentication is End user.",
+          "In the tool's Details → Additional details, set Authentication as in the table below.",
           "Open Channels → Microsoft 365 and Microsoft Teams → Add channel. Under Availability options pick Show to everyone in my org and Submit to org catalog.",
           "A Teams admin approves the agent in the Teams admin center → Manage apps.",
         ],
       },
       {
         id: "m365-declarative",
+        picks: [
+          { field: "OAuth client", value: "The client ID above, with no secret" },
+          { field: "PKCE", value: "On" },
+        ],
         kind: "org-client",
         label: "Declarative agent",
         summary:
@@ -393,13 +421,12 @@ export const HARNESSES: Harness[] = [
       "Run /mcp add with {url}, or save the config above as ~/.copilot/mcp-config.json.",
       "Sign in with their work email through {idp} when the browser opens. The token stays in their OS keychain.",
     ],
-    avoid: [
-      "An Authorization header in the config. Anyone who copies the file would share the token.",
-      "Web Agent on the coding agent. Its secrets are shared by every task in the repository.",
-    ],
     methods: [
       {
         id: "github-cli-cimd",
+        picks: [
+          { field: "~/.copilot/mcp-config.json", value: "The file below, as it is", not: "Adding an Authorization header" },
+        ],
         kind: "client-metadata",
         label: "Copilot CLI's client ID",
         summary:
@@ -415,6 +442,7 @@ export const HARNESSES: Harness[] = [
       },
       {
         id: "github-coding-agent",
+        picks: [],
         kind: "agent-token",
         label: "Coding agent",
         summary:
@@ -442,12 +470,12 @@ export const HARNESSES: Harness[] = [
       "Click Authenticate when VS Code asks, and sign in with their work email through {idp}. VS Code keeps the token for them alone.",
       "In Copilot Chat, switch to Agent and turn on the Web Agent tools.",
     ],
-    avoid: [
-      "An Authorization header in .mcp.json. Everyone with the repository would share the token.",
-    ],
     methods: [
       {
         id: "vscode-cimd",
+        picks: [
+          { field: ".mcp.json", value: "The file below, as it is", not: "Adding an Authorization header" },
+        ],
         kind: "client-metadata",
         label: "VS Code's client ID",
         summary:
@@ -463,6 +491,10 @@ export const HARNESSES: Harness[] = [
       },
       {
         id: "vscode-ema",
+        picks: [
+          { field: "McpEnterpriseManagedAuthIdp device policy", value: "{issuer}" },
+          { field: ".mcp.json", value: "The file below, as it is", not: "Adding an Authorization header" },
+        ],
         kind: "enterprise-managed",
         label: "Enterprise-managed (Okta)",
         summary:
@@ -502,13 +534,13 @@ export const HARNESSES: Harness[] = [
       "Open the install link, or a repository with the file.",
       "Click Connect next to Web Agent in Cursor Settings → MCP, and sign in with their work email through {idp}. The token is theirs alone.",
     ],
-    avoid: [
-      "Headers on a team server in Dashboard → Plugins & MCPs. That config is shared with the whole team.",
-      "A token in .cursor/mcp.json. Everyone with the repository would share it.",
-    ],
     methods: [
       {
         id: "cursor-org-client",
+        picks: [
+          { field: ".cursor/mcp.json", value: "The file below, as it is", not: "Adding a token or headers" },
+          { field: "Team server in Dashboard → Plugins & MCPs, if you use one", value: "No headers" },
+        ],
         kind: "org-client",
         label: "Your own client ID",
         summary:
