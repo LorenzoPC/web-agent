@@ -44,7 +44,9 @@ export function fill(text: string, vars: Record<string, string>): string {
 
 /**
  * The client ID (and secret) we'd issue for an organization and one AI client.
- * Mockup: derived from the IDs so the values stay put between renders.
+ * MOCK: derived from the IDs so the values stay put between renders. The real
+ * one is registered with our authorization server along with the client's
+ * redirect URIs, shows its secret once, and can be rotated and revoked.
  */
 export function issuedCredential(org: Organization, harnessId: string): { id: string; secret: string } {
   const tag = [...`${org.slug}:${harnessId}`].reduce((sum, ch) => (sum * 31 + ch.charCodeAt(0)) % 1_000_000, 7);
@@ -62,9 +64,11 @@ export interface CheckStep {
 }
 
 /**
- * The scripted connection check, signed in as one test person. Mockup: nothing
- * is called. Each step passes or fails from the page's own settings, in the
- * order a real sign-in would hit them.
+ * The scripted connection check, signed in as one test person.
+ * MOCK: nothing is called. Each step passes or fails from the page's own
+ * settings, in the order a real sign-in would hit them. The real check probes
+ * the server, our authorization server's client registration and the
+ * identity provider, then asks the rule resolver what the person would see.
  */
 export function checkSteps(
   harness: Harness,
@@ -115,6 +119,8 @@ export function checkSteps(
  * A one-click install link built from a filled config file, or null when the
  * config doesn't hold the server. VS Code takes URL-encoded JSON with the name
  * inside; Cursor takes the server object in base64, with the name beside it.
+ * VERIFY: both formats come from the vendors' docs; open a generated link in
+ * each client before relying on it.
  */
 export function installLink(kind: "vscode" | "cursor", configJson: string, name: string): string | null {
   let server: Record<string, unknown> | undefined;

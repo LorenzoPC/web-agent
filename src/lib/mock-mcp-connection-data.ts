@@ -6,8 +6,47 @@
 // The server applies user-based RBAC, so every call has to carry the person's
 // own token. Each sign-in option says whether it does (ADR-0003: OAuth, CIMD
 // preferred, pre-registered clients, Okta enterprise-managed sign-in, no shared
-// keys). Client facts were checked against each vendor's docs on 2026-11-14;
-// docs/project/backlog.md lists the ones still unconfirmed.
+// keys).
+//
+// BEFORE REFACTORING THIS MOCKUP
+//
+// Three tags mark what isn't settled. Find them all with:
+//   grep -n "VERIFY\|MOCK\|DECIDE" src/lib/mock-mcp-connection-data.ts src/lib/mcp-connection.ts
+//
+//   VERIFY  A vendor fact we couldn't confirm in the vendor's own docs (search
+//           snippet only, or not covered). Check it in the live product first.
+//   MOCK    A placeholder for data the real system has to supply: our
+//           authorization server, the directory, the server's telemetry.
+//   DECIDE  A product or security decision that's still open.
+//
+// Untagged menu paths, field names, URLs and config shapes were confirmed in
+// the docs listed above each client, on 2026-11-14. Summaries, notes and other
+// explanations are our own wording. Vendor admin screens change often, so
+// re-check paths and labels in the live product when you build, tagged or not.
+//
+// The page keeps every setting in its own state (connection-settings.tsx and
+// client-panel.tsx): nothing is saved, and the check calls nothing.
+//
+// Most important first:
+//   1. VERIFY that Copilot Studio sends PKCE (S256). If it doesn't, our
+//      authorization server rejects it (ADR-0003), and the Copilot Studio
+//      option needs a server-side exception or has to go.
+//   2. VERIFY that Claude's managed authorization (Okta) works for custom
+//      connectors, not only the named ones Anthropic lists.
+//   3. DECIDE how each organization's shared credential really works today
+//      (SHARED_CREDENTIALS is a guess) and how revoking it is enforced.
+//   4. MOCK our authorization server: its URLs, scopes, issued client IDs, the
+//      redirect URIs it registers, and the CIMD allowlist (claude.ai,
+//      chatgpt.com, vscode.dev, and Copilot CLI's document, URL unknown).
+//   5. DECIDE the MCP URL. Get started uses https://mcp.webagent.dev, while
+//      ADR-0003 gives each server its own (https://webagent.dev/mcp/<slug>).
+//   6. DECIDE whether people can generate personal tokens as a fallback. Only
+//      VS Code, Cursor, Copilot CLI and Copilot Studio could use one.
+//   7. VERIFY the config shapes still open: VS Code's enterprise-managed
+//      `oauth` block, the device policies' value formats, Cursor's allowlist
+//      pattern syntax.
+//
+// docs/project/backlog.md ("MCP connection") tracks the same items.
 
 export interface Organization {
   slug: string;
@@ -16,6 +55,10 @@ export interface Organization {
   verifiedDomains: string[];
 }
 
+// MOCK: the organization, its identity provider and verified domains come from
+// the tenant record once organizations sign in (auth is V2 in the PRD).
+// DECIDE: organizations on Entra ID or Google Workspace. Enterprise-managed
+// sign-in (ID-JAG) only works with Okta today.
 export const ORG: Organization = {
   slug: "northwind",
   name: "Northwind Logistics",
@@ -24,6 +67,9 @@ export const ORG: Organization = {
 };
 
 /** Groups synced from the organization's identity provider. */
+// MOCK: synced from the identity provider (SCIM or claim mapping, ADR-0003 item 4).
+// DECIDE: where "Who can connect" is enforced: by our authorization server at
+// sign-in, on every call, or both.
 export const ORG_GROUPS = ["Support", "Sales", "Customer Success", "Engineering", "Finance", "IT admins"];
 
 /** People the connection check can sign in as. Each one's tools come from their own permissions. */
@@ -33,6 +79,8 @@ export interface TestPerson {
   tools: number;
 }
 
+// MOCK: the real check should sign in as a real directory person and ask the
+// server's rule resolver what they'd see ("Preview as" in ADR-0003).
 export const TEST_PEOPLE: TestPerson[] = [
   { name: "Maya Chen", group: "Support", tools: 9 },
   { name: "Liam Patel", group: "Engineering", tools: 14 },
@@ -40,6 +88,7 @@ export const TEST_PEOPLE: TestPerson[] = [
 ];
 
 /** Tools everyone reaches through a shared organization credential: the whole organization's access. */
+// MOCK: what the organization's shared credential reaches today.
 export const ORG_WIDE_TOOLS = 22;
 
 /** The server's name in config files and install links. */
@@ -128,6 +177,8 @@ export interface Harness {
   methods: AuthMethod[];
 }
 
+// MOCK: lives in the page's state. Persist it per organization and client; a
+// change has to take effect on the next call, not when tokens expire (ADR-0003 item 5).
 export interface HarnessSetting {
   enabled: boolean;
   methodId: string;
@@ -141,6 +192,8 @@ export interface HarnessSetting {
   sharedRevoked: boolean;
 }
 
+// MOCK: from the server's telemetry: distinct people calling with their own
+// token, per client, and the time of the last call.
 export interface HarnessActivity {
   /** People who sign in as themselves. */
   people: number;
@@ -162,6 +215,9 @@ export interface SharedCredential {
   cleanup: string;
 }
 
+// MOCK: our authorization server doesn't exist yet, so these URLs are placeholders.
+// DECIDE: the scopes. ADR-0003 calls for coarse Read, Write and Manage scopes;
+// these names are stand-ins.
 const AUTH_URLS: CopyValue[] = [
   { label: "Authorization URL", value: "https://auth.webagent.dev/authorize" },
   { label: "Token URL", value: "https://auth.webagent.dev/token" },
@@ -169,6 +225,9 @@ const AUTH_URLS: CopyValue[] = [
   { label: "Scopes", value: "openid email mcp:read mcp:write" },
 ];
 
+// VERIFY: GitHub's docs say the policy is off by default (search snippet only).
+// Confirmed in GitHub's changelog: since late October 2026, unset policies
+// follow the enterprise's "Default policy for new features".
 const GITHUB_MCP_POLICY =
   "In your GitHub organization, open Settings → Code, planning, and automation → Copilot → Policies and turn on MCP servers in Copilot. If no one has set it, it follows your enterprise's default for new features.";
 
@@ -178,6 +237,15 @@ function json(value: unknown): string {
 
 export const HARNESSES: Harness[] = [
   {
+    // Sources, checked 2026-11-14:
+    //   support.claude.com/en/articles/11175166 (custom connectors, member steps)
+    //   support.claude.com/en/articles/15537633 (managed authorization)
+    //   claude.com/docs/connectors/building/authentication (CIMD rules, callback)
+    // Claude only uses CIMD when our authorization server advertises
+    // client_id_metadata_document_supported and `none` in
+    // token_endpoint_auth_methods_supported; otherwise it falls back to DCR.
+    // It also needs a 401 carrying resource_metadata, and only reads the first
+    // authorization_servers entry.
     id: "claude",
     name: "Claude",
     surfaces: "claude.ai, the Claude desktop and mobile apps, and Claude Code",
@@ -191,6 +259,7 @@ export const HARNESSES: Harness[] = [
     memberSteps: [
       "Open Customize → Connectors, find Web Agent and click Connect.",
       "Sign in with their work email through {idp}. The token is theirs alone.",
+      // VERIFY: the in-chat step wasn't in the docs we read.
       "In a chat, turn on Web Agent from the tools menu.",
     ],
     methods: [
@@ -228,6 +297,8 @@ export const HARNESSES: Harness[] = [
           note: "Issue a client ID and secret, then paste them into the connector's OAuth client settings.",
           missing: "Issue a client ID in step 2.",
         },
+        // VERIFY: a search snippet says the callback may move to
+        // https://claude.com/api/mcp/auth_callback, so register both.
         values: [{ label: "Redirect URI (we register it)", value: "https://claude.ai/api/mcp/auth_callback" }],
         adminSteps: [
           "Open Organization settings → Connectors → Add → Custom → Web.",
@@ -247,6 +318,9 @@ export const HARNESSES: Harness[] = [
           "People are already signed in to {idp}, so Claude gets each person's own Web Agent token without a sign-in screen. Removing someone in {idp} cuts them off.",
         identity: "person",
         needs: "Claude Team or Enterprise, and Okta",
+        // VERIFY: whether custom connectors can use managed authorization, and
+        // how its roles and scopes step maps onto our Read, Write and Manage scopes.
+        // Trusted issuers are allowlisted per organization on our side (ADR-0003 item 3).
         caveat:
           "Anthropic's managed authorization article lists named connectors and doesn't say whether custom connectors qualify. Confirm with Anthropic before relying on it.",
         check: "{idp} ({tenant}) is a trusted issuer for your organization",
@@ -265,6 +339,16 @@ export const HARNESSES: Harness[] = [
     ],
   },
   {
+    // Sources, checked 2026-11-14:
+    //   learn.chatgpt.com/docs/enterprise/apps-and-connectors (naming, who can use it)
+    //   learn.chatgpt.com/docs/extend/mcp (workspace permissions)
+    //   developers.openai.com/api/docs/guides/custom-mcp-server (create, auth options)
+    //   developers.openai.com/apps-sdk/build/auth (callback, CIMD client ID)
+    // help.openai.com couldn't be fetched, so admin paths rest on the pages above.
+    // ChatGPT's CIMD client ID is https://chatgpt.com/oauth/client.json. Its
+    // fixed callback needs our authorization server to return the RFC 9207 `iss`
+    // parameter. Enterprise domain restrictions also need the openid and email
+    // scopes and a UserInfo endpoint returning email_verified: true.
     id: "chatgpt",
     name: "ChatGPT",
     surfaces: "ChatGPT on the web, as a workspace plugin",
@@ -274,9 +358,12 @@ export const HARNESSES: Harness[] = [
       "In Workspace settings → Permissions & roles, turn on Create plugins with MCPs and Publish plugins to workspace for admins.",
       "Go to chatgpt.com/plugins, click + → Add custom MCP server and paste {url}.",
       "Set each field as in the table below, click Create as a plugin, and sign in once to check it.",
+      // VERIFY: the publish path (Admin Console → Plugins → Manage Legacy Apps →
+      // Drafts → Publish) came from a search snippet.
       "Publish it to the workspace from the Admin Console's Plugins page. Enterprise and Edu can limit it by role; Business makes it workspace-wide.",
     ],
     memberSteps: [
+      // VERIFY: the member path is our wording, not from the docs.
       "In ChatGPT, open Plugins and add Web Agent.",
       "Connect with their work email through {idp} the first time they use it. The token is theirs alone.",
     ],
@@ -285,6 +372,7 @@ export const HARNESSES: Harness[] = [
         id: "chatgpt-cimd",
         picks: [
           { field: "Authentication", value: "OAuth", not: "No authentication, or OAuth or no authentication" },
+          // VERIFY: the field's real label. The docs call these "static credentials".
           { field: "Client ID and secret", value: "Leave empty" },
         ],
         kind: "client-metadata",
@@ -320,6 +408,15 @@ export const HARNESSES: Harness[] = [
     ],
   },
   {
+    // Sources, checked 2026-11-14 (all under learn.microsoft.com/en-us/):
+    //   microsoft-copilot-studio/mcp-add-existing-server-to-agent (add the tool, auth types)
+    //   microsoft-copilot-studio/add-tools-custom-agent (End user or Maker-provided)
+    //   microsoft-copilot-studio/configure-no-maker-authentication (Control maker credential options)
+    //   microsoft-copilot-studio/publication-add-bot-to-microsoft-teams (publish)
+    //   microsoft-365/copilot/extensibility/plugin-authentication-oauth (declarative agents)
+    // Copilot Studio has no CIMD, and its automatic OAuth types need DCR, which
+    // our authorization server doesn't offer. Power Platform data policies
+    // govern MCP tools too.
     id: "m365-copilot",
     name: "Microsoft 365 Copilot",
     surfaces: "Microsoft 365 Copilot and Teams, through a Copilot Studio agent or a declarative agent",
@@ -345,6 +442,7 @@ export const HARNESSES: Harness[] = [
           "Copilot Studio can't use client ID documents, and its automatic options register a new client each time, so we issue a client ID and secret for {org} and register the redirect URL it gives you.",
         identity: "person",
         recommended: true,
+        // VERIFY: PKCE. Only one vendor's docs (Collibra) say Copilot Studio doesn't send it.
         caveat:
           "One vendor reports that Copilot Studio doesn't send PKCE, which our authorization server requires. Confirm before this ships.",
         check: "Your client ID and Copilot Studio's redirect URL are registered",
@@ -357,6 +455,8 @@ export const HARNESSES: Harness[] = [
         redirectFromClient: {
           label: "Redirect URL from Copilot Studio",
           hint: "Copilot Studio shows it after you create the tool. We only accept sign-ins that return here.",
+          // VERIFY: this host comes from third-party docs. The real value comes
+          // from the tool after Create, which is why the admin pastes it.
           placeholder: "https://global.consent.azure-apim.net/redirect/…",
         },
         values: AUTH_URLS,
@@ -373,6 +473,8 @@ export const HARNESSES: Harness[] = [
       {
         id: "m365-declarative",
         picks: [
+          // VERIFY: these field labels are ours. The docs say PKCE is on by
+          // default and a public client (no secret) is allowed.
           { field: "OAuth client", value: "The client ID above, with no secret" },
           { field: "PKCE", value: "On" },
         ],
@@ -396,6 +498,8 @@ export const HARNESSES: Harness[] = [
         adminSteps: [
           "Have a developer add Web Agent to a declarative agent as an MCP plugin, with OAuth set to the client ID and values below.",
           "Deploy the agent to your tenant.",
+          // VERIFY: the approval path for a declarative agent's MCP plugin. The docs
+          // mention the admin center's Agents → Tools → Registry and Requests pages.
           "In the Microsoft 365 admin center → Agents, approve the agent and its Web Agent tool.",
         ],
         memberSteps: [
@@ -406,6 +510,14 @@ export const HARNESSES: Harness[] = [
     ],
   },
   {
+    // Sources, checked 2026-11-14 (docs.github.com unless noted):
+    //   en/copilot/how-tos/use-copilot-agents/coding-agent/extend-coding-agent-with-mcp (no OAuth)
+    //   en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/configure-secrets-and-variables
+    //   en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers (CLI config)
+    //   en/enterprise-cloud@latest/copilot/reference/enterprise-administrators/enterprise-managed-settings
+    //   github.com/github/copilot-cli changelog (CIMD in 1.0.83, keychain storage)
+    // allowedMcpServers is enterprise-level only. The MCP registry policy is a
+    // preview, matches by name and isn't enforced in the cloud agent, so we don't use it.
     id: "github-copilot",
     name: "GitHub Copilot",
     surfaces: "Copilot CLI, and the Copilot coding agent on github.com",
@@ -434,6 +546,7 @@ export const HARNESSES: Harness[] = [
         identity: "person",
         recommended: true,
         needs: "Copilot CLI 1.0.83 or later",
+        // VERIFY: the URL of Copilot CLI's client ID document, for our CIMD allowlist.
         check: "Copilot CLI's client ID is on your allowlist",
         config: {
           filename: "~/.copilot/mcp-config.json",
@@ -448,6 +561,7 @@ export const HARNESSES: Harness[] = [
         summary:
           "The coding agent works on its own, without a person signed in, so it could only use a static token kept as a repository secret.",
         identity: "shared",
+        // DECIDE: revisit if GitHub adds OAuth for the coding agent's MCP servers.
         unavailable:
           "GitHub doesn't support OAuth for the coding agent's remote MCP servers, and its secrets are set by repository admins and shared by every task in the repository.",
         check: "The repository token is registered",
@@ -455,6 +569,13 @@ export const HARNESSES: Harness[] = [
     ],
   },
   {
+    // Sources, checked 2026-11-14:
+    //   code.visualstudio.com/docs/agents/reference/mcp-configuration (auth, config formats)
+    //   code.visualstudio.com/api/extension-guides/ai/mcp (install links)
+    //   code.visualstudio.com/docs/enterprise/policies (device policies)
+    // VS Code's CIMD client ID is https://vscode.dev/oauth/client-metadata.json,
+    // with redirects http://127.0.0.1:33418 and https://vscode.dev/redirect. New
+    // Copilot configs go in .mcp.json; .vscode/mcp.json is the deprecated format.
     id: "vscode",
     name: "VS Code + GitHub Copilot",
     surfaces: "Copilot Chat in agent mode, in VS Code",
@@ -463,11 +584,13 @@ export const HARNESSES: Harness[] = [
     prerequisites: [GITHUB_MCP_POLICY],
     adminSteps: [
       "Commit the file below to the root of the repositories your people work in, or share the install link.",
+      // VERIFY: the ChatAllowedMcpServers policy's value format.
       "To allow only approved servers, add {url} to the ChatAllowedMcpServers device policy, or to allowedMcpServers in GitHub's enterprise managed settings.",
     ],
     memberSteps: [
       "Open the install link, or a repository with the file, and start the Web Agent server.",
       "Click Authenticate when VS Code asks, and sign in with their work email through {idp}. VS Code keeps the token for them alone.",
+      // VERIFY: the Copilot Chat step wasn't in the docs we read.
       "In Copilot Chat, switch to Agent and turn on the Web Agent tools.",
     ],
     methods: [
@@ -483,6 +606,8 @@ export const HARNESSES: Harness[] = [
         identity: "person",
         recommended: true,
         check: "VS Code's client ID (vscode.dev) is on your allowlist",
+        // VERIFY: that the Copilot-format .mcp.json takes "type": "http", as the
+        // deprecated .vscode/mcp.json did.
         config: {
           filename: ".mcp.json",
           code: json({ mcpServers: { [SERVER_NAME]: { type: "http", url: "{url}" } } }),
@@ -500,6 +625,9 @@ export const HARNESSES: Harness[] = [
         summary:
           "People already signed in to {idp} get their own Web Agent token without a sign-in screen. This is a preview in VS Code.",
         identity: "person",
+        // VERIFY: where "enterpriseManaged": true goes in the Copilot format (the
+        // docs show it in the editor format's oauth block), and the value format of
+        // the McpEnterpriseManagedAuthIdp policy. It's a preview in VS Code.
         needs: "VS Code 1.123 or later, and Okta",
         check: "{idp} ({tenant}) is a trusted issuer for your organization",
         adminSteps: [
@@ -521,6 +649,11 @@ export const HARNESSES: Harness[] = [
     ],
   },
   {
+    // Sources, checked 2026-11-14:
+    //   cursor.com/docs/context/mcp (OAuth, the auth block, redirects, team servers, allowlist)
+    //   cursor.com/docs/context/mcp/install-links (deeplink format)
+    //   Cursor forum, 2026-05-13: staff gave "no timeline" for CIMD
+    // Cursor doesn't document where it stores tokens, and has no enterprise-managed sign-in.
     id: "cursor",
     name: "Cursor",
     surfaces: "Cursor's agent, in the editor",
@@ -528,10 +661,12 @@ export const HARNESSES: Harness[] = [
     adminConsole: "your repositories, or Cursor's team dashboard",
     adminSteps: [
       "Commit the file below to the repositories your people work in, or share the install link.",
+      // VERIFY: the allowlist's URL pattern syntax.
       "If you use the Enterprise MCP allowlist, allow {url}/* in Team Settings → MCP Configuration.",
     ],
     memberSteps: [
       "Open the install link, or a repository with the file.",
+      // VERIFY: the settings path and button label.
       "Click Connect next to Web Agent in Cursor Settings → MCP, and sign in with their work email through {idp}. The token is theirs alone.",
     ],
     methods: [
@@ -568,6 +703,7 @@ export const HARNESSES: Harness[] = [
   },
 ];
 
+// MOCK: a demo organization partway through moving off shared credentials.
 export const INITIAL_HARNESS_SETTINGS: Record<HarnessId, HarnessSetting> = {
   claude: {
     enabled: true,
@@ -625,12 +761,19 @@ export const INITIAL_HARNESS_SETTINGS: Record<HarnessId, HarnessSetting> = {
   },
 };
 
+// MOCK: invented counts.
 export const HARNESS_ACTIVITY: Partial<Record<HarnessId, HarnessActivity>> = {
   claude: { people: 31, lastCall: "4 minutes ago" },
   chatgpt: { people: 9, lastCall: "an hour ago" },
   vscode: { people: 5, lastCall: "yesterday" },
 };
 
+// DECIDE: replace with how each organization's shared credential is really set
+// up today, and the real counts. Each entry is a guess based on that client's
+// own shared mode. Also decide how revoking works: the server tells
+// shared-credential calls from per-person tokens, keeps both working until the
+// organization revokes, then answers 401 with resource_metadata so clients
+// ask each person to sign in.
 export const SHARED_CREDENTIALS: Partial<Record<HarnessId, SharedCredential>> = {
   claude: {
     how: "a Request header on the connector, carrying one key for all of {org}",
