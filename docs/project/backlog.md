@@ -120,7 +120,7 @@ Priority definitions:
   - Bottom: Agentic capability coverage by business unit × Pre/Work/Post (`coverage-section.tsx`), stacked live/piloting/not-covered bars with an "All units" total row
   - Old `results-section.tsx` removed; `MOCK_RUNS` now feeds the newsfeed as run headers (dates moved to Oct 2026 so they sit among the other notifications)
   - New mock data: `MOCK_METRICS`, `MOCK_NOTIFICATIONS`, `MOCK_PRIORITIES`, `MOCK_UNIT_COVERAGE` (totals derived from `MOCK_TASK_PROCESSES`)
-- [x] **Dashboard Product screen (UI only, mock data)** — shipped 2026-10-23, see design doc's "Dashboard — Product screen":
+- [x] **Dashboard Product screen (UI only, mock data)**: shipped 2026-10-23, see design doc's "Dashboard Product screen":
   - `/product`, reached via Overview/Product tabs (`dashboard-tabs.tsx`); app nav keeps Dashboard highlighted
   - Function switcher stored in the URL (`link-toggle.tsx`), which reloads metrics, the newsfeed (chips name the source function), and the top 5 priorities ("+" = Add to roadmap / Delegate to an agent)
   - Systems heartbeat top right (`system-heartbeat.tsx`): red/yellow/green per service, problems first, summary counts
@@ -159,3 +159,8 @@ Priority definitions:
   - Admin: `/product` → `/admin`, `/builder` → `/admin/agents/new`, and `/patterns`, `/prompts`, `/tools/new`, `/mcp-servers/new` under `/admin`
   - Old URLs redirect (temporary 307, query kept) from `next.config.ts`; every internal link, the nav, Dashboard tabs, quick actions and mock-data actions point at the new routes
   - `routeAudience()` reads the sitemap area from the path prefix instead of a route table
+- [x] **Admin menu in the nav**: shipped 2026-11-14, see design doc's "Admin menu":
+  - The nav lists Get started, Dashboard and Marketplace, then a red Admin tab that opens a menu (`admin-menu.tsx`) of Product overview, Builder, Patterns, Prompts, Create tool and Create MCP server
+  - Native popover, so the phone nav's scroll strip doesn't clip it; closes on outside click, Escape and navigation
+  - On phones the nav scrolls the current tab into view; nav tabs carry `aria-current`
+  - Dashboard Overview / Product tabs removed (`dashboard-tabs.tsx` deleted); `/admin` is headed Product overview

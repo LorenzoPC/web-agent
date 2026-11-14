@@ -23,16 +23,25 @@ export function AudienceBadge({ audience }: { audience: Audience }) {
 /**
  * A tab's label as a filled pill, for tabs that lead to an Admin or Developer
  * screen. The tab keeps its own active underline; the pill darkens when its
- * parent link (marked `group`) is hovered.
+ * parent link (marked `group`) is hovered. Pass `cue={false}` when the label
+ * already names the area, so screen readers don't hear it twice.
  */
-export function AudienceTabLabel({ audience, children }: { audience: Audience; children: ReactNode }) {
+export function AudienceTabLabel({
+  audience,
+  cue = true,
+  children,
+}: {
+  audience: Audience;
+  cue?: boolean;
+  children: ReactNode;
+}) {
   return (
     <span
       title={AUDIENCE_LABEL[audience]}
       className={`rounded-md px-1.5 py-0.5 transition-colors ${FILL[audience]} ${GROUP_HOVER[audience]}`}
     >
       {children}
-      <span className="sr-only"> ({AUDIENCE_LABEL[audience]})</span>
+      {cue && <span className="sr-only"> ({AUDIENCE_LABEL[audience]})</span>}
     </span>
   );
 }

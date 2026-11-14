@@ -2,7 +2,7 @@
 
 **Status:** Accepted for the UI, which is built against mock data (commit `1c16332`). No section has a real data source yet; see Follow-ups.
 **Created:** 2026-10-26
-**Related:** [`../design/web-agent.md`](../design/web-agent.md) ("Dashboard — Product screen", "Dashboard redesign"), [`../prds/web-agent.md`](../prds/web-agent.md) (Non-goals: multi-tenant SaaS is V2), `src/app/product/page.tsx`, `src/components/dashboard/`, `src/lib/mock-product-data.ts`
+**Related:** [`../design/web-agent.md`](../design/web-agent.md) ("Dashboard Product screen", "Dashboard redesign"), [`../prds/web-agent.md`](../prds/web-agent.md) (Non-goals: multi-tenant SaaS is V2), `src/app/admin/page.tsx` (was `src/app/product/page.tsx`), `src/components/dashboard/`, `src/lib/mock-product-data.ts`
 
 ---
 
@@ -34,6 +34,7 @@ Constraints that shape the decision:
 ## Decision
 
 1. **A second Dashboard screen, not a replacement.** Product lives at `/product`. Overview / Product tabs under the page heading switch between the two screens. The app nav keeps "Dashboard" highlighted on both, through a small map of sub-screens to their parent nav item. The Overview is unchanged.
+   - **Update (2026-11-14):** the screen moved to `/admin` on 2026-11-11 and is now headed Product overview. The tabs were removed: it opens from the nav's Admin menu, and the Overview is the nav's Dashboard. See the design doc's "Admin menu".
 2. **The reader is the product side.** That means the PM or a supporting-function manager, not a customer admin and not a company-wide revenue console.
 3. **A function switcher scopes the whole screen.** The options are *All functions* (the PM's default) plus the existing business units. There is no new taxonomy. The choice re-scopes every section:
    - **Metrics:** four per view. Product health for All functions (activation, eval pass rate, autonomy rate, cost per task), or that function's own numbers (e.g. tickets and CSAT for Support, blocked deals for Sales).

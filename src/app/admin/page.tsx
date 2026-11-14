@@ -1,5 +1,4 @@
 import { CoverageSection } from "@/components/dashboard/coverage-section";
-import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import { LinkToggle } from "@/components/dashboard/link-toggle";
 import { MetricTiles } from "@/components/dashboard/metric-tiles";
 import { NewsFeed, type FeedItem } from "@/components/dashboard/news-feed";
@@ -78,11 +77,9 @@ export default async function ProductDashboardPage({
   return (
     <div className="flex flex-col flex-1 items-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-7xl flex-col gap-6 py-8 px-6">
-        <DashboardTabs active="/admin" />
-
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-black dark:text-zinc-50">Product</h1>
+            <h1 className="text-xl font-semibold tracking-tight text-black dark:text-zinc-50">Product overview</h1>
             <p className="mt-0.5 text-sm text-zinc-600 dark:text-zinc-400">
               {isAll
                 ? "How the agentic product is doing, across every supporting function."
