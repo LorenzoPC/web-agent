@@ -1,4 +1,5 @@
 import type { MockFlowPattern } from "@/lib/mock-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 export function PatternCard({
   pattern,
@@ -10,7 +11,10 @@ export function PatternCard({
   onToggle: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <div
+      {...unbuilt("panel", "patterns store")}
+      className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+    >
       <button type="button" onClick={onToggle} className="w-full p-4 text-left">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-sm font-medium text-black dark:text-zinc-50">{pattern.name}</h3>

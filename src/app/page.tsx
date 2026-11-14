@@ -18,6 +18,7 @@ import {
   TRUST_POINTS,
 } from "@/lib/mock-landing-data";
 import { getService, SERVICES } from "@/lib/mock-services-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 const teamNames = new Map(MOCK_ROLE_POOLS.map((team) => [team.id, team.name]));
 const featuredServices = FEATURED_SERVICE_SLUGS.map(getService).filter((service) => service !== undefined);
@@ -101,7 +102,10 @@ export default async function HomePage({
                   </Link>
                 </div>
                 {signedIn && (
-                  <p className="flex flex-wrap gap-x-4 gap-y-1 border-t border-coral-300 pt-4 text-sm text-steel-700 dark:border-white/10 dark:text-steel-300">
+                  <p
+                    {...unbuilt("panel", "account data")}
+                    className="flex flex-wrap gap-x-4 gap-y-1 rounded-b-lg border-t border-coral-300 px-3 pt-4 pb-3 text-sm text-steel-700 dark:border-white/10 dark:text-steel-300"
+                  >
                     <span>
                       <span className="font-semibold text-steel-950 dark:text-white">{MOCK_LANDING_ACCOUNT.company}</span> ·{" "}
                       {MOCK_LANDING_ACCOUNT.type} · {MOCK_LANDING_ACCOUNT.plan}
@@ -178,7 +182,10 @@ export default async function HomePage({
                   <span className="block text-sm text-steel-600 dark:text-steel-300">{note.summary}</span>
                 </span>
                 {signedIn && note.inPlan && (
-                  <span className="col-start-2 mt-2 self-start justify-self-start rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 sm:col-start-3 sm:mt-0 dark:bg-emerald-950 dark:text-emerald-300">
+                  <span
+                    {...unbuilt("panel", "account data")}
+                    className="col-start-2 mt-2 self-start justify-self-start rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 sm:col-start-3 sm:mt-0 dark:bg-emerald-950 dark:text-emerald-300"
+                  >
                     In your plan
                   </span>
                 )}

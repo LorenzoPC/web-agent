@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { MockFlowPattern, MockPatternSlot } from "@/lib/mock-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 const EMPTY_SLOT: MockPatternSlot = { taskLabel: "", defaultInstructions: "" };
 
@@ -144,6 +145,7 @@ export function CreatePatternModal({
 
         <div className="border-t border-zinc-200 p-5 dark:border-zinc-800">
           <button
+            {...unbuilt("action", "patterns store")}
             onClick={handleSubmit}
             disabled={!canSubmit}
             className="w-full rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"

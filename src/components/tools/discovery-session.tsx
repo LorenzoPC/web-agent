@@ -5,6 +5,7 @@ import { Orb } from "@/components/ui/orb";
 import type { MockDiscoveryTurn } from "@/lib/mock-data";
 import type { RecipePatch, RecipeSection } from "@/lib/tool-discovery";
 import { INPUT_CLASS } from "./form-controls";
+import { unbuilt } from "@/lib/unbuilt";
 
 // Frontend mockup of the Discovery session (docs/adr/0001-discovery-session-realtime-voice.md):
 // plays a scripted interview on timers instead of a realtime voice session, but
@@ -171,6 +172,7 @@ export function DiscoverySession({
           ) : (
             <button
               type="button"
+              {...unbuilt("action", "realtime voice session")}
               onClick={start}
               className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
             >
@@ -194,6 +196,7 @@ export function DiscoverySession({
           )}
           <div
             ref={transcriptRef}
+            {...unbuilt("panel", "realtime voice session")}
             className="flex max-h-72 flex-col gap-2 overflow-y-auto rounded-lg bg-zinc-50 p-3 dark:bg-zinc-900"
           >
             {lines.map(({ turn, i }) => {
@@ -245,6 +248,7 @@ export function DiscoverySession({
               />
               <button
                 type="submit"
+                {...unbuilt("action", "realtime voice session")}
                 disabled={current?.kind !== "listen" || !draft.trim()}
                 className="shrink-0 rounded-lg px-3 text-sm font-medium text-black hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-50 dark:hover:bg-zinc-800"
               >

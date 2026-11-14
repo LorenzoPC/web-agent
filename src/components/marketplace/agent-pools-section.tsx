@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { MockAgentPool } from "@/lib/mock-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 const VIEWS = [
   { id: "roles", label: "Roles" },
@@ -29,7 +30,10 @@ function PoolCard({
   const hasContent = agents.length > 0 || pool.processes != null;
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <div
+      {...unbuilt("panel", "marketplace catalog API")}
+      className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+    >
       <button type="button" onClick={onToggle} className="w-full p-4 text-left">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-sm font-medium text-black dark:text-zinc-50">{pool.name}</h3>

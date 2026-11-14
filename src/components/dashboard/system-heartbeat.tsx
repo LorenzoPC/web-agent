@@ -1,4 +1,5 @@
 import type { MockSystem, MockSystemStatus } from "@/lib/mock-product-data";
+import { unbuilt } from "@/lib/unbuilt";
 import { SectionHeading } from "./section-heading";
 
 // Rows sort worst-first so a problem is visible without scrolling. Color is never
@@ -44,7 +45,10 @@ export function SystemHeartbeat({ systems, className = "" }: { systems: MockSyst
       </SectionHeading>
 
       {/* Out of flow on wide screens, like the newsfeed, so the metric tiles set the row height. */}
-      <div className="relative min-h-44 flex-1 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+      <div
+        {...unbuilt("panel", "system status monitoring")}
+        className="relative min-h-44 flex-1 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+      >
         <ul className="divide-y divide-zinc-100 overflow-y-auto max-lg:max-h-80 lg:absolute lg:inset-0 dark:divide-zinc-900">
           {sorted.map((system) => {
             const status = STATUS[system.status];

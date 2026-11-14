@@ -5,6 +5,7 @@ import { LandingHeading } from "@/components/landing/landing-heading";
 import { ServiceRow } from "@/components/services/service-row";
 import { MOCK_ROLE_POOLS } from "@/lib/mock-data";
 import { HUB_STEPS, SERVICE_FOUNDATIONS, SERVICES } from "@/lib/mock-services-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 // Same buttons and section rhythm as the landing page (src/app/page.tsx).
 const PRIMARY_LINK =
@@ -142,6 +143,7 @@ export default async function ServicesPage({
               </p>
               <span
                 aria-disabled="true"
+                {...unbuilt("action", "service requests")}
                 className="flex items-center gap-2 rounded-lg border border-white/30 px-5 py-3 font-semibold text-white/60"
               >
                 Request a service

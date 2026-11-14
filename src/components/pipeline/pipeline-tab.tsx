@@ -11,6 +11,7 @@ import { ModelTypePicker } from "./model-type-picker";
 import { PatternPicker } from "./pattern-picker";
 import { StepCard, StepDetails } from "./step-card";
 import type { RunState } from "./types";
+import { unbuilt } from "@/lib/unbuilt";
 
 type StepResult = Extract<RunState, { status: "done" | "error" }>;
 
@@ -100,6 +101,7 @@ export function PipelineTab({ initialSteps }: { initialSteps: PipelineStep[] }) 
           className="w-full rounded-lg border border-zinc-300 bg-white p-3 text-sm text-black placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-600"
         />
         <button
+          {...unbuilt("action", "AI flow proposal")}
           onClick={() => setExploredIdea(input.trim())}
           disabled={input.trim() === ""}
           className="w-full rounded-lg border border-black px-4 py-2.5 text-sm font-medium text-black transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-white dark:text-white dark:hover:bg-zinc-900"

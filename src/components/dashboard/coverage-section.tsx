@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { MockPhaseCoverage, MockUnitCoverage } from "@/lib/mock-data";
+import { unbuilt } from "@/lib/unbuilt";
 import { SectionHeading } from "./section-heading";
 
 const PHASES = [
@@ -136,7 +137,10 @@ export function CoverageSection({
       </SectionHeading>
 
       {/* Cell padding (not the container's) carries the side gutters, so a highlighted row's tint spans the full width. */}
-      <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+      <div
+        {...unbuilt("panel", "coverage analytics")}
+        className="overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+      >
         <table className="w-full min-w-[960px] text-sm">
           <thead>
             <tr className="border-b border-zinc-200 text-left text-[10px] font-semibold uppercase tracking-wide text-zinc-400 dark:border-zinc-800 dark:text-zinc-600">

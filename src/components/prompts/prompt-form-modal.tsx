@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { MockBusinessUnit, MockPrompt, MockTaskProcess } from "@/lib/mock-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 function slugify(text: string): string {
   return text
@@ -151,6 +152,7 @@ export function PromptFormModal({
 
         <div className="border-t border-zinc-200 p-5 dark:border-zinc-800">
           <button
+            {...unbuilt("action", "prompts store")}
             onClick={handleSubmit}
             disabled={!canSubmit}
             className="w-full rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"

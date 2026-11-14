@@ -5,6 +5,7 @@ import { MOCK_MODEL_TYPE_GROUPS, type MockModelOption } from "@/lib/mock-data";
 import { SOURCE_TYPE_LABELS, formatCost, stepCost } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
 import { DisplayGrid } from "./display-grid";
+import { unbuilt } from "@/lib/unbuilt";
 
 function CostAndSource({ option }: { option: MockModelOption }) {
   return (
@@ -96,7 +97,11 @@ export function ModelTypePicker({
       </div>
 
       {MOCK_MODEL_TYPE_GROUPS.map((group) => (
-        <div key={group.id} className="flex flex-col gap-3">
+        <div
+          key={group.id}
+          {...unbuilt("panel", "model catalog")}
+          className="flex flex-col gap-3 rounded-xl border p-4"
+        >
           <div>
             <h3 className="text-sm font-medium text-black dark:text-zinc-50">{group.title}</h3>
             <p className="text-sm text-zinc-500 dark:text-zinc-500">{group.description}</p>

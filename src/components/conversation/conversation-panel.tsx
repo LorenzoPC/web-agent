@@ -10,6 +10,7 @@ import { ConversationFlow, NextActions, useConversationFlow } from "./conversati
 import { ConversationSummary, useConversationSummary } from "./conversation-summary";
 import { MessageMarkdown } from "./message-markdown";
 import { formatTranscript, type ChatMessage } from "./transcript";
+import { unbuilt } from "@/lib/unbuilt";
 
 // Free local model, so a conversation costs nothing until someone picks a paid agent.
 const DEFAULT_AGENT_ID = "curated:agent-general";
@@ -222,6 +223,7 @@ export function ConversationPanel({
                   <button
                     key={item.title}
                     type="button"
+                    {...unbuilt("panel", "prompts store")}
                     onClick={() => applyInstruction(item.instruction)}
                     className="flex flex-col gap-1 rounded-lg border border-zinc-200 bg-white p-3 text-left transition-colors hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
                   >

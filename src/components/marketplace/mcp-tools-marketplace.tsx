@@ -6,6 +6,7 @@ import type {
   MockMarketplaceTool,
 } from "@/lib/mock-marketplace-data";
 import { formatCostModel } from "@/lib/pipeline-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 const CARD_CLASS =
   "flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950";
@@ -34,7 +35,7 @@ function SectionHeader({ title, description, action }: { title: string; descript
 
 function McpServerCard({ server }: { server: MockMarketplaceMcpServer }) {
   return (
-    <div className={CARD_CLASS}>
+    <div {...unbuilt("panel", "marketplace catalog API")} className={CARD_CLASS}>
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-sm font-medium text-black dark:text-zinc-50">{server.name}</h3>
         <StatusBadge status={server.status} />
@@ -59,7 +60,7 @@ function McpServerCard({ server }: { server: MockMarketplaceMcpServer }) {
 
 function ToolCard({ tool }: { tool: MockMarketplaceTool }) {
   return (
-    <div className={CARD_CLASS}>
+    <div {...unbuilt("panel", "marketplace catalog API")} className={CARD_CLASS}>
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="text-sm font-medium text-black dark:text-zinc-50">{tool.name}</h3>

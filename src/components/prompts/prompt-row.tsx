@@ -1,4 +1,5 @@
 import type { MockBusinessUnit, MockPrompt, MockTaskProcess } from "@/lib/mock-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 export function PromptRow({
   prompt,
@@ -19,7 +20,10 @@ export function PromptRow({
   const taskProcess = taskProcesses.find((t) => t.id === prompt.taskProcessId);
 
   return (
-    <li className="flex items-start justify-between gap-4 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <li
+      {...unbuilt("panel", "prompts store")}
+      className="flex items-start justify-between gap-4 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+    >
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-sm font-medium text-black dark:text-zinc-50">{prompt.name}</h3>
@@ -61,7 +65,11 @@ export function PromptRow({
         <button onClick={onEdit} className="text-zinc-500 hover:underline dark:text-zinc-400">
           Edit
         </button>
-        <button onClick={onArchiveToggle} className="text-zinc-500 hover:underline dark:text-zinc-400">
+        <button
+          {...unbuilt("action", "prompts store")}
+          onClick={onArchiveToggle}
+          className="rounded px-1.5 py-0.5 text-zinc-500 hover:underline dark:text-zinc-400"
+        >
           {prompt.archived ? "Unarchive" : "Archive"}
         </button>
       </div>

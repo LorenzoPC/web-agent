@@ -16,11 +16,12 @@ import type {
   HarnessSetting,
   Organization,
 } from "@/lib/mock-mcp-connection-data";
+import { unbuilt } from "@/lib/unbuilt";
 import { ClientPanel } from "./client-panel";
 
-function SummaryItem({ label, children }: { label: string; children: React.ReactNode }) {
+function SummaryItem({ label, needs, children }: { label: string; needs: string; children: React.ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 bg-white p-4 dark:bg-zinc-950">
+    <div {...unbuilt("panel", needs)} className="flex min-w-0 flex-col gap-1 bg-white p-4 dark:bg-zinc-950">
       <dt className="text-xs text-zinc-500">{label}</dt>
       <dd className="min-w-0 text-sm text-black dark:text-zinc-50">{children}</dd>
     </div>
@@ -56,17 +57,17 @@ export function McpConnectionSettings({
   return (
     <div className="flex flex-col gap-6">
       <dl className="grid gap-px overflow-hidden rounded-lg border border-zinc-200 bg-zinc-200 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)] dark:border-zinc-800 dark:bg-zinc-800">
-        <SummaryItem label="Server URL">
+        <SummaryItem label="Server URL" needs="hosted MCP server">
           <span className="flex items-center gap-2">
             <code className="min-w-0 truncate font-mono text-sm">{mcpUrl}</code>
             <CopyButton text={mcpUrl} />
           </span>
         </SummaryItem>
-        <SummaryItem label="People sign in with">
+        <SummaryItem label="People sign in with" needs="identity provider integration">
           {org.identityProvider.name} <span className="text-zinc-500">· {org.identityProvider.tenant}</span>
         </SummaryItem>
-        <SummaryItem label="Verified domains">{org.verifiedDomains.join(", ")}</SummaryItem>
-        <SummaryItem label="AI clients allowed">
+        <SummaryItem label="Verified domains" needs="identity provider integration">{org.verifiedDomains.join(", ")}</SummaryItem>
+        <SummaryItem label="AI clients allowed" needs="connection settings store">
           {allowed} of {harnesses.length}
         </SummaryItem>
       </dl>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CopyButton } from "@/components/onboarding/copy-button";
 import { AudienceBadge } from "@/components/ui/audience-label";
 import { CLIENT_GUIDES, MCP_URL, SETUP_STEPS } from "@/lib/mock-onboarding-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 /**
  * Self-serve onboarding for existing clients, partners and resellers: add one
@@ -22,7 +23,10 @@ export default function OnboardingPage() {
           </p>
         </div>
 
-        <div className="flex w-full max-w-md items-center gap-2 rounded-lg border border-zinc-200 bg-white p-1.5 pl-3 dark:border-zinc-800 dark:bg-zinc-950">
+        <div
+          {...unbuilt("panel", "hosted MCP server")}
+          className="flex w-full max-w-md items-center gap-2 rounded-lg border border-zinc-200 bg-white p-1.5 pl-3 dark:border-zinc-800 dark:bg-zinc-950"
+        >
           <code className="min-w-0 flex-1 truncate text-left font-mono text-sm text-zinc-800 dark:text-zinc-200">
             {MCP_URL}
           </code>

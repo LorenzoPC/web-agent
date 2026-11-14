@@ -30,6 +30,7 @@ import {
   type SettingPick,
   type SharedCredential,
 } from "@/lib/mock-mcp-connection-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 const ACCESS_OPTIONS = [
   { id: "everyone", label: "Everyone" },
@@ -47,9 +48,10 @@ function Switch({ checked, label, onChange }: { checked: boolean; label: string;
     <button
       type="button"
       role="switch"
+      {...unbuilt("action", "connection settings store")}
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className="flex shrink-0 items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300"
+      className="flex shrink-0 items-center gap-2 rounded-full py-1 pr-1 pl-3 text-sm font-medium text-zinc-700 max-sm:pl-1 dark:text-zinc-300"
     >
       <span className="max-sm:sr-only">{label}</span>
       <span
@@ -228,7 +230,7 @@ function CredentialBlock({
     return (
       <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-zinc-300 p-4 dark:border-zinc-700">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">{spec.note}</p>
-        <button type="button" onClick={onIssue} className={PRIMARY_BUTTON_CLASS}>
+        <button type="button" {...unbuilt("action", "credential service")} onClick={onIssue} className={PRIMARY_BUTTON_CLASS}>
           {spec.action}
         </button>
       </div>
@@ -244,13 +246,15 @@ function CredentialBlock({
   }[spec.kind];
   return (
     <div className="flex flex-col gap-2">
-      <ValueList values={values} />
+      <div {...unbuilt("panel", "credential service")} className="rounded-lg">
+        <ValueList values={values} />
+      </div>
       <div className="flex items-center justify-between gap-3 text-xs text-zinc-500">
         <span>
           Issued just now for this organization only.
           {spec.kind !== "public-client" && " A real secret would be shown once."}
         </span>
-        <button type="button" onClick={onRevoke} className={SMALL_BUTTON_CLASS}>
+        <button type="button" {...unbuilt("action", "credential service")} onClick={onRevoke} className={SMALL_BUTTON_CLASS}>
           Revoke
         </button>
       </div>
@@ -307,7 +311,7 @@ function SharedCredentialCard({
           <span className="font-medium text-black dark:text-zinc-50">Shared credential revoked.</span> Calls that use it
           are refused now, and people are asked to sign in as themselves. {cleanup}
         </p>
-        <button type="button" onClick={onUndo} className={SMALL_BUTTON_CLASS}>
+        <button type="button" {...unbuilt("action", "credential service")} onClick={onUndo} className={SMALL_BUTTON_CLASS}>
           Undo
         </button>
       </div>
@@ -344,7 +348,13 @@ function SharedCredentialCard({
         shared one.
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" disabled={!ready} onClick={onRevoke} className={PRIMARY_BUTTON_CLASS}>
+        <button
+          type="button"
+          {...unbuilt("action", "credential service")}
+          disabled={!ready}
+          onClick={onRevoke}
+          className={PRIMARY_BUTTON_CLASS}
+        >
           Revoke the shared credential
         </button>
         {!ready && (
@@ -374,7 +384,7 @@ function ConnectionCheck({ steps, readyText }: { steps: CheckStep[]; readyText: 
   return (
     <div className="flex flex-col gap-3">
       {revealed !== null && (
-        <ol className="flex flex-col gap-2" aria-live="polite">
+        <ol {...unbuilt("panel", "connection check")} className="flex flex-col gap-2 rounded-lg p-3" aria-live="polite">
           {steps.slice(0, Math.min(revealed + 1, total)).map((step, i) => {
             const done = i < revealed;
             return (
@@ -397,7 +407,13 @@ function ConnectionCheck({ steps, readyText }: { steps: CheckStep[]; readyText: 
           {firstFail === -1 ? readyText : "Fix that, then run the check again."}
         </p>
       )}
-      <button type="button" disabled={running} onClick={() => setRevealed(0)} className={PRIMARY_BUTTON_CLASS}>
+      <button
+        type="button"
+        {...unbuilt("action", "connection check")}
+        disabled={running}
+        onClick={() => setRevealed(0)}
+        className={PRIMARY_BUTTON_CLASS}
+      >
         {running ? "Checking…" : revealed === null ? "Run a check" : "Run it again"}
       </button>
     </div>
@@ -455,7 +471,10 @@ export function ClientPanel({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
+      <div
+        {...unbuilt("panel", "connection activity")}
+        className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950"
+      >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">

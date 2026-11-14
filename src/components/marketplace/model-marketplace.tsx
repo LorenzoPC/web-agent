@@ -1,9 +1,13 @@
 import type { MockModelOption, MockModelTypeGroup } from "@/lib/mock-data";
 import { SOURCE_TYPE_LABELS, formatCostModel } from "@/lib/pipeline-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 function ModelCard({ model }: { model: MockModelOption }) {
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <div
+      {...unbuilt("panel", "marketplace catalog API")}
+      className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+    >
       <div>
         <h3 className="text-sm font-medium text-black dark:text-zinc-50">{model.name}</h3>
         <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-500">Best for {model.bestFor.toLowerCase()}</p>

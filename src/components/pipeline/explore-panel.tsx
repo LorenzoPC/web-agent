@@ -1,6 +1,7 @@
 import { MOCK_MODEL_TYPE_GROUPS } from "@/lib/mock-data";
 import { SOURCE_TYPE_LABELS, formatCost, stepCost, totalCost } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
+import { unbuilt } from "@/lib/unbuilt";
 
 /** Mock proposal: keyword-match the idea against each model type, suggesting that group's first option. */
 function proposeFlow(idea: string) {
@@ -24,7 +25,10 @@ export function ExplorePanel({
   const proposal = proposeFlow(idea);
 
   return (
-    <section className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <section
+      {...unbuilt("panel", "AI flow proposal")}
+      className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="font-medium text-black dark:text-zinc-50">How to build this</h2>

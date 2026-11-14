@@ -1,5 +1,6 @@
 import type { MockAdminTool, ToolCredential } from "@/lib/mock-admin-tools-data";
 import { formatCostModel } from "@/lib/pipeline-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 const HEAD = "px-4 py-2.5 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400";
 const CELL = "px-4 py-3 align-top";
@@ -68,7 +69,7 @@ const CARD = "rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 da
 export function ToolsTable({ tools }: { tools: MockAdminTool[] }) {
   return (
     <>
-      <ul className={`${CARD} divide-y divide-zinc-200 text-sm md:hidden dark:divide-zinc-800`}>
+      <ul {...unbuilt("panel", "tools store")} className={`${CARD} divide-y divide-zinc-200 text-sm md:hidden dark:divide-zinc-800`}>
         {tools.map((tool) => (
           <li key={tool.id} className="px-4 py-3">
             <NameAndDescription tool={tool} />
@@ -88,7 +89,7 @@ export function ToolsTable({ tools }: { tools: MockAdminTool[] }) {
         ))}
       </ul>
 
-      <div className={`${CARD} overflow-x-auto max-md:hidden`}>
+      <div {...unbuilt("panel", "tools store")} className={`${CARD} overflow-x-auto max-md:hidden`}>
         <table className="w-full min-w-[720px] text-sm">
           <thead className="border-b border-zinc-200 dark:border-zinc-800">
             <tr>

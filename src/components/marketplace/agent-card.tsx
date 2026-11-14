@@ -1,4 +1,5 @@
 import type { PipelineStep } from "@/lib/types";
+import { unbuilt } from "@/lib/unbuilt";
 
 export function AgentCard({
   agent,
@@ -13,6 +14,8 @@ export function AgentCard({
     <button
       type="button"
       onClick={onSelect}
+      aria-pressed={selected}
+      {...unbuilt("panel", "marketplace catalog API")}
       className={`flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors ${
         selected
           ? "border-black bg-zinc-50 dark:border-white dark:bg-zinc-900"

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { MockBusinessUnit, MockPriority, MockPriorityAction } from "@/lib/mock-data";
+import { unbuilt } from "@/lib/unbuilt";
 import { SectionHeading } from "./section-heading";
 
 // The first text action reads as primary, the second as secondary.
@@ -12,7 +13,8 @@ function TextAction({ action, className }: { action: MockPriorityAction; classNa
       {action.label}
     </Link>
   ) : (
-    <button type="button" className={classes}>
+    // Padding (pulled back with a negative margin) so the orange fill reads as a button, not a highlight.
+    <button type="button" {...unbuilt("action", "priority actions API")} className={`-mx-1.5 rounded px-1.5 py-0.5 ${classes}`}>
       {action.label}
     </button>
   );
@@ -41,6 +43,7 @@ export function PriorityCards({
         {priorities.map((priority, index) => (
           <li
             key={priority.id}
+            {...unbuilt("panel", "priorities API")}
             className="flex flex-col rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
           >
             <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-600">
@@ -58,8 +61,9 @@ export function PriorityCards({
               ))}
               <button
                 type="button"
+                {...unbuilt("action", "priority actions API")}
                 aria-label={`${plusLabel}: ${priority.title}`}
-                title={plusLabel}
+                title={`${plusLabel}. Not built yet: priority actions API`}
                 className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-full border border-zinc-300 text-zinc-600 transition-colors hover:border-zinc-500 hover:text-black dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-zinc-500 dark:hover:text-zinc-50"
               >
                 <svg viewBox="0 0 16 16" aria-hidden="true" className="size-3">

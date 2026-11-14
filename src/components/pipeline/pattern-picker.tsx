@@ -7,6 +7,7 @@ import {
 } from "@/lib/mock-orchestration-data";
 import { DisplayGrid } from "./display-grid";
 import { PatternDiagram } from "./pattern-diagram";
+import { unbuilt } from "@/lib/unbuilt";
 
 function InUseLabel() {
   return (
@@ -68,6 +69,7 @@ function PatternDetails({
         {pattern.watchOut}
       </p>
       <button
+        {...unbuilt("action", "pattern orchestrator")}
         onClick={onToggle}
         className={`mt-3 self-start rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
           inUse

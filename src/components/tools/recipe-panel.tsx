@@ -1,5 +1,6 @@
 import type { MockToolRecipe } from "@/lib/mock-data";
 import { checkRecipe, toModelDefinition, type RecipeCheck } from "@/lib/tool-recipe";
+import { unbuilt } from "@/lib/unbuilt";
 
 const CHECK_ICON: Record<RecipeCheck["level"], { glyph: string; className: string; srLabel: string }> = {
   pass: { glyph: "✓", className: "text-emerald-600 dark:text-emerald-400", srLabel: "Passing:" },
@@ -64,6 +65,7 @@ export function RecipePanel({
             <>
               <button
                 type="button"
+                {...unbuilt("action", "tools store")}
                 onClick={onCreate}
                 disabled={blocked}
                 className="w-full rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"

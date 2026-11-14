@@ -1,6 +1,6 @@
 /**
  * The two sitemap areas (docs/prds/sitemap.html) whose screens get their own
- * colour wherever they're linked from: Admin red, Developer orange. Every other
+ * colour wherever they're linked from: Admin red, Developer purple. Every other
  * screen stays neutral. See docs/design/web-agent.md, "Colour palette".
  */
 export type Audience = "admin" | "developer";

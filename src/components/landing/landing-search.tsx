@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { SearchEntry } from "@/lib/mock-landing-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 const MAX_RESULTS = 6;
 
@@ -36,6 +37,7 @@ export function LandingSearch({ index }: { index: SearchEntry[] }) {
           if (e.key === "Escape") setQuery("");
         }}
         aria-label="Search components and docs"
+        {...unbuilt("action", "search index")}
         placeholder="Search components and docs…"
         className="w-full rounded-xl border border-steel-200 bg-white py-3 pr-4 pl-11 text-sm text-steel-950 shadow-sm transition-shadow outline-none placeholder:text-steel-500 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 dark:border-white/10 dark:bg-steel-900 dark:text-white dark:placeholder:text-steel-300 dark:focus:border-brand-400 dark:focus:ring-brand-400/20"
       />

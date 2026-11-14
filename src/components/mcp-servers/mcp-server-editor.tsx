@@ -17,6 +17,7 @@ import { formatCost, formatCostModel } from "@/lib/pipeline-data";
 import { AccessRules, ruleLabel } from "./access-rules";
 import { FILTER_ICON, IconMenu, SORT_ICON } from "./icon-menu";
 import { ServerPanel } from "./server-panel";
+import { unbuilt } from "@/lib/unbuilt";
 
 type ToolSort = "catalog" | "name" | "selected";
 
@@ -263,7 +264,10 @@ export function McpServerEditor({
             title="Datasets"
             hint="The data this server exposes. Tools can only reach exposed datasets, as far as the access rules allow. Own company only means clients, partners and resellers only see their own company's records."
           >
-            <ul className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+            <ul
+              {...unbuilt("panel", "data catalog")}
+              className="flex flex-col divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800"
+            >
               {MCP_DATASETS.map((dataset) => {
                 const on = server.datasetIds.includes(dataset.id);
                 return (
@@ -332,6 +336,7 @@ export function McpServerEditor({
                     <div className="flex items-center gap-2">
                       <button
                         type="submit"
+                        {...unbuilt("action", "dataset requests")}
                         disabled={!requestDraft.trim()}
                         className="rounded-lg bg-black px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
                       >
@@ -445,7 +450,10 @@ export function McpServerEditor({
                 }
               </IconMenu>
             </div>
-            <ul className="flex flex-col divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+            <ul
+              {...unbuilt("panel", "tool catalog")}
+              className="flex flex-col divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800"
+            >
               {toolGroups.map(({ category, items, selected, total }) => {
                 // A search shows its matches even inside a collapsed group.
                 const open = !!q || !collapsed.includes(category.id);

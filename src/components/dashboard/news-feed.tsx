@@ -5,6 +5,7 @@ import type {
   MockRun,
   MockRunStatus,
 } from "@/lib/mock-data";
+import { unbuilt } from "@/lib/unbuilt";
 import { SectionHeading } from "./section-heading";
 
 const KIND_LABELS: Record<MockNotificationKind, string> = {
@@ -78,7 +79,10 @@ export function NewsFeed({
       </SectionHeading>
 
       {/* On wide screens the list is taken out of flow so the metric tiles set the row height and the feed scrolls to match. */}
-      <div className="relative min-h-44 flex-1 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+      <div
+        {...unbuilt("panel", "notifications API")}
+        className="relative min-h-44 flex-1 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+      >
         {notifications.length === 0 ? (
           <p className="p-6 text-center text-sm text-zinc-500 dark:text-zinc-500">
             Nothing new. Approvals, alerts, and run results will show up here.

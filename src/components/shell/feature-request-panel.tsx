@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { INPUT_CLASS } from "@/components/tools/form-controls";
 import { Orb } from "@/components/ui/orb";
+import { unbuilt } from "@/lib/unbuilt";
 import {
   answeredCount,
   EMPTY_FEATURE_ANSWERS,
@@ -169,7 +170,7 @@ export function FeatureRequestPanel({ userName }: { userName: string }) {
             </p>
           </div>
           {submitted.length > 1 && (
-            <section className="mt-8">
+            <section {...unbuilt("panel", "feature request store")} className="mt-8 rounded-lg border border-transparent p-3">
               <h4 className="text-xs font-medium text-zinc-500">Submitted this session</h4>
               <ul className="mt-2 divide-y divide-zinc-200 dark:divide-zinc-800">
                 {submitted.map((request) => (
@@ -323,7 +324,13 @@ export function FeatureRequestPanel({ userName }: { userName: string }) {
                 <button type="button" onClick={() => goTo(REVIEW_STEP - 1)} className={SECONDARY_BUTTON}>
                   Back
                 </button>
-                <button type="button" onClick={submit} disabled={!canSubmit} className={PRIMARY_BUTTON}>
+                <button
+                  type="button"
+                  onClick={submit}
+                  disabled={!canSubmit}
+                  {...unbuilt("action", "feature request store")}
+                  className={PRIMARY_BUTTON}
+                >
                   Submit request
                 </button>
               </footer>

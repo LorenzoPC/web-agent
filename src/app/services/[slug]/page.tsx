@@ -7,6 +7,7 @@ import { ServiceRow, ServiceStatusBadge } from "@/components/services/service-ro
 import { MOCK_ROLE_POOLS } from "@/lib/mock-data";
 import { formatCost } from "@/lib/pipeline-data";
 import { getService, PERSON, RUN_OPTIONS, SERVICES, STEP_PHASE_LABELS } from "@/lib/mock-services-data";
+import { unbuilt } from "@/lib/unbuilt";
 
 // Same buttons and section rhythm as the landing page (src/app/page.tsx).
 const PRIMARY_LINK =
@@ -22,10 +23,11 @@ export function generateStaticParams() {
   return SERVICES.map((service) => ({ slug: service.slug }));
 }
 
-function DisabledAction({ label }: { label: string }) {
+function DisabledAction({ label, needs }: { label: string; needs: string }) {
   return (
     <span
       aria-disabled="true"
+      {...unbuilt("action", needs)}
       className="flex items-center gap-2 rounded-lg border border-coral-300 px-5 py-3 font-semibold text-steel-600 dark:border-white/20 dark:text-steel-400"
     >
       {label}
@@ -101,13 +103,13 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
                 </p>
                 <div className="flex flex-wrap gap-3">
                   {service.status === "soon" ? (
-                    <DisabledAction label="Join the waitlist" />
+                    <DisabledAction label="Join the waitlist" needs="waitlist signup" />
                   ) : (
                     <Link href="/app/onboarding" className={PRIMARY_LINK}>
                       Get started
                     </Link>
                   )}
-                  <DisabledAction label="Book a walkthrough" />
+                  <DisabledAction label="Book a walkthrough" needs="walkthrough booking" />
                 </div>
               </div>
 
