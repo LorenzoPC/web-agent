@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CopyButton } from "@/components/onboarding/copy-button";
 import { AudienceBadge } from "@/components/ui/audience-label";
 import { CLIENT_GUIDES, MCP_URL, SETUP_STEPS } from "@/lib/mock-onboarding-data";
@@ -86,6 +87,16 @@ export default function OnboardingPage() {
           <p>
             For client, partner and reseller accounts. Sign in with your work email. Access mirrors your own
             permissions.
+          </p>
+          <p>
+            Setting this up for your organization?{" "}
+            <Link
+              href="/app/settings/mcp"
+              className="font-medium text-zinc-700 underline underline-offset-2 dark:text-zinc-300"
+            >
+              Choose which AI clients your people can use
+            </Link>
+            .
           </p>
           <p className="text-zinc-400 dark:text-zinc-600">Mockup: the URL and sign-in aren&apos;t live yet.</p>
         </div>
