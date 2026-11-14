@@ -1,4 +1,4 @@
-// Mock data for the Marketplace's MCP & Tools view (/marketplace?view=mcp-tools).
+// Mock data for the Marketplace's MCP & Tools view (/app/marketplace?view=mcp-tools).
 // Entries mirror the curated catalog seed (scripts/seed-catalog-curated.ts) and
 // keep its ids and costs; names, statuses and what each server exposes match the
 // catalog page's docs (feature/catalog-page). Nothing here is live yet.

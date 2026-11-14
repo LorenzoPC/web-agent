@@ -93,7 +93,7 @@ export function McpToolsMarketplace({
           action={
             // Publishing a server is privileged, so it gets the admin color and hint.
             <Link
-              href="/mcp-servers/new"
+              href="/admin/mcp-servers/new"
               className="flex shrink-0 items-center gap-2 rounded-lg bg-admin px-3 py-1.5 text-xs font-medium text-admin-foreground transition-colors hover:bg-admin-hover"
             >
               Create MCP server
@@ -115,7 +115,7 @@ export function McpToolsMarketplace({
           action={
             // Creating a tool is an Admin screen in the sitemap, so it matches the server button above.
             <Link
-              href="/tools/new"
+              href="/admin/tools/new"
               className="flex shrink-0 items-center gap-2 rounded-lg bg-admin px-3 py-1.5 text-xs font-medium text-admin-foreground transition-colors hover:bg-admin-hover"
             >
               Create tool

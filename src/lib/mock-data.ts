@@ -1281,7 +1281,7 @@ export const MOCK_PRIORITIES: MockPriority[] = [
     businessUnitId: "engineering",
     context:
       "Pilot on 2 repos: 212 PRs reviewed, 9 security issues caught that humans missed, false positives down to 6%. Rolling out to all 14 repos adds about $38/month.",
-    actions: [{ label: "Review pilot", href: "/marketplace" }, { label: "Approve" }],
+    actions: [{ label: "Review pilot", href: "/app/marketplace" }, { label: "Approve" }],
   },
   {
     id: "priority-support-csat",
@@ -1290,8 +1290,8 @@ export const MOCK_PRIORITIES: MockPriority[] = [
     context:
       "CSAT on agent-drafted first replies fell from 4.6 to 4.1 this week. Low scores cite callbacks promised without a time, and the tone prompt doesn't cover that yet.",
     actions: [
-      { label: "Edit prompt", href: "/prompts" },
-      { label: "Run test", href: "/prompts" },
+      { label: "Edit prompt", href: "/admin/prompts" },
+      { label: "Run test", href: "/admin/prompts" },
     ],
   },
   {
@@ -1301,8 +1301,8 @@ export const MOCK_PRIORITIES: MockPriority[] = [
     context:
       "None of the 6 Sales pre-work processes has a live agent. Lead qualification and meeting briefs are still manual, and the Research → Synthesize pattern fits both.",
     actions: [
-      { label: "Use pattern", href: "/patterns" },
-      { label: "See agents", href: "/marketplace" },
+      { label: "Use pattern", href: "/admin/patterns" },
+      { label: "See agents", href: "/app/marketplace" },
     ],
   },
   {
@@ -1310,7 +1310,7 @@ export const MOCK_PRIORITIES: MockPriority[] = [
     title: "Bring API spend back under budget",
     context:
       "October is pacing to $1,160 against a $1,035 budget. Two-thirds is the Data Analyst Agent on GPT-5.4, and its nightly batch could move to the local model.",
-    actions: [{ label: "See costs", href: "/builder" }, { label: "Set a cap" }],
+    actions: [{ label: "See costs", href: "/admin/agents/new" }, { label: "Set a cap" }],
   },
   {
     id: "priority-github-token",
@@ -1318,7 +1318,7 @@ export const MOCK_PRIORITIES: MockPriority[] = [
     businessUnitId: "engineering",
     context:
       "Three flows attach the GitHub MCP server, but no GITHUB_TOKEN is set, so each run skips its GitHub steps and ends partial. A read-only token unblocks all three.",
-    actions: [{ label: "Add token" }, { label: "View flows", href: "/builder" }],
+    actions: [{ label: "Add token" }, { label: "View flows", href: "/admin/agents/new" }],
   },
 ];
 

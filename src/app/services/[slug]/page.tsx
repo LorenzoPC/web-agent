@@ -103,7 +103,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
                   {service.status === "soon" ? (
                     <DisabledAction label="Join the waitlist" />
                   ) : (
-                    <Link href="/onboarding" className={PRIMARY_LINK}>
+                    <Link href="/app/onboarding" className={PRIMARY_LINK}>
                       Get started
                     </Link>
                   )}
@@ -178,7 +178,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
                 ))}
               </ul>
               <Link
-                href="/marketplace"
+                href="/app/marketplace"
                 className="self-start font-semibold text-brand-700 underline-offset-4 hover:underline dark:text-brand-300"
               >
                 Browse every agent in the Marketplace →

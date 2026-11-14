@@ -52,7 +52,7 @@ export default async function ServicesPage({
                 switch services on team by team.
               </p>
               <div className="flex flex-wrap gap-3">
-                <Link href="/onboarding" className={PRIMARY_LINK}>
+                <Link href="/app/onboarding" className={PRIMARY_LINK}>
                   Get started
                 </Link>
                 <a href="#catalog" className={OUTLINE_LINK}>

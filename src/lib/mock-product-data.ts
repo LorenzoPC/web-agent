@@ -9,7 +9,7 @@ import {
   type MockUnitCoverage,
 } from "./mock-data";
 
-// Product dashboard (/product): the same bands as the Overview, for the PM of the
+// Product dashboard (/admin): the same bands as the Overview, for the PM of the
 // agentic product or the manager of one of its supporting functions. Those
 // functions are MOCK_BUSINESS_UNITS; a "lens" scopes the screen to one of them.
 // Kept apart from mock-data.ts so the two screens' data can evolve separately.
@@ -199,7 +199,7 @@ export const MOCK_PRODUCT_PRIORITIES: MockProductPriority[] = [
     affects: ["customer-experience"],
     context:
       "Evals +3 pts and refund-promise errors down 80% in testing, but longer replies raise cost per task 18%. Shipping should cut escalations by about a quarter.",
-    actions: [{ label: "See evidence", href: "/prompts" }, { label: "Ship v12" }],
+    actions: [{ label: "See evidence", href: "/admin/prompts" }, { label: "Ship v12" }],
   },
   {
     id: "pp-code-reviewer-regression",
@@ -208,7 +208,7 @@ export const MOCK_PRODUCT_PRIORITIES: MockProductPriority[] = [
     affects: ["customer-experience"],
     context:
       "Pass rate fell from 87% to 81% after the move to Haiku 4.5 to save cost. Misses cluster in security checks. Reverting the model costs about $2.1K a month.",
-    actions: [{ label: "See failures", href: "/builder" }, { label: "Revert model" }],
+    actions: [{ label: "See failures", href: "/admin/agents/new" }, { label: "Revert model" }],
   },
   {
     id: "pp-gpt-migration",
@@ -217,7 +217,7 @@ export const MOCK_PRODUCT_PRIORITIES: MockProductPriority[] = [
     affects: ["customer-support", "sales"],
     context:
       "OpenAI retires GPT-5.4 on Dec 1. The Research, Support, and Data Analyst agents still use it. Two replacements pass current evals; one agent needs a prompt rework.",
-    actions: [{ label: "See models", href: "/builder" }, { label: "Plan migration" }],
+    actions: [{ label: "See models", href: "/admin/agents/new" }, { label: "Plan migration" }],
   },
   {
     id: "pp-salesforce-connector",
@@ -252,7 +252,7 @@ export const MOCK_PRODUCT_PRIORITIES: MockProductPriority[] = [
     affects: ["engineering"],
     context:
       "Agents promised refunds they can't issue in 23 conversations this month, Acme included. A policy check before sending blocks these without new prompts.",
-    actions: [{ label: "See chats" }, { label: "Draft policy", href: "/prompts" }],
+    actions: [{ label: "See chats" }, { label: "Draft policy", href: "/admin/prompts" }],
   },
   {
     id: "pp-support-backlog",
@@ -270,7 +270,7 @@ export const MOCK_PRODUCT_PRIORITIES: MockProductPriority[] = [
     affects: ["engineering"],
     context:
       "Thumbs-down on Research Agent answers doubled this week. Early reads point to stale sources after a search-provider change, not the model itself.",
-    actions: [{ label: "See feedback" }, { label: "Open evals", href: "/builder" }],
+    actions: [{ label: "See feedback" }, { label: "Open evals", href: "/admin/agents/new" }],
   },
   {
     id: "pp-flow-enablement",

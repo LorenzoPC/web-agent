@@ -1,4 +1,4 @@
-// Mock data for the onboarding page (/onboarding): one MCP URL that existing
+// Mock data for the onboarding page (/app/onboarding): one MCP URL that existing
 // clients, partners and resellers add to their AI client. Signing in (OAuth)
 // matches them to their company's account, so the page asks nothing.
 // Nothing here is live yet.

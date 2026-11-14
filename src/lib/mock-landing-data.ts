@@ -20,21 +20,21 @@ export const COMPONENT_TYPES: ComponentTypeTile[] = [
     label: "Agents",
     count: MOCK_AGENTS.length,
     description: "Ready-made personas for support, research, data and code review.",
-    href: "/marketplace",
+    href: "/app/marketplace",
   },
   {
     id: "mcp-servers",
     label: "MCP servers",
     count: 3,
     description: "Connect agents to GitHub, Slack and your own files.",
-    href: "/builder",
+    href: "/admin/agents/new",
   },
   {
     id: "tools",
     label: "Tools",
     count: 10,
     description: "Single actions like web search, email and data extraction.",
-    href: "/builder",
+    href: "/admin/agents/new",
   },
 ];
 
@@ -57,16 +57,16 @@ export interface SearchEntry {
 }
 
 export const SEARCH_INDEX: SearchEntry[] = [
-  ...MOCK_AGENTS.map((agent) => ({ id: agent.id, title: agent.name, kind: "Agent" as const, href: "/marketplace" })),
-  { id: "mcp-github", title: "GitHub MCP server", kind: "MCP server", href: "/builder" },
-  { id: "mcp-slack", title: "Slack MCP server", kind: "MCP server", href: "/builder" },
-  { id: "mcp-filesystem", title: "Filesystem MCP server", kind: "MCP server", href: "/builder" },
-  { id: "tool-web-search", title: "Web Search", kind: "Tool", href: "/builder" },
-  { id: "tool-send-email", title: "Send Email", kind: "Tool", href: "/builder" },
-  { id: "tool-extract", title: "Extract Structured Data", kind: "Tool", href: "/builder" },
-  { id: "tool-translate", title: "Translate Text", kind: "Tool", href: "/builder" },
-  { id: "tool-fetch-url", title: "Fetch URL", kind: "Tool", href: "/builder" },
-  { id: "doc-connect", title: "Connect over MCP", kind: "Doc", href: "/onboarding" },
+  ...MOCK_AGENTS.map((agent) => ({ id: agent.id, title: agent.name, kind: "Agent" as const, href: "/app/marketplace" })),
+  { id: "mcp-github", title: "GitHub MCP server", kind: "MCP server", href: "/admin/agents/new" },
+  { id: "mcp-slack", title: "Slack MCP server", kind: "MCP server", href: "/admin/agents/new" },
+  { id: "mcp-filesystem", title: "Filesystem MCP server", kind: "MCP server", href: "/admin/agents/new" },
+  { id: "tool-web-search", title: "Web Search", kind: "Tool", href: "/admin/agents/new" },
+  { id: "tool-send-email", title: "Send Email", kind: "Tool", href: "/admin/agents/new" },
+  { id: "tool-extract", title: "Extract Structured Data", kind: "Tool", href: "/admin/agents/new" },
+  { id: "tool-translate", title: "Translate Text", kind: "Tool", href: "/admin/agents/new" },
+  { id: "tool-fetch-url", title: "Fetch URL", kind: "Tool", href: "/admin/agents/new" },
+  { id: "doc-connect", title: "Connect over MCP", kind: "Doc", href: "/app/onboarding" },
   { id: "doc-quickstart", title: "Quickstart", kind: "Doc" },
   { id: "doc-api", title: "API reference", kind: "Doc" },
   { id: "doc-security", title: "Security overview", kind: "Doc" },
@@ -125,7 +125,7 @@ export interface DocEntry {
 }
 
 export const DOC_ENTRIES: DocEntry[] = [
-  { id: "connect", title: "Connect over MCP", description: "Add Web Agent to Claude or ChatGPT in three steps.", href: "/onboarding" },
+  { id: "connect", title: "Connect over MCP", description: "Add Web Agent to Claude or ChatGPT in three steps.", href: "/app/onboarding" },
   { id: "quickstart", title: "Quickstart", description: "Make your first agent call from code in five minutes." },
   { id: "api", title: "API reference", description: "Every endpoint, parameter and error code." },
 ];

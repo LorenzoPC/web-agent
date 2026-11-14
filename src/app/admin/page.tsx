@@ -46,7 +46,7 @@ function productHref(lensId: string, coverage?: CoverageView): string {
   if (lensId !== ALL_FUNCTIONS) query.set("lens", lensId);
   if (coverage) query.set("coverage", coverage);
   const qs = query.toString();
-  return qs ? `/product?${qs}` : "/product";
+  return qs ? `/admin?${qs}` : "/admin";
 }
 
 export default async function ProductDashboardPage({
@@ -78,7 +78,7 @@ export default async function ProductDashboardPage({
   return (
     <div className="flex flex-col flex-1 items-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-7xl flex-col gap-6 py-8 px-6">
-        <DashboardTabs active="/product" />
+        <DashboardTabs active="/admin" />
 
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>

@@ -20,10 +20,10 @@ const ITEM_TONE: Record<"neutral" | Audience, { fill: string; hover: string; hin
 // as disabled "Soon" rows. Those set `audience` themselves, since there's no route to look up.
 const ACTIONS: { label: string; href?: string; opens?: "conversation"; hint?: string; audience?: Audience }[] = [
   { label: "Start Conversation", opens: "conversation" },
-  { label: "Create Agent", href: "/builder" },
-  { label: "See Dashboard", href: "/dashboard" },
-  { label: "Create Tool", href: "/tools/new" },
-  { label: "Create MCP Server", href: "/mcp-servers/new" },
+  { label: "Create Agent", href: "/admin/agents/new" },
+  { label: "See Dashboard", href: "/app" },
+  { label: "Create Tool", href: "/admin/tools/new" },
+  { label: "Create MCP Server", href: "/admin/mcp-servers/new" },
   { label: "Create Skill", audience: "admin" },
 ];
 

@@ -8,18 +8,18 @@ import { routeAudience } from "@/lib/audience";
 import { useSidePanel } from "./side-panel";
 
 const LINKS = [
-  { href: "/onboarding", label: "Get started" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/marketplace", label: "Marketplace" },
-  { href: "/patterns", label: "Patterns" },
-  { href: "/prompts", label: "Prompts" },
-  { href: "/builder", label: "Builder" },
+  { href: "/app/onboarding", label: "Get started" },
+  { href: "/app", label: "Dashboard" },
+  { href: "/app/marketplace", label: "Marketplace" },
+  { href: "/admin/patterns", label: "Patterns" },
+  { href: "/admin/prompts", label: "Prompts" },
+  { href: "/admin/agents/new", label: "Builder" },
 ] as const;
 
 // Sub-screens that keep their parent nav item highlighted.
-const NAV_PARENTS: Record<string, string> = { "/product": "/dashboard" };
+const NAV_PARENTS: Record<string, string> = { "/admin": "/app" };
 
-/** Nav label for a path, falling back to the path itself for screens outside the nav (e.g. /tools/new). */
+/** Nav label for a path, falling back to the path itself for screens outside the nav (e.g. /admin/tools/new). */
 export function pageLabel(pathname: string): string {
   if (pathname === "/") return "Home";
   return LINKS.find((link) => link.href === pathname)?.label ?? pathname;

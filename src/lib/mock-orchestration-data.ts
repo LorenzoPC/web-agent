@@ -2,7 +2,7 @@
 // flow can coordinate. Draft copy only. The pipeline runner still executes
 // steps in order, whichever pattern is in use.
 //
-// These differ from MOCK_FLOW_PATTERNS (/patterns), which are linear chains of
+// These differ from MOCK_FLOW_PATTERNS (/admin/patterns), which are linear chains of
 // task slots. An orchestration pattern is a topology: who leads, who talks to
 // whom, and where the loops are.
 

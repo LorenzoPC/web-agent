@@ -152,3 +152,8 @@ Priority definitions:
   - `/services` and `/services/[slug]` restyled with the landing theme: coral hero, splits with ruled lists, light blue band, navy close
   - Services render as rows in ruled lists (`service-row.tsx`, replacing `service-card.tsx`)
   - Landing page: Services section under the hero with four featured services (`FEATURED_SERVICE_SLUGS`) and an All services link
+- [x] **Sitemap routes**: shipped 2026-11-11, see design doc's "Sitemap routes":
+  - Client workspace: `/dashboard` → `/app`, `/marketplace` → `/app/marketplace`, `/onboarding` → `/app/onboarding`
+  - Admin: `/product` → `/admin`, `/builder` → `/admin/agents/new`, and `/patterns`, `/prompts`, `/tools/new`, `/mcp-servers/new` under `/admin`
+  - Old URLs redirect (temporary 307, query kept) from `next.config.ts`; every internal link, the nav, Dashboard tabs, quick actions and mock-data actions point at the new routes
+  - `routeAudience()` reads the sitemap area from the path prefix instead of a route table

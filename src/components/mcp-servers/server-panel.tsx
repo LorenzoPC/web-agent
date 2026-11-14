@@ -72,7 +72,7 @@ export function ServerPanel({
               </div>
               <p>
                 Listed in the catalog under MCP servers. People connect with the steps on{" "}
-                <Link href="/onboarding" className="font-medium underline">
+                <Link href="/app/onboarding" className="font-medium underline">
                   Get started
                 </Link>
                 .

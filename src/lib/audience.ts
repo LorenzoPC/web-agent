@@ -6,21 +6,16 @@
 export type Audience = "admin" | "developer";
 
 /**
- * Today's routes the sitemap puts in the Admin area. No screen is wholly
- * Developer yet: the Playground and the docs are still sections of the Builder
- * and Get started, which mark those sections themselves.
+ * A route's sitemap area, read from its first segment: /admin/… is Admin and
+ * /developers/… is Developer. No screen lives under /developers yet: the
+ * Playground and the docs are still sections of the Builder and Get started,
+ * which mark those sections themselves.
  */
-const ROUTE_AUDIENCE: Record<string, Audience> = {
-  "/product": "admin",
-  "/builder": "admin",
-  "/patterns": "admin",
-  "/prompts": "admin",
-  "/tools/new": "admin",
-  "/mcp-servers/new": "admin",
-};
-
 export function routeAudience(href: string): Audience | undefined {
-  return ROUTE_AUDIENCE[href.split("?")[0]];
+  const segment = href.split(/[?#]/)[0].split("/")[1];
+  if (segment === "admin") return "admin";
+  if (segment === "developers") return "developer";
+  return undefined;
 }
 
 /** Text cue shown with the colour, so colour isn't the only signal. */

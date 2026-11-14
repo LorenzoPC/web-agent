@@ -3,8 +3,8 @@ import { AudienceTabLabel } from "@/components/ui/audience-label";
 import { routeAudience } from "@/lib/audience";
 
 const TABS = [
-  { href: "/dashboard", label: "Overview" },
-  { href: "/product", label: "Product" },
+  { href: "/app", label: "Overview" },
+  { href: "/admin", label: "Product" },
 ] as const;
 
 /** Switches between the Dashboard's screens; styled as a smaller sibling of the app nav. */

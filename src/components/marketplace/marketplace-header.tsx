@@ -4,19 +4,19 @@ export const MARKETPLACE_VIEWS = [
   {
     id: "agents",
     label: "Agent Marketplace",
-    href: "/marketplace",
+    href: "/app/marketplace",
     description: "Browse agent pools by role or capability, or pick an individual agent persona below.",
   },
   {
     id: "models",
     label: "Model Marketplace",
-    href: "/marketplace?view=models",
+    href: "/app/marketplace?view=models",
     description: "The models a flow's steps can run on, grouped by what they generate. You pick one per step in the Builder.",
   },
   {
     id: "mcp-tools",
     label: "MCP & Tools Marketplace",
-    href: "/marketplace?view=mcp-tools",
+    href: "/app/marketplace?view=mcp-tools",
     description: "Connect agents to the systems your team already uses, or give them single actions like search and email.",
   },
 ] as const;

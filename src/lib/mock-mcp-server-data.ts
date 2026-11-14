@@ -1,4 +1,4 @@
-// Mock data for Create MCP server (/mcp-servers/new): the datasets a server can
+// Mock data for Create MCP server (/admin/mcp-servers/new): the datasets a server can
 // expose, the catalog tools it can offer, and the departments access rules
 // narrow by. Nothing here is live: publishing only lives in the page's state,
 // and no server is deployed at webagent.dev/mcp/.
@@ -10,7 +10,7 @@ export const MCP_BASE_URL = "https://webagent.dev/mcp/";
 /** Slugs already in use. The URL field checks against these. */
 export const TAKEN_MCP_SLUGS = ["sales-playbook", "engineering-docs", "status"];
 
-// The same four audiences /onboarding serves.
+// The same four audiences /app/onboarding serves.
 export type McpAudience = "internal" | "clients" | "partners" | "resellers";
 
 export const MCP_AUDIENCES: { id: McpAudience; label: string }[] = [

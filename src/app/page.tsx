@@ -93,10 +93,10 @@ export default async function HomePage({
                   that you prefer from Augure, Azure, Anthropic, Gemini, Mistral and OpenAI ready for you to connect.
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  <Link href="/onboarding" className={PRIMARY_LINK}>
+                  <Link href="/app/onboarding" className={PRIMARY_LINK}>
                     {signedIn ? "Connect via MCP" : "Get started"}
                   </Link>
-                  <Link href="/marketplace" className={OUTLINE_LINK}>
+                  <Link href="/app/marketplace" className={OUTLINE_LINK}>
                     Browse the catalog
                   </Link>
                 </div>
