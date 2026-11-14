@@ -9,6 +9,13 @@ Priority definitions:
 
 ---
 
+## Review and prioritize
+
+Not given a priority yet. Move each item to P1, P2 or P3, or drop it.
+
+- [ ] **Landing page: replace the placeholder content.** The success stories (`SUCCESS_STORIES`), the quote (`PLACEHOLDER_QUOTE`) and the Trust & proof goals (`TRUST_POINTS`) in `src/lib/mock-landing-data.ts` are stand-ins, and the page labels the stories and the quote as placeholders. They need real customer stories, a real quote with the person's permission to use it, and confirmed targets for next year (SOC 2 Type II, GDPR, 99.9% uptime). The copy has to come from the business, not be invented.
+- [ ] **Delete the local `wip/shared-checkout` branch.** The shared checkout sat on it until 2026-11-03, when it moved to main. Its one commit that wasn't on main (ADR-0002) landed as `e72d504`, so the branch holds nothing main lacks. It was never pushed, so this is local cleanup only.
+
 ## P1 — Blocking
 
 - [ ] **Proper environment handling — move to centralized storage.** Env vars/secrets (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `DATABASE_URL`, `EXA_API_KEY`, `GITHUB_TOKEN`, etc.) currently live only in per-machine `.env.local` files pulled via `vercel env pull`. Needs a real plan for centralized management as the number of integrations grows (this session alone added 3: Neon, Exa, and a user-supplied GitHub token) — e.g. Vercel's env vars as the single source of truth with a documented pull/sync workflow, rather than ad hoc `.env.local` drift per developer.
