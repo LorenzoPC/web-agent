@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ToolRecipeEditor } from "@/components/tools/tool-recipe-editor";
 import { BLANK_TOOL_RECIPE, MOCK_DISCOVERY_SCRIPT, MOCK_TOOL_TEMPLATES } from "@/lib/mock-data";
 
@@ -6,7 +7,13 @@ export default function NewToolPage() {
     <div className="flex flex-col flex-1 items-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-6xl flex-col gap-6 py-16 px-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
+          <Link
+            href="/admin/tools"
+            className="text-sm text-zinc-500 transition-colors hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+          >
+            ← All tools
+          </Link>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
             Create a tool
           </h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">

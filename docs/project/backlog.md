@@ -44,7 +44,7 @@ Priority definitions:
 - [ ] **Grow the curated catalog further** — 25 hand-written entries today (2 services + 3 local models + 6 agents + 13 hooks/tools + 4 RAG patterns + 3 MCP servers); still a starting set, not exhaustive.
 - [ ] **Widen runnable gateway providers** — `scripts/sync-catalog-models.ts` only marks `openai`/`anthropic` language models and `openai` embedding models as runnable (`blockType` set), matching today's registry; revisit if `src/lib/providers.ts` adds more direct provider SDKs.
 - [ ] **Surface a tool-calling-reliability warning** — the free local default agent model (`llama3.2:latest`) doesn't reliably invoke attached tools (confirmed: claims it "can't search" rather than calling Exa). Proposed as a UI badge in `agentic_component_enhancement.md`'s Reasoning section; still needs an actual allowlist of "known good" tool-calling `modelRef`s defined somewhere.
-- [ ] **Tool "runs for real" vs. "decorative" badge** — 11 of 13+ catalog tools/MCP servers/RAG patterns are catalog-only with no UI indication; `metadata.executor` already flags which ones execute. Proposed in `agentic_component_enhancement.md`'s Tools section.
+- [ ] **Tool "runs for real" vs. "decorative" badge**: 11 of 13+ catalog tools/MCP servers/RAG patterns are catalog-only with no UI indication; `metadata.executor` already flags which ones execute. Proposed in `agentic_component_enhancement.md`'s Tools section. `/admin/tools` now shows it for admins (the Runs column, Live or Catalog only, shipped 2026-11-14); the Marketplace and the Builder still don't.
 - [ ] **Per-slot done-condition field** — Flow Pattern slots currently only carry `defaultInstructions`; `agentic_component_enhancement.md`'s Goals section proposes a separate one-line done-condition, distinct from the instructions themselves.
 - [ ] **Standing reference doc per Business Unit/Role** — a lightweight V1.5 memory candidate reusing the existing RAG mechanics, proposed in `agentic_component_enhancement.md`'s Memory section; depends on Business Units being real (persisted) tables first.
 - [ ] **Human-set `criteriaMet` on a completed run** — lets a person tag a run against its `successCriteria` after the fact (yes/partial/no); proposed in `agentic_component_enhancement.md`'s Evaluation section. Depends on real run persistence landing first (still mock today).
@@ -170,3 +170,8 @@ Priority definitions:
   - Native popover, so the phone nav's scroll strip doesn't clip it; closes on outside click, Escape and navigation
   - On phones the nav scrolls the current tab into view; nav tabs carry `aria-current`
   - Dashboard Overview / Product tabs removed (`dashboard-tabs.tsx` deleted); `/admin` is headed Product overview
+- [x] **Admin Tools list (UI only, mock data)**: shipped 2026-11-14, see design doc's "Admin Tools list":
+  - `/admin/tools`: one row per tool with Category, Runs (Live or Catalog only), Access, Needs and Cost (`tools-table.tsx`); stacked rows below `md`
+  - Category filter in `?category=`; Create tool button; Create a tool links back to the list
+  - Admin facts in `src/lib/mock-admin-tools-data.ts`, keyed by the Marketplace tool ids; Live mirrors the catalog seed's `executor`
+  - Tools added to the Admin menu; the sitemap marks `/admin/tools` built

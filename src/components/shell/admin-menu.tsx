@@ -12,6 +12,7 @@ const ADMIN_SCREENS = [
   { href: "/admin/agents/new", label: "Builder", purpose: "Describe the job, get a proposed flow" },
   { href: "/admin/patterns", label: "Patterns", purpose: "Reusable multi-agent templates" },
   { href: "/admin/prompts", label: "Prompts", purpose: "The prompts library" },
+  { href: "/admin/tools", label: "Tools", purpose: "Every tool on the platform" },
 ] as const;
 
 const ADMIN_CREATE = [

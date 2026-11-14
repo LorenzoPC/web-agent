@@ -18,12 +18,14 @@ export interface MockMarketplaceMcpServer {
   exposes: string[];
 }
 
+export const TOOL_CATEGORIES = ["Search & web", "Text", "Actions", "Compute & media"] as const;
+
 export interface MockMarketplaceTool {
   id: string;
   name: string;
   description: string;
   status: MarketplaceStatus;
-  category: "Search & web" | "Text" | "Actions" | "Compute & media";
+  category: (typeof TOOL_CATEGORIES)[number];
   /** Third-party provider behind the tool, when there is one. */
   provider?: string;
   cost: CostModel;
