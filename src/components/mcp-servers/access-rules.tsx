@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { matchRule } from "@/lib/mcp-server";
 import { MOCK_BUSINESS_UNITS } from "@/lib/mock-data";
 import {
   MCP_ACCESS_LEVELS,
@@ -14,6 +13,19 @@ import {
   type McpDataset,
   type McpToolAccess,
 } from "@/lib/mock-mcp-server-data";
+
+/** The narrowest existing rule that covers these people. Only used to prefill a new rule. */
+function closestBroaderRule(rules: McpAccessRule[], who: Who): McpAccessRule | undefined {
+  const depth = (r: Who) => (r.departmentId ? 2 : r.unitId ? 1 : 0);
+  return rules
+    .filter(
+      (r) =>
+        r.audience === who.audience &&
+        (r.unitId === null || r.unitId === who.unitId) &&
+        (r.departmentId === null || r.departmentId === who.departmentId),
+    )
+    .sort((a, b) => depth(b) - depth(a))[0];
+}
 
 export const SELECT_CLASS =
   "rounded-lg border border-zinc-300 bg-white p-2 text-sm text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50";
@@ -76,8 +88,8 @@ export function AccessRules({
   }
 
   function addRule() {
-    // Starts as a copy of whatever these people get today, so only the differences need setting.
-    const broader = matchRule(rules, draft);
+    // Starts as a copy of the closest broader rule, so only the differences need setting.
+    const broader = closestBroaderRule(rules, draft);
     const id = `rule-${draft.audience}-${draft.unitId ?? "all"}-${draft.departmentId ?? "all"}`;
     onChange([...rules, { id, ...draft, access: { ...(broader?.access ?? {}) }, tools: broader?.tools }]);
   }

@@ -363,8 +363,10 @@ export function McpServerEditor({
             hint="Who can connect, and what they can do with each dataset. Business unit and department come from the person's directory profile when they sign in."
           >
             <p className="text-xs text-zinc-600 dark:text-zinc-400">
-              Each person gets the most specific rule that matches them: their department&apos;s, then their business
-              unit&apos;s, then their audience&apos;s. A new rule starts as a copy of the broader one.{" "}
+              Every rule that matches a person counts, and each dataset gets the highest level any of them grants, so a
+              department rule adds to its business unit&apos;s rule. A rule&apos;s Tools limit is a ceiling for everyone it
+              covers, and external audiences never get Manage and only see their own company&apos;s tickets and accounts.
+              A new rule starts as a copy of the broader one.{" "}
               <span className="font-medium">Read</span> lets tools search and view,{" "}
               <span className="font-medium">Write</span> lets them create and update, and{" "}
               <span className="font-medium">Manage</span> also allows destructive tools.{" "}

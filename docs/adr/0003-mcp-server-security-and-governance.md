@@ -222,7 +222,7 @@ Build MCP servers so that **the server enforces every guarantee itself, on every
 
 **Update the mockup** (`/mcp-servers/new`)
 
-- [ ] Replace `matchRule()` with default deny, the highest grant across matching rules, and ceilings. Show the deciding rules in Preview as.
+- [x] Replace `matchRule()` with default deny, the highest grant across matching rules, and ceilings. Show the deciding rules in Preview as. Done 2026-11-17: the policy engine in `src/lib/mcp-security/policy.ts`, fed by `from-draft.ts`.
 - [ ] Make tools that touch no dataset a grant of their own (decision 7).
 - [ ] Add a server type, Internal or External, and split the Support KB example into two servers.
 - [ ] Make the blank server private by default. Make external company scoping always on for tickets and accounts.
@@ -235,7 +235,7 @@ Build MCP servers so that **the server enforces every guarantee itself, on every
 **Build**
 
 - [ ] A directory record fed by SCIM, the relationship store, row-level security policies, and the audit log table.
-- [ ] The MCP route on `mcp-handler` 2.x, with the checks in decisions 11–16.
+- [ ] The MCP route on `mcp-handler` 2.x, with the checks in decisions 11–16. The authorization checks it needs are built and tested in `src/lib/mcp-security/` (token audience, per-client consent, exact redirect URIs, OAuth state, no token passthrough, the policy engine, the request guard and the hash-chained audit log); the route only has to call `guardToolsList` and `guardToolCall`.
 - [ ] The confirmation page on `webagent.dev`, the consent screen, the customer-admin console and the per-server trust page.
 
 **Legal and compliance**

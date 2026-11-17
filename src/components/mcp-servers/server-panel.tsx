@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { CopyButton } from "@/components/onboarding/copy-button";
 import { CheckList } from "@/components/tools/recipe-panel";
-import { accessFor, checkServer, matchRule, toClientView, type McpPerson } from "@/lib/mcp-server";
+import { checkServer, toClientView, type McpPerson } from "@/lib/mcp-server";
+import { draftPolicies, draftTools, previewPrincipal, ruleLabelId } from "@/lib/mcp-security/from-draft";
+import { allowedTools, effectiveAccess, type Policy } from "@/lib/mcp-security/policy";
 import { MOCK_BUSINESS_UNITS } from "@/lib/mock-data";
 import {
   MCP_ACCESS_LEVELS,
@@ -112,15 +114,31 @@ function PreviewAs({ server, tools }: { server: McpServerDraft; tools: McpCatalo
     unitId: "customer-support",
     departmentId: "support-tier-1",
   });
-  const rule = matchRule(server.rules, person);
+  // Fixed when the panel mounts, so server and browser renders agree.
+  const [now] = useState(() => new Date());
   const exposed = MCP_DATASETS.filter((d) => server.datasetIds.includes(d.id));
-  const external = person.audience !== "internal";
+
+  // The same policy engine the server runs on every call, fed the draft's rules.
+  const policies = draftPolicies(server, tools);
+  const request = { principal: previewPrincipal(person), clientId: "preview", scopes: null, server: server.slug, context: { now } };
+  const { datasets, obligations } = effectiveAccess(policies, request, exposed.map((d) => d.id));
+  const allowed = new Set(allowedTools(policies, request, draftTools(server, tools)).map((t) => t.catalogId));
+  const matching = server.rules.filter(
+    (r) =>
+      r.audience === person.audience &&
+      (r.unitId === null || r.unitId === person.unitId) &&
+      (r.departmentId === null || r.departmentId === person.departmentId),
+  );
+  const policyLabel = (id: string) => {
+    const rule = server.rules.find((r) => id === ruleLabelId(r) || id.startsWith(`${ruleLabelId(r)}:`));
+    return rule ? ruleLabel(rule) : (policies.find((p: Policy) => p.id === id)?.description ?? id);
+  };
 
   return (
     <div className={CARD_CLASS}>
       <h2 className="text-sm font-medium text-black dark:text-zinc-50">Preview as</h2>
       <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-        Pick someone to see which rule applies to them and what their AI client gets.
+        Pick someone to see which rules apply to them and what their AI client gets.
       </p>
       <div className="mt-3 grid grid-cols-1 gap-2">
         <select
@@ -166,22 +184,27 @@ function PreviewAs({ server, tools }: { server: McpServerDraft; tools: McpCatalo
         </div>
       </div>
 
-      {rule ? (
+      {matching.length > 0 ? (
         <>
           <p className="mt-3 text-xs text-zinc-600 dark:text-zinc-400">
-            Rule: <span className="font-medium text-black dark:text-zinc-50">{ruleLabel(rule)}</span>
+            {matching.length === 1 ? "Rule" : "Rules"}:{" "}
+            <span className="font-medium text-black dark:text-zinc-50">{matching.map(ruleLabel).join(", ")}</span>
           </p>
           {exposed.length > 0 && (
             <dl className="mt-2 flex flex-col gap-1 text-xs">
               {exposed.map((dataset) => {
-                const level = accessFor(server, rule, dataset.id);
-                const companyOnly = external && level !== "none" && server.companyScopedIds.includes(dataset.id);
+                const { level, cappedBy } = datasets[dataset.id];
+                const companyOnly =
+                  level !== "none" && obligations.some((o) => o.effect === "forbid" && o.datasetIds.includes(dataset.id));
                 return (
                   <div key={dataset.id} className="flex justify-between gap-2">
                     <dt className="text-zinc-600 dark:text-zinc-400">{dataset.name}</dt>
                     <dd className={level === "none" ? "text-zinc-400 dark:text-zinc-600" : "font-medium text-black dark:text-zinc-50"}>
                       {level === "none" ? "No access" : MCP_ACCESS_LEVELS.find((l) => l.id === level)?.label}
                       {companyOnly && <span className="font-normal text-zinc-500">, own company</span>}
+                      {cappedBy.length > 0 && (
+                        <span className="block font-normal text-zinc-500">Capped: {cappedBy.map(policyLabel).join(", ")}</span>
+                      )}
                     </dd>
                   </div>
                 );
@@ -190,10 +213,10 @@ function PreviewAs({ server, tools }: { server: McpServerDraft; tools: McpCatalo
           )}
           <h3 className="mt-4 text-xs font-medium text-black dark:text-zinc-50">What their AI client sees</h3>
           <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-500">
-            The server&apos;s instructions, and only the tools this rule allows.
+            The server&apos;s instructions, and only the tools these rules allow. The server decides again on every call.
           </p>
           <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-zinc-50 p-3 font-mono text-[11px] leading-relaxed text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
-            {JSON.stringify(toClientView(server, tools, rule), null, 2)}
+            {JSON.stringify(toClientView(server, tools, allowed), null, 2)}
           </pre>
         </>
       ) : (

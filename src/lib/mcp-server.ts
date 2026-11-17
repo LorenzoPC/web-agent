@@ -34,33 +34,23 @@ export interface McpPerson {
   departmentId: string | null;
 }
 
-function specificity(rule: McpAccessRule): number {
-  return rule.departmentId ? 2 : rule.unitId ? 1 : 0;
-}
-
-/** The department rule beats the business unit rule, which beats the audience-wide rule. No match means no access. */
-export function matchRule(rules: McpAccessRule[], person: McpPerson): McpAccessRule | undefined {
-  return rules
-    .filter(
-      (rule) =>
-        rule.audience === person.audience &&
-        (rule.unitId === null || rule.unitId === person.unitId) &&
-        (rule.departmentId === null || rule.departmentId === person.departmentId),
-    )
-    .sort((a, b) => specificity(b) - specificity(a))[0];
-}
-
-export function accessFor(server: McpServerDraft, rule: McpAccessRule | undefined, datasetId: string): McpAccess {
-  if (!rule || !server.datasetIds.includes(datasetId)) return "none";
+/** A rule's level on one dataset, or "none" when the server doesn't expose it. */
+function ruleAccess(server: McpServerDraft, rule: McpAccessRule, datasetId: string): McpAccess {
+  if (!server.datasetIds.includes(datasetId)) return "none";
   return rule.access[datasetId] ?? "none";
 }
 
 function hasDataAccess(server: McpServerDraft, rule: McpAccessRule, tool: McpCatalogTool): boolean {
   const needed = ACCESS_RANK[REQUIRED_ACCESS[tool.safety]];
-  return tool.datasetIds.every((id) => ACCESS_RANK[accessFor(server, rule, id)] >= needed);
+  return tool.datasetIds.every((id) => ACCESS_RANK[ruleAccess(server, rule, id)] >= needed);
 }
 
-/** Enough access on every dataset the tool touches, and the rule's Tools setting doesn't hold it back. */
+/**
+ * Whether one rule, on its own, lets people use a tool: enough access on every
+ * dataset the tool touches, and the rule's Tools setting doesn't hold it back.
+ * For publish checks. What a person actually gets combines every rule that
+ * matches them, through the policy engine (src/lib/mcp-security/).
+ */
 export function canUseTool(server: McpServerDraft, rule: McpAccessRule | undefined, tool: McpCatalogTool): boolean {
   if (!rule) return false;
   const tools = rule.tools ?? "per-tool";
@@ -73,15 +63,15 @@ function annotations(safety: McpToolSafety) {
 }
 
 /**
- * What a person's AI client receives on connecting: the server's instructions
- * (from initialize) and only the tools their rule allows (from tools/list).
+ * What a person's AI client receives: the server's instructions, and from
+ * tools/list only the tools the policy engine allows them (`allowedToolIds`).
  */
-export function toClientView(server: McpServerDraft, tools: McpCatalogTool[], rule: McpAccessRule | undefined) {
+export function toClientView(server: McpServerDraft, tools: McpCatalogTool[], allowedToolIds: ReadonlySet<string>) {
   return {
     name: server.slug,
     instructions: server.instructions,
     tools: tools
-      .filter((tool) => server.toolIds.includes(tool.id) && canUseTool(server, rule, tool))
+      .filter((tool) => server.toolIds.includes(tool.id) && allowedToolIds.has(tool.id))
       .map((tool) => ({ name: tool.toolName, description: tool.description, annotations: annotations(tool.safety) })),
   };
 }
