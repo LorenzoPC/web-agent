@@ -1,6 +1,6 @@
 # ADR-0003 — MCP servers: security and governance for publishing company data to AI clients
 
-**Status:** Proposed. The Create MCP server screen (`/mcp-servers/new`) is a mockup built before this research, and several decisions below change it (see Follow-ups). No MCP endpoint exists yet.
+**Status:** Proposed. The Create MCP server screen (`/mcp-servers/new`) is a mockup built before this research, and several decisions below change it (see Follow-ups). The authorization checks and policy engine are built and tested as a library (`src/lib/mcp-security/`, 2026-11-17), but no MCP endpoint exists yet.
 **Created:** 2026-10-26
 **Related:** Research report [`../research/reports/MCP server security and governance.md`](../research/reports/MCP%20server%20security%20and%20governance.md) (91 sources) and its [notes](../research/research_notes/MCP%20server%20security%20and%20governance/); Create MCP server screen (`src/app/mcp-servers/new/`, `src/components/mcp-servers/`, `src/lib/mcp-server.ts`, `src/lib/mock-mcp-server-data.ts`); Get started page (`/onboarding`), which promises one OAuth URL whose access mirrors each person's own permissions.
 
@@ -213,32 +213,67 @@ Build MCP servers so that **the server enforces every guarantee itself, on every
 
 ## Follow-ups
 
-**Verify before building**
+The plan, in phases. Phases 1 and 2 need no backend and can run in parallel. Phase 3 onward depends on the authorization server choice in phase 2.
 
-- [ ] Test form- and URL-mode elicitation (`InputRequiredResult`) from a remote connector in claude.ai, Claude Desktop and ChatGPT. Decision 20 depends on it.
-- [ ] Find out which MCP protocol versions Claude and ChatGPT send today, to know how long the 2025-era fallback must live.
-- [ ] Choose the authorization server. Check support for CIMD, RFC 9207 `iss`, JWT-bearer / ID-JAG and per-tenant issuer allowlists (WorkOS, Stytch, Descope, Auth0, Clerk, or our own).
-- [ ] See how Claude and ChatGPT react to `toolsListChanged` from a remote connector.
+### Done
 
-**Update the mockup** (`/mcp-servers/new`)
+**2026-11-17: the authorization layer, as a tested library** (`src/lib/mcp-security/`, branch `feature/mcp-security`, 57 tests, `npm test`). It covers the MCP spec's mandatory patterns and the permission model in decisions 4–6, 8 and 10, with in-memory stores and no endpoint yet:
 
-- [x] Replace `matchRule()` with default deny, the highest grant across matching rules, and ceilings. Show the deciding rules in Preview as. Done 2026-11-17: the policy engine in `src/lib/mcp-security/policy.ts`, fed by `from-draft.ts`.
-- [ ] Make tools that touch no dataset a grant of their own (decision 7).
+- [x] Token checks on every request, with an exact audience per slug (decision 1), RFC 9068 `typ: at+jwt` and asymmetric algorithms only (`token.ts`).
+- [x] Per-client consent, keyed by the person's `(iss, sub)`, the client and the server, checked on every call (`consent.ts`).
+- [x] Exact redirect URI matching, and registration checks that refuse wildcards, fragments and plain `http` outside loopback (`redirect.ts`).
+- [x] Single-use OAuth state: 256 bits, 10-minute lifetime, bound to the client, redirect URI and browser, stored as a hash (`state.ts`).
+- [x] No token passthrough: RFC 8693 token exchange, and a fetch wrapper that refuses to send the caller's token downstream (`delegation.ts`).
+- [x] The policy engine (decision 6): deny by default, the highest grant wins, forbids always win, conditions that can't be evaluated fail closed, and every decision names its policies. It combines audiences, roles, attributes, company relationships (decision 9), time windows, ticket binding, posture and token scopes (decision 5) in one evaluation. Record-level checks come back as obligations for the caller to enforce (`policy.ts`).
+- [x] One enforcement point for `tools/list` and every `tools/call` (decision 10), answering 401 or 403 with `WWW-Authenticate`, including scope step-up (`guard.ts`).
+- [x] A hash-chained audit event per decision, with arguments stored as an HMAC (decision 29, partly: `audit.ts`).
+- [x] Replace `matchRule()` with default deny, the highest grant across matching rules, and ceilings. Preview as runs the engine through `from-draft.ts`, lists every matching rule and shows what capped a dataset. External audiences never get Manage and always see only their own company's tickets and accounts.
+
+### Phase 1: finish the mockup (`/admin/mcp-servers/new`)
+
+- [ ] Make tools that touch no dataset a grant of their own (decision 7). The engine supports it (`grant.tools`); the screen needs a control, and `from-draft.ts` stops granting them to every rule.
+- [ ] Base `checkServer`'s "Nobody can use" warnings on the engine, so a Read-only ceiling on one rule shows up when it blocks a tool another rule grants.
+- [ ] Add a client and a scope picker to Preview as, and show the deciding policies and obligations per tool. The engine already returns them.
 - [ ] Add a server type, Internal or External, and split the Support KB example into two servers.
-- [ ] Make the blank server private by default. Make external company scoping always on for tickets and accounts.
-- [ ] Set all three annotations on every tool, and mark `send_email` destructive. Drop the "from initialize" wording in `toClientView`.
+- [ ] Make the blank server private by default. Remove the company-scoping switch, which the engine now applies anyway for tickets and accounts.
+- [ ] Set all three annotations on every tool, and mark `send_email` destructive.
 - [ ] Add the trifecta check and the model-text lint to `checkServer`.
 - [ ] Replace the single monthly budget with per-person and per-company budgets.
 - [ ] Reserve retired slugs in `slugProblem`.
-- [ ] Mock the publish flow: a second approver, versions, and a diff of what changed.
+- [ ] Mock the publish flow: a second approver, versions, and a diff of what changed. Show who gains or loses access, using the engine on the old and new policies.
 
-**Build**
+### Phase 2: verify before building
 
-- [ ] A directory record fed by SCIM, the relationship store, row-level security policies, and the audit log table.
-- [ ] The MCP route on `mcp-handler` 2.x, with the checks in decisions 11–16. The authorization checks it needs are built and tested in `src/lib/mcp-security/` (token audience, per-client consent, exact redirect URIs, OAuth state, no token passthrough, the policy engine, the request guard and the hash-chained audit log); the route only has to call `guardToolsList` and `guardToolCall`.
-- [ ] The confirmation page on `webagent.dev`, the consent screen, the customer-admin console and the per-server trust page.
+- [ ] Choose the authorization server. Check support for CIMD, RFC 9207 `iss`, JWT-bearer / ID-JAG, per-tenant issuer allowlists, and RFC 8693 token exchange, which `delegation.ts` relies on (WorkOS, Stytch, Descope, Auth0, Clerk, or our own). Decide whether its consent step can call our consent registry, or whether we host that step ourselves with `redirect.ts` and `state.ts`.
+- [ ] Test form- and URL-mode elicitation (`InputRequiredResult`) from a remote connector in claude.ai, Claude Desktop and ChatGPT. Decision 20 depends on it.
+- [ ] Find out which MCP protocol versions Claude and ChatGPT send today, to know how long the 2025-era fallback must live.
+- [ ] See how Claude and ChatGPT react to `toolsListChanged` from a remote connector.
 
-**Legal and compliance**
+### Phase 3: storage
+
+- [ ] Postgres tables behind the library's store interfaces: consent (unique on `iss, sub, client_id, resource`), OAuth state (single-use, with expiry cleanup) and the audit log (append-only, keeping the hash chain). No module-level caches on Vercel.
+- [ ] The directory record fed by SCIM or per-tenant claim mapping, read on every request (`GuardDeps.directory`).
+- [ ] The relationship store, preloaded per request into `PolicyContext.related`.
+- [ ] Policies stored per server and per published manifest version, instead of derived from the draft on the fly.
+- [ ] Row-level security policies that enforce the engine's obligations (own company, ticket binding) in the database.
+
+### Phase 4: the MCP route
+
+- [ ] `/mcp/[slug]` on `mcp-handler` 2.x, calling `guardToolsList` and `guardToolCall`, with the other checks in decisions 11–16.
+- [ ] Protected Resource Metadata at `/.well-known/oauth-protected-resource/mcp/<slug>`, at the URL `resourceMetadataUrl()` already puts in 401 answers.
+- [ ] Turn each obligation into a query filter or row-level security setting before any data is read.
+- [ ] Downstream calls only through token exchange and `guardedFetch`. Move `src/lib/tools/github-mcp.ts` off the shared `GITHUB_TOKEN` to per-person tokens.
+
+### Phase 5: people-facing pieces
+
+- [ ] The consent screen (decision 31), writing to the consent registry, plus a "connected apps" page per person (`listForSubject`).
+- [ ] The confirmation page on `webagent.dev` (decision 20).
+- [ ] The customer-admin console (decision 32): who connected from which client, revoke a person or a company, restrict clients, export audit logs.
+- [ ] The per-server trust page.
+- [ ] The five kill switches (decision 28) as revocations the guard reads on every request.
+- [ ] Audit streaming to customers' SIEMs, with about a year of retention plus legal hold.
+
+### Legal and compliance
 
 - [ ] A DPIA template for servers with external audiences, and the Law 25 assessments.
 - [ ] Contract terms for partners and resellers: the AI client sits outside our processing chain, onward transfer, and the deprecation notice we commit to. The research found no primary sources on this, so it needs legal review.
