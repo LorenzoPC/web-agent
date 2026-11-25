@@ -1,0 +1,108 @@
+/*
+ * Orange marks UI that needs a backend that isn't built yet. Mark the element
+ * with `{...unbuilt("action" | "panel", "what's missing")}` from src/lib/unbuilt.ts:
+ * an action is a control whose effect needs the backend, a panel is a section or
+ * card whose data is mocked.
+ *
+ * Taken from web-agent's src/app/globals.css (commit 6e98576). Import it from
+ * your main stylesheet, after Tailwind:
+ *
+ *   @import "tailwindcss";
+ *   @import "./unbuilt.css";
+ *
+ * The rules sit outside Tailwind's layers on purpose: unlayered CSS beats every
+ * utility, so the orange wins over the element's own bg-*, text-*, hover:* and
+ * dark:* classes without editing them.
+ */
+
+:root {
+  --unbuilt: #f97316;
+  --unbuilt-hover: #ea580c;
+  --unbuilt-border: #ea580c;
+  --unbuilt-foreground: #171717;
+  --unbuilt-surface: #ffedd5;
+  --unbuilt-surface-hover: #fed7aa;
+  --unbuilt-surface-border: #fb923c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Hover goes lighter here, so the dark text keeps its contrast. */
+    --unbuilt-hover: #fb923c;
+    --unbuilt-surface: #2a1406;
+    --unbuilt-surface-hover: #3b1d09;
+    --unbuilt-surface-border: #c2410c;
+  }
+}
+
+/* Lets Tailwind classes such as bg-unbuilt use the same colours. The MCP page doesn't need them. */
+@theme inline {
+  --color-unbuilt: var(--unbuilt);
+  --color-unbuilt-hover: var(--unbuilt-hover);
+  --color-unbuilt-border: var(--unbuilt-border);
+  --color-unbuilt-foreground: var(--unbuilt-foreground);
+  --color-unbuilt-surface: var(--unbuilt-surface);
+  --color-unbuilt-surface-hover: var(--unbuilt-surface-hover);
+  --color-unbuilt-surface-border: var(--unbuilt-surface-border);
+}
+
+[data-unbuilt="action"] {
+  background-color: var(--unbuilt);
+  border-color: var(--unbuilt-border);
+  color: var(--unbuilt-foreground);
+}
+
+/* Hints and icons inside the control go dark too, or zinc-500 would sit on orange. */
+[data-unbuilt="action"] * {
+  color: inherit;
+}
+
+/* An unwired input (e.g. a search over a mock index) gets the fill too. */
+[data-unbuilt="action"]::placeholder {
+  color: inherit;
+  opacity: 0.75;
+}
+
+[data-unbuilt="action"]:hover:not(:disabled, [aria-disabled="true"]) {
+  background-color: var(--unbuilt-hover);
+}
+
+/* The fill replaces any disabled:bg-* grey, so a disabled action fades instead. */
+[data-unbuilt="action"]:is(:disabled, [aria-disabled="true"]) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[data-unbuilt="panel"] {
+  background-color: var(--unbuilt-surface);
+  border-color: var(--unbuilt-surface-border);
+}
+
+/* A panel that is itself clickable (a card that opens details) keeps hover and selected feedback. */
+:is(a, button)[data-unbuilt="panel"]:hover {
+  background-color: var(--unbuilt-surface-hover);
+}
+
+/* web-agent uses its --foreground token here; currentColor is the fallback if your app has none. */
+[data-unbuilt="panel"]:is([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-current="true"]) {
+  border-color: var(--foreground, currentColor);
+}
+
+/*
+ * On the light tint these text colours fall just under 4.5:1 (zinc-500 4.22,
+ * red-600 4.21, amber-700 4.38, green-700 4.38), so each steps one shade darker.
+ */
+@media not (prefers-color-scheme: dark) {
+  [data-unbuilt="panel"] .text-zinc-500 {
+    color: var(--color-zinc-600);
+  }
+  [data-unbuilt="panel"] .text-red-600 {
+    color: var(--color-red-700);
+  }
+  [data-unbuilt="panel"] .text-amber-700 {
+    color: var(--color-amber-800);
+  }
+  [data-unbuilt="panel"] .text-green-700 {
+    color: var(--color-green-800);
+  }
+}
