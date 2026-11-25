@@ -2,6 +2,7 @@
 
 **Status:** Proposed. The Create MCP server screen (`/mcp-servers/new`) is a mockup built before this research, and several decisions below change it (see Follow-ups). No MCP endpoint exists yet.
 **Created:** 2026-10-26
+**Amended by:** [ADR-0004](0004-mcp-per-person-sign-in.md) (2026-11-25): decision 2 now names the authorization server approach, and decision 3 is no longer a main path.
 **Related:** Research report [`../research/reports/MCP server security and governance.md`](../research/reports/MCP%20server%20security%20and%20governance.md) (91 sources) and its [notes](../research/research_notes/MCP%20server%20security%20and%20governance/); Create MCP server screen (`src/app/mcp-servers/new/`, `src/components/mcp-servers/`, `src/lib/mcp-server.ts`, `src/lib/mock-mcp-server-data.ts`); Get started page (`/onboarding`), which promises one OAuth URL whose access mirrors each person's own permissions.
 
 ---
