@@ -1,23 +1,7 @@
-import type { MockAdminTool, ToolCredential } from "@/lib/mock-admin-tools-data";
+import type { MockAdminTool } from "@/lib/mock-admin-tools-data";
 import { formatCostModel } from "@/lib/pipeline-data";
 import { unbuilt } from "@/lib/unbuilt";
-
-const HEAD = "px-4 py-2.5 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400";
-const CELL = "px-4 py-3 align-top";
-
-function Runs({ live }: { live: boolean }) {
-  return (
-    <span className="flex items-center gap-1.5 whitespace-nowrap">
-      <span
-        aria-hidden="true"
-        className={`size-2 rounded-full ${live ? "bg-emerald-600 dark:bg-emerald-400" : "bg-zinc-300 dark:bg-zinc-600"}`}
-      />
-      <span className={live ? "text-black dark:text-zinc-50" : "text-zinc-500 dark:text-zinc-400"}>
-        {live ? "Live" : "Catalog only"}
-      </span>
-    </span>
-  );
-}
+import { BetaBadge, LIST_CARD as CARD, LIST_CELL as CELL, LIST_HEAD as HEAD, LIST_LABEL, Needs, Runs } from "./tool-facts";
 
 function Access({ tool }: { tool: MockAdminTool }) {
   if (tool.sideEffects === "read") return <span className="text-zinc-600 dark:text-zinc-400">Read only</span>;
@@ -29,27 +13,12 @@ function Access({ tool }: { tool: MockAdminTool }) {
   );
 }
 
-function Needs({ credential }: { credential: ToolCredential }) {
-  switch (credential.kind) {
-    case "none":
-      return <span className="text-zinc-400 dark:text-zinc-500">Nothing</span>;
-    case "envVar":
-      return <code className="font-mono text-xs text-zinc-700 dark:text-zinc-300">{credential.name}</code>;
-    case "signIn":
-      return <span className="text-zinc-600 dark:text-zinc-400">{credential.label}</span>;
-  }
-}
-
 function NameAndDescription({ tool }: { tool: MockAdminTool }) {
   return (
     <>
       <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="font-medium text-black dark:text-zinc-50">{tool.name}</span>
-        {tool.status === "Beta" && (
-          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-            Beta
-          </span>
-        )}
+        {tool.status === "Beta" && <BetaBadge />}
       </span>
       <span className="mt-0.5 block text-zinc-500 dark:text-zinc-400">
         {tool.description}
@@ -58,8 +27,6 @@ function NameAndDescription({ tool }: { tool: MockAdminTool }) {
     </>
   );
 }
-
-const CARD = "rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950";
 
 /**
  * Every tool on the platform, with what an admin checks before an agent relies on it.
@@ -74,15 +41,15 @@ export function ToolsTable({ tools }: { tools: MockAdminTool[] }) {
           <li key={tool.id} className="px-4 py-3">
             <NameAndDescription tool={tool} />
             <dl className="mt-3 grid grid-cols-[5rem_1fr] gap-x-3 gap-y-1.5">
-              <dt className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">Runs</dt>
+              <dt className={LIST_LABEL}>Runs</dt>
               <dd><Runs live={tool.live} /></dd>
-              <dt className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">Access</dt>
+              <dt className={LIST_LABEL}>Access</dt>
               <dd><Access tool={tool} /></dd>
-              <dt className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">Needs</dt>
+              <dt className={LIST_LABEL}>Needs</dt>
               <dd><Needs credential={tool.credential} /></dd>
-              <dt className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">Cost</dt>
+              <dt className={LIST_LABEL}>Cost</dt>
               <dd className="tabular-nums text-zinc-600 dark:text-zinc-400">{formatCostModel(tool.cost)}</dd>
-              <dt className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">Category</dt>
+              <dt className={LIST_LABEL}>Category</dt>
               <dd className="text-zinc-600 dark:text-zinc-400">{tool.category}</dd>
             </dl>
           </li>

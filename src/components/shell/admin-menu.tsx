@@ -13,6 +13,7 @@ const ADMIN_SCREENS = [
   { href: "/admin/patterns", label: "Patterns", purpose: "Reusable multi-agent templates" },
   { href: "/admin/prompts", label: "Prompts", purpose: "The prompts library" },
   { href: "/admin/tools", label: "Tools", purpose: "Every tool on the platform" },
+  { href: "/admin/mcp-servers", label: "MCP servers", purpose: "Ones we publish, and ones agents use" },
 ] as const;
 
 const ADMIN_CREATE = [

@@ -65,6 +65,16 @@ export default async function ToolsPage({
         </div>
 
         <ToolsTable tools={tools} />
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          Tools that come from an MCP server, like GitHub&apos;s or Slack&apos;s, are listed with their server on{" "}
+          <Link
+            href="/admin/mcp-servers"
+            className="font-medium text-black underline underline-offset-2 dark:text-zinc-50"
+          >
+            MCP servers
+          </Link>
+          .
+        </p>
       </main>
     </div>
   );

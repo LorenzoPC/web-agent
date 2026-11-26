@@ -204,3 +204,8 @@ Not given a priority yet. Move each item to P1, P2 or P3, or drop it.
   - Category filter in `?category=`; Create tool button; Create a tool links back to the list
   - Admin facts in `src/lib/mock-admin-tools-data.ts`, keyed by the Marketplace tool ids; Live mirrors the catalog seed's `executor`
   - Tools added to the Admin menu; the sitemap marks `/admin/tools` built
+- [x] **Admin MCP servers list (UI only, mock data)**: shipped 2026-11-26, see design doc's "Admin MCP servers list":
+  - `/admin/mcp-servers`: Published to AI clients (main server, three published, Support knowledge base draft) and Connected for agents (GitHub, Slack, Filesystem), each a table from `md` up and stacked rows on phones (`server-lists.tsx`)
+  - Data in `src/lib/mock-admin-mcp-data.ts`; Connected extends the Marketplace entries by id and Live mirrors the catalog seed's `executor`
+  - Shared Admin list cells in `tool-facts.tsx`; MCP servers added to the Admin menu; the Tools page and the create page link to it; the sitemap marks it built
+  - Both lists carry the orange unbuilt tint; the URL question is "MCP connection: decide the MCP URL"

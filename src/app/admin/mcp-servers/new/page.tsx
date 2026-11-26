@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { McpServerEditor } from "@/components/mcp-servers/mcp-server-editor";
 import { MCP_CATALOG_TOOLS, MCP_SERVER_TEMPLATES } from "@/lib/mock-mcp-server-data";
 
@@ -6,7 +7,13 @@ export default function NewMcpServerPage() {
     <div className="flex flex-col flex-1 items-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-6xl flex-col gap-6 py-16 px-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
+          <Link
+            href="/admin/mcp-servers"
+            className="text-sm text-zinc-500 transition-colors hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+          >
+            ← All MCP servers
+          </Link>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-black dark:text-zinc-50">
             Create an integration with Our MCP
           </h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
