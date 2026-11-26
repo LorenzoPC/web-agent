@@ -10,8 +10,8 @@ import { useSidePanel } from "./side-panel";
 // Client workspace screens. The Admin screens sit behind the Admin menu at the end of the nav.
 const LINKS = [
   { href: "/app/onboarding", label: "Get started" },
-  { href: "/app", label: "Dashboard" },
-  { href: "/app/marketplace", label: "Marketplace" },
+  { href: "/app", label: "Dashboards" },
+  { href: "/app/marketplace", label: "Marketplaces" },
 ] as const;
 
 /** Nav or Admin menu label for a path, falling back to the path itself for screens in neither (e.g. /services). */

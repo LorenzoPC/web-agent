@@ -52,7 +52,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
   );
 }
 
-/** Same pill toggle as the Marketplace's Capabilities/Roles switch. */
+/** Pill toggle, the same look as `LinkToggle` in src/components/dashboard/link-toggle.tsx. */
 export function Segmented<T extends string>({
   label,
   options,

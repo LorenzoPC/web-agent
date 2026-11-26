@@ -3,7 +3,7 @@ import Link from "next/link";
 /**
  * Segmented control whose options are links, so the choice lives in the URL
  * (shareable, back-button friendly) and the page stays a Server Component.
- * Same look as the Marketplace's Capabilities/Roles toggle.
+ * Same look as `Segmented` in src/components/tools/form-controls.tsx.
  */
 export function LinkToggle({
   label,

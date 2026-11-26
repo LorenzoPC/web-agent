@@ -166,6 +166,12 @@ Not given a priority yet. Move each item to P1, P2 or P3, or drop it.
   - Model Marketplace (`model-marketplace.tsx`): `MOCK_MODEL_TYPE_GROUPS`, one section per output type
   - MCP & Tools Marketplace (`mcp-tools-marketplace.tsx`): curated MCP servers and tools from `src/lib/mock-marketplace-data.ts`, with links to Create MCP server (admin) and Create tool
   - The agent pools toggle now reads Roles | Capabilities and opens on Roles
+- [x] **Dashboards and Marketplaces labels, Marketplace pools without the toggle (UI only, mock data)**: shipped 2026-11-25, see design doc's "Dashboards and Marketplaces labels, Marketplace pools":
+  - The nav's Dashboard and Marketplace tabs read Dashboards and Marketplaces
+  - Business Capabilities Agents shows the Roles pools, then the Capabilities pools under their own heading, and the Roles | Capabilities toggle is removed
+  - Pool cards fill two columns, and the selected pool's details sit in a third column that stays in view, instead of expanding the card in place. The layout is a reusable `CardDetailGrid` (`src/components/ui/card-detail-grid.tsx`)
+  - Every card has four rows (title, two of description, labels), and the details column starts level with the first card
+  - Model Marketplace: each type of output is a list (a table from `lg` up, stacked rows below) instead of a grid of cards
 - [x] **Builder as one page**: shipped 2026-11-01, see design doc's "Builder as one page":
   - Removed the Ecosystem / Pipeline / History switcher, `ecosystem-tab.tsx`, `catalog-search-modal.tsx` and `selectable-card.tsx`. `history-tab.tsx` became `run-history.tsx`, a section below the pipeline. `/api/ecosystem/*` and the catalog database stay
   - `display-grid.tsx`: a display card beside a grid of compact cards, for Pipeline steps and each model type
