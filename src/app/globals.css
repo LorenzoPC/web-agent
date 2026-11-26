@@ -22,9 +22,10 @@
   --unbuilt-hover: #ea580c;
   --unbuilt-border: #ea580c;
   --unbuilt-foreground: #171717;
-  --unbuilt-surface: #ffedd5;
-  --unbuilt-surface-hover: #fed7aa;
-  --unbuilt-surface-border: #fb923c;
+  --unbuilt-surface: #fed7aa;
+  --unbuilt-surface-hover: #fdba74;
+  --unbuilt-surface-border: #f97316;
+  --unbuilt-glow: rgb(249 115 22 / 0.55);
 }
 
 @theme inline {
@@ -43,6 +44,7 @@
   --color-unbuilt-surface: var(--unbuilt-surface);
   --color-unbuilt-surface-hover: var(--unbuilt-surface-hover);
   --color-unbuilt-surface-border: var(--unbuilt-surface-border);
+  --color-unbuilt-glow: var(--unbuilt-glow);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -96,9 +98,10 @@
 
     /* Hover goes lighter here, so the dark text keeps its contrast. */
     --unbuilt-hover: #fb923c;
-    --unbuilt-surface: #2a1406;
-    --unbuilt-surface-hover: #3b1d09;
-    --unbuilt-surface-border: #c2410c;
+    --unbuilt-surface: #3b1d09;
+    --unbuilt-surface-hover: #4a250c;
+    --unbuilt-surface-border: #f97316;
+    --unbuilt-glow: rgb(249 115 22 / 0.6);
   }
 }
 
@@ -116,10 +119,20 @@ body {
  * purpose: unlayered CSS beats every utility, so the orange wins over the
  * element's own bg-*, text-*, hover:* and dark:* classes without editing them.
  */
+/*
+ * The glow is a box-shadow, so it lists Tailwind's own shadow layers first:
+ * focus rings and shadow-* utilities on the element keep working under it.
+ */
+[data-unbuilt] {
+  --unbuilt-tw-shadows: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000),
+    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);
+}
+
 [data-unbuilt="action"] {
   background-color: var(--unbuilt);
   border-color: var(--unbuilt-border);
   color: var(--unbuilt-foreground);
+  box-shadow: var(--unbuilt-tw-shadows), 0 0 0 1px var(--unbuilt-border), 0 0 12px 2px var(--unbuilt-glow);
 }
 
 /* Hints and icons inside the control go dark too, or zinc-500 would sit on orange. */
@@ -141,11 +154,13 @@ body {
 [data-unbuilt="action"]:is(:disabled, [aria-disabled="true"]) {
   opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: var(--unbuilt-tw-shadows), 0 0 0 1px var(--unbuilt-border);
 }
 
 [data-unbuilt="panel"] {
   background-color: var(--unbuilt-surface);
   border-color: var(--unbuilt-surface-border);
+  box-shadow: var(--unbuilt-tw-shadows), 0 0 0 1px var(--unbuilt-surface-border), 0 0 18px 3px var(--unbuilt-glow);
 }
 
 /* A panel that is itself clickable (a card that opens details) keeps hover and selected feedback. */
@@ -158,8 +173,8 @@ body {
 }
 
 /*
- * On the light tint these text colours fall just under 4.5:1 (zinc-500 4.22,
- * red-600 4.21, amber-700 4.38, green-700 4.38), so each steps one shade darker.
+ * On the light tint these text colours fall under 4.5:1 (zinc-500 3.57,
+ * red-600, amber-700, green-700 and emerald-700 4.05), so each steps one shade darker.
  */
 @media not (prefers-color-scheme: dark) {
   [data-unbuilt="panel"] .text-zinc-500 {
@@ -173,6 +188,9 @@ body {
   }
   [data-unbuilt="panel"] .text-green-700 {
     color: var(--color-green-800);
+  }
+  [data-unbuilt="panel"] .text-emerald-700 {
+    color: var(--color-emerald-800);
   }
 }
 
