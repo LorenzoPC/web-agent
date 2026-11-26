@@ -1,8 +1,9 @@
 "use client";
 
-import { CardDetailGrid, CardLabels, type CardFace, type DetailPlacement } from "@/components/ui/card-detail-grid";
+import { CardDetailGrid, type CardFace } from "@/components/ui/card-detail-grid";
 import type { MockAgentPool } from "@/lib/mock-data";
 import { unbuilt } from "@/lib/unbuilt";
+import { AGENTS_DEPARTMENTS_PICK } from "./agents-departments";
 
 const PHASES = [
   { id: "pre", label: "Pre" },
@@ -25,27 +26,13 @@ function poolFace(pool: MockAgentPool): CardFace {
   return { title: pool.name, description: pool.description, labels };
 }
 
-/**
- * The selected pool's agents and business processes. In the detail column it
- * repeats the pool's name, description and labels; under its own card (phones)
- * it doesn't.
- */
-function PoolDetail({ pool, placement }: { pool: MockAgentPool; placement: DetailPlacement }) {
+/** The selected pool's agents and business processes, after the details' title and pick. */
+function PoolDetail({ pool }: { pool: MockAgentPool }) {
   const agents = pool.agents ?? [];
   const hasContent = agents.length > 0 || pool.processes != null;
 
   return (
     <div className="flex flex-col gap-4">
-      {placement === "column" && (
-        <div className="flex flex-col gap-2">
-          <div>
-            <h3 className="text-sm font-medium text-black dark:text-zinc-50">{pool.name}</h3>
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">{pool.description}</p>
-          </div>
-          <CardLabels labels={poolFace(pool).labels ?? []} />
-        </div>
-      )}
-
       {!hasContent && (
         <p className="text-xs text-zinc-400 dark:text-zinc-600">No details mapped to this pool yet.</p>
       )}
@@ -125,9 +112,10 @@ export function AgentPoolsSection({
         ]}
         getId={(pool) => pool.id}
         card={poolFace}
-        renderDetail={(pool, placement) => <PoolDetail pool={pool} placement={placement} />}
+        renderDetail={(pool) => <PoolDetail pool={pool} />}
         emptyDetail="Select a pool to see its agents and the work it covers."
         detailLabel="Selected pool"
+        pick={AGENTS_DEPARTMENTS_PICK}
         cardProps={MOCK_CATALOG}
         detailProps={MOCK_CATALOG}
       />

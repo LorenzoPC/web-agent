@@ -1,14 +1,12 @@
 "use client";
 
 import { Fragment, useState, type ReactNode } from "react";
-
-/** Where the detail card is shown: in the third column, or under its own card (below `lg`). */
-export type DetailPlacement = "column" | "below";
+import { PickCheckbox, PickedMark } from "./pick-checkbox";
 
 /** What a card shows, always in four rows: the title, two of description, then the labels. */
 export interface CardFace {
   title: string;
-  /** Cut to two lines on the card. Show it in full in the details. */
+  /** Cut to two lines on the card. The details show it in full. */
   description: string;
   /** Short facts in pills on the last row, e.g. "34 entries". Whatever doesn't fit is cut. */
   labels?: string[];
@@ -24,7 +22,17 @@ export interface CardDetailGroup<T> {
   empty?: string;
 }
 
-/** A row of label pills, as on the cards. Use it in the details to repeat a card's labels. */
+/** A checkbox call to action in the opened details, e.g. "Add to my Agents Departments". */
+export interface CardPick {
+  /** The checkbox's label. */
+  label: string;
+  /** Tooltip and screen reader text of the mark on a picked card. */
+  picked: string;
+  /** Extra attributes for the checkbox, e.g. `unbuilt("action", …)`. */
+  props?: Record<string, string>;
+}
+
+/** A row of label pills, as on the cards. */
 export function CardLabels({ labels }: { labels: string[] }) {
   return (
     <span className="flex h-5 flex-nowrap gap-1.5 overflow-hidden">
@@ -60,8 +68,12 @@ function GroupHeading({ group }: { group: CardDetailGroup<unknown> }) {
  * instead. Clicking the selected card again closes it.
  *
  * Every card has the same four rows (title, two of description, labels), so
- * cards line up whatever their text. Groups share one selection and one detail
- * column, so several labelled sets of cards can sit beside a single panel.
+ * cards line up whatever their text. In the third column the details start with
+ * the card's title, full description and labels; under the card they don't
+ * repeat them. With `pick`, the details also offer a checkbox to pick the item,
+ * and picked cards show a check. Groups share one selection, one set of picks
+ * and one detail column, so several labelled sets of cards can sit beside a
+ * single panel.
  *
  * Use it wherever a card has more to show than fits on it.
  */
@@ -72,6 +84,7 @@ export function CardDetailGrid<T>({
   renderDetail,
   emptyDetail,
   detailLabel,
+  pick,
   cardProps,
   detailProps,
 }: {
@@ -79,31 +92,59 @@ export function CardDetailGrid<T>({
   getId: (item: T) => string;
   /** What each card shows. The component lays it out in four rows. */
   card: (item: T) => CardFace;
-  /**
-   * What the detail card shows for the selected item. Under its own card the
-   * detail can skip repeating what the card already says.
-   */
-  renderDetail: (item: T, placement: DetailPlacement) => ReactNode;
+  /** The rest of the selected item's details, after the title, description, labels and pick. */
+  renderDetail: (item: T) => ReactNode;
   /** Shown in the detail column until a card is selected. */
   emptyDetail: string;
   /** Accessible name of the detail column, e.g. "Selected pool". */
   detailLabel: string;
+  /** Adds a checkbox call to action to the details. Picks only live in the page's state. */
+  pick?: CardPick;
   /** Extra attributes for every card, e.g. `unbuilt("panel", …)`. */
   cardProps?: Record<string, string>;
   /** Extra attributes for the detail card. */
   detailProps?: Record<string, string>;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [pickedIds, setPickedIds] = useState<Set<string>>(new Set());
   const selected = groups.flatMap((group) => group.items).find((item) => getId(item) === selectedId);
   const [first, ...rest] = groups;
 
-  function detailCard(item: T, placement: DetailPlacement) {
+  function setPicked(id: string, checked: boolean) {
+    setPickedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function detailCard(item: T, inColumn: boolean) {
+    const id = getId(item);
+    const face = card(item);
     return (
       <div
         {...detailProps}
-        className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+        className="flex flex-col gap-4 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
       >
-        {renderDetail(item, placement)}
+        {inColumn && (
+          <div className="flex flex-col gap-2">
+            <div>
+              <h3 className="text-sm font-medium text-black dark:text-zinc-50">{face.title}</h3>
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">{face.description}</p>
+            </div>
+            {face.labels && face.labels.length > 0 && <CardLabels labels={face.labels} />}
+          </div>
+        )}
+        {pick && (
+          <PickCheckbox
+            label={pick.label}
+            checked={pickedIds.has(id)}
+            onChange={(checked) => setPicked(id, checked)}
+            props={pick.props}
+          />
+        )}
+        {renderDetail(item)}
       </div>
     );
   }
@@ -135,8 +176,11 @@ export function CardDetailGrid<T>({
                     : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
                 }`}
               >
-                <span className="block truncate text-sm font-medium leading-5 text-black dark:text-zinc-50">
-                  {face.title}
+                <span className="flex h-5 items-center justify-between gap-2">
+                  <span className="truncate text-sm font-medium leading-5 text-black dark:text-zinc-50">
+                    {face.title}
+                  </span>
+                  {pick && pickedIds.has(id) && <PickedMark label={pick.picked} />}
                 </span>
                 <span className="mt-1 line-clamp-2 h-8 text-xs leading-4 text-zinc-500 dark:text-zinc-500">
                   {face.description}
@@ -145,7 +189,7 @@ export function CardDetailGrid<T>({
                   <CardLabels labels={face.labels ?? []} />
                 </span>
               </button>
-              {isSelected && <div className="lg:hidden">{detailCard(item, "below")}</div>}
+              {isSelected && <div className="lg:hidden">{detailCard(item, false)}</div>}
             </Fragment>
           );
         })}
@@ -181,7 +225,7 @@ export function CardDetailGrid<T>({
         }`}
       >
         {selected ? (
-          detailCard(selected, "column")
+          detailCard(selected, true)
         ) : (
           <div className="rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-500">
             {emptyDetail}

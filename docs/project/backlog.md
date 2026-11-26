@@ -13,6 +13,7 @@ Priority definitions:
 
 Not given a priority yet. Move each item to P1, P2 or P3, or drop it.
 
+- [ ] **Agents Departments: define it and save picks.** The Marketplace's "Add to my Agents Departments" checkbox only changes the page's state. Decide what an Agents Department is (a client's department and the pools and agents it uses?), where it's managed, and store each organization's picks.
 - [ ] **Landing page: replace the placeholder content.** The success stories (`SUCCESS_STORIES`), the quote (`PLACEHOLDER_QUOTE`) and the Trust & proof goals (`TRUST_POINTS`) in `src/lib/mock-landing-data.ts` are stand-ins, and the page labels the stories and the quote as placeholders. They need real customer stories, a real quote with the person's permission to use it, and confirmed targets for next year (SOC 2 Type II, GDPR, 99.9% uptime). The copy has to come from the business, not be invented.
 - [ ] **Delete the local `wip/shared-checkout` branch.** The shared checkout sat on it until 2026-11-03, when it moved to main. Its one commit that wasn't on main (ADR-0002) landed as `e72d504`, so the branch holds nothing main lacks. It was never pushed, so this is local cleanup only.
 - [ ] **An agent that harvests what keeps working, for bespoke-core.** Over many iterations, some techniques keep paying off. An agent should find the best of them and write them up as a list for bespoke-core (the template and cookbook repo), so other projects can reuse them. First entry: the visual feature flag for mockups. Any UI that needs a backend that isn't built yet gets `{...unbuilt("action" | "panel", "what's missing")}` from `src/lib/unbuilt.ts` and glows orange (rules in `src/app/globals.css`, see the design doc's Colour palette section). `grep -rn 'unbuilt("' src` lists what's still mocked, and the marker comes off when the backend ships. To decide: what the agent reads (git history, Claude Code session transcripts, the memory notes, dated decisions in the design docs), how often it runs, and where the list lives in bespoke-core (a guide of its own, or next to the doc templates).
@@ -172,6 +173,9 @@ Not given a priority yet. Move each item to P1, P2 or P3, or drop it.
   - Pool cards fill two columns, and the selected pool's details sit in a third column that stays in view, instead of expanding the card in place. The layout is a reusable `CardDetailGrid` (`src/components/ui/card-detail-grid.tsx`)
   - Every card has four rows (title, two of description, labels), and the details column starts level with the first card
   - Model Marketplace: each type of output is a list (a table from `lg` up, stacked rows below) instead of a grid of cards
+- [x] **Pick for Agents Departments (UI only, mock data)**: shipped 2026-11-26, see design doc's "Pick for Agents Departments":
+  - Every opened Agent Marketplace card (pools and Tasks Agents) offers an "Add to my Agents Departments" checkbox, and picked cards show a check
+  - Shared `PickCheckbox` and `PickedMark` (`src/components/ui/pick-checkbox.tsx`); `CardDetailGrid` takes an optional `pick`
 - [x] **Builder as one page**: shipped 2026-11-01, see design doc's "Builder as one page":
   - Removed the Ecosystem / Pipeline / History switcher, `ecosystem-tab.tsx`, `catalog-search-modal.tsx` and `selectable-card.tsx`. `history-tab.tsx` became `run-history.tsx`, a section below the pipeline. `/api/ecosystem/*` and the catalog database stay
   - `display-grid.tsx`: a display card beside a grid of compact cards, for Pipeline steps and each model type

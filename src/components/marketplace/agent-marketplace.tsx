@@ -7,6 +7,17 @@ import { AgentSidebar } from "./agent-sidebar";
 
 export function AgentMarketplace({ agents }: { agents: PipelineStep[] }) {
   const [selected, setSelected] = useState<PipelineStep | null>(null);
+  // Agents picked for the organization's Agents Departments. Only in the page's state for now.
+  const [pickedIds, setPickedIds] = useState<Set<string>>(new Set());
+
+  function setPicked(id: string, checked: boolean) {
+    setPickedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
 
   return (
     <>
@@ -16,11 +27,17 @@ export function AgentMarketplace({ agents }: { agents: PipelineStep[] }) {
             key={agent.id}
             agent={agent}
             selected={selected?.id === agent.id}
+            picked={pickedIds.has(agent.id)}
             onSelect={() => setSelected(agent)}
           />
         ))}
       </div>
-      <AgentSidebar agent={selected} onClose={() => setSelected(null)} />
+      <AgentSidebar
+        agent={selected}
+        picked={selected ? pickedIds.has(selected.id) : false}
+        onPick={(checked) => selected && setPicked(selected.id, checked)}
+        onClose={() => setSelected(null)}
+      />
     </>
   );
 }

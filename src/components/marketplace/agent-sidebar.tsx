@@ -1,7 +1,20 @@
+import { PickCheckbox } from "@/components/ui/pick-checkbox";
 import { SOURCE_TYPE_LABELS, formatCostModel } from "@/lib/pipeline-data";
 import type { PipelineStep } from "@/lib/types";
+import { AGENTS_DEPARTMENTS_PICK } from "./agents-departments";
 
-export function AgentSidebar({ agent, onClose }: { agent: PipelineStep | null; onClose: () => void }) {
+export function AgentSidebar({
+  agent,
+  picked,
+  onPick,
+  onClose,
+}: {
+  agent: PipelineStep | null;
+  /** Whether this agent is picked for the organization's Agents Departments. */
+  picked: boolean;
+  onPick: (checked: boolean) => void;
+  onClose: () => void;
+}) {
   if (!agent) return null;
 
   return (
@@ -24,6 +37,15 @@ export function AgentSidebar({ agent, onClose }: { agent: PipelineStep | null; o
           >
             Close
           </button>
+        </div>
+
+        <div className="mt-4">
+          <PickCheckbox
+            label={AGENTS_DEPARTMENTS_PICK.label}
+            checked={picked}
+            onChange={onPick}
+            props={AGENTS_DEPARTMENTS_PICK.props}
+          />
         </div>
 
         <div className="mt-6 flex flex-col gap-4">
