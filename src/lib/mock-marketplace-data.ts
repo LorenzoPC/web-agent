@@ -100,6 +100,15 @@ export const MOCK_MARKETPLACE_TOOLS: MockMarketplaceTool[] = [
     category: "Text",
     cost: { kind: "free" },
   },
+  // Not in the catalog seed yet: added to the mockup first (2026-11-25).
+  {
+    id: "curated:tool-decision-advisor",
+    name: "Decision Advisor",
+    description: "Analyze the situation, then recommend the top 3 actions with the insight that supports each.",
+    status: "Beta",
+    category: "Text",
+    cost: { kind: "free" },
+  },
   {
     id: "curated:tool-send-email",
     name: "Send Email",

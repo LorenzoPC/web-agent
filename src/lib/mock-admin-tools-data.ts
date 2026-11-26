@@ -27,6 +27,7 @@ const FACTS: Record<string, MockAdminToolFacts> = {
   "curated:tool-json-extract": { live: false, ...READ_ONLY, credential: NONE },
   "curated:tool-translate": { live: false, ...READ_ONLY, credential: NONE },
   "curated:tool-sentiment": { live: false, ...READ_ONLY, credential: NONE },
+  "curated:tool-decision-advisor": { live: false, ...READ_ONLY, credential: NONE },
   "curated:tool-send-email": {
     live: false,
     sideEffects: "write",
