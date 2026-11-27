@@ -177,6 +177,9 @@ Not given a priority yet. Move each item to P1, P2 or P3, or drop it.
   - Every opened Agent Marketplace card (pools and Tasks Agents) offers an "Add to my Agents Departments" checkbox, and picked cards show a check
   - Shared `PickCheckbox` and `PickedMark` (`src/components/ui/pick-checkbox.tsx`); `CardDetailGrid` takes an optional `pick`
   - Model Marketplace: clicking a row opens a small confirmation (check to add or remove, X or Escape to close), the shared `ConfirmPill` (`src/components/ui/confirm-pill.tsx`). The table folds Runs on under Source to make room
+- [x] **Capabilities move to the Model Marketplace (UI only, mock data)**: shipped 2026-11-26, see design doc's "Capabilities move to the Model Marketplace":
+  - The capability pools open the Model Marketplace, above Text generation; the Agent Marketplace keeps only the role pools
+  - Both screens use `PoolCardGrid` (`src/components/marketplace/pool-card-grid.tsx`)
 - [x] **Builder as one page**: shipped 2026-11-01, see design doc's "Builder as one page":
   - Removed the Ecosystem / Pipeline / History switcher, `ecosystem-tab.tsx`, `catalog-search-modal.tsx` and `selectable-card.tsx`. `history-tab.tsx` became `run-history.tsx`, a section below the pipeline. `/api/ecosystem/*` and the catalog database stay
   - `display-grid.tsx`: a display card beside a grid of compact cards, for Pipeline steps and each model type

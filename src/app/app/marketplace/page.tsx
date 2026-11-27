@@ -31,7 +31,7 @@ export default async function MarketplacePage({
 
         {view === "agents" && (
           <>
-            <AgentPoolsSection capabilityPools={MOCK_CAPABILITY_POOLS} rolePools={MOCK_ROLE_POOLS} />
+            <AgentPoolsSection rolePools={MOCK_ROLE_POOLS} />
 
             <section className="flex flex-col gap-3">
               <div>
@@ -45,7 +45,9 @@ export default async function MarketplacePage({
           </>
         )}
 
-        {view === "models" && <ModelMarketplace groups={MOCK_MODEL_TYPE_GROUPS} />}
+        {view === "models" && (
+          <ModelMarketplace groups={MOCK_MODEL_TYPE_GROUPS} capabilityPools={MOCK_CAPABILITY_POOLS} />
+        )}
 
         {view === "mcp-tools" && (
           <McpToolsMarketplace servers={MOCK_MARKETPLACE_MCP_SERVERS} tools={MOCK_MARKETPLACE_TOOLS} />

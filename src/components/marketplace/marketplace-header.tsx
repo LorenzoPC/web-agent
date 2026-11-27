@@ -5,13 +5,13 @@ export const MARKETPLACE_VIEWS = [
     id: "agents",
     label: "Agent Marketplace",
     href: "/app/marketplace",
-    description: "Browse agent pools by role or capability, or pick an individual agent persona below.",
+    description: "Browse agent pools by role, or pick an individual agent persona below.",
   },
   {
     id: "models",
     label: "Model Marketplace",
     href: "/app/marketplace?view=models",
-    description: "The models a flow's steps can run on, grouped by what they generate. You pick one per step in the Builder.",
+    description: "What models can do, then the models a flow's steps can run on, grouped by what they generate. You pick one per step in the Builder.",
   },
   {
     id: "mcp-tools",

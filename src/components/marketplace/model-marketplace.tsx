@@ -3,10 +3,11 @@
 import { useRef, useState } from "react";
 import { ConfirmPill } from "@/components/ui/confirm-pill";
 import { PickedMark } from "@/components/ui/pick-checkbox";
-import type { MockModelOption, MockModelTypeGroup } from "@/lib/mock-data";
+import type { MockAgentPool, MockModelOption, MockModelTypeGroup } from "@/lib/mock-data";
 import { SOURCE_TYPE_LABELS, formatCostModel } from "@/lib/pipeline-data";
 import { unbuilt } from "@/lib/unbuilt";
 import { AGENTS_DEPARTMENTS_PICK } from "./agents-departments";
+import { NO_POOLS, PoolCardGrid } from "./pool-card-grid";
 
 const HEAD = "px-4 py-2.5 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400";
 const CELL = "px-4 py-3 align-top";
@@ -157,8 +158,18 @@ function ModelList({ models, selection }: { models: MockModelOption[]; selection
   );
 }
 
-/** Every model option, one list per type of output. One row's confirmation is open at a time, across every list. */
-export function ModelMarketplace({ groups }: { groups: MockModelTypeGroup[] }) {
+/**
+ * The capability pools first (moved here from the Agent Marketplace), then every
+ * model option, one list per type of output. One row's confirmation is open at a
+ * time, across every list.
+ */
+export function ModelMarketplace({
+  groups,
+  capabilityPools,
+}: {
+  groups: MockModelTypeGroup[];
+  capabilityPools: MockAgentPool[];
+}) {
   const [openId, setOpenId] = useState<string | null>(null);
   // Models picked for the organization's Agents Departments. Only in the page's state for now.
   const [pickedIds, setPickedIds] = useState<Set<string>>(new Set());
@@ -200,8 +211,19 @@ export function ModelMarketplace({ groups }: { groups: MockModelTypeGroup[] }) {
   return (
     <>
       <p className="text-sm text-zinc-500 dark:text-zinc-500">
-        Click a model to add it to your Agents Departments.
+        Open a capability, or click a model, to add it to your Agents Departments.
       </p>
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-medium text-black dark:text-zinc-50">Capabilities</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-500">Models and agents grouped by what they can do.</p>
+        </div>
+        <PoolCardGrid
+          groups={[{ id: "capabilities", items: capabilityPools, empty: NO_POOLS }]}
+          emptyDetail="Select a capability to see what it covers."
+          detailLabel="Selected capability"
+        />
+      </section>
       {groups.map((group) => (
         <section key={group.id} className="flex flex-col gap-3">
           <div>
