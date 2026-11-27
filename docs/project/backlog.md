@@ -55,6 +55,15 @@ Not given a priority yet. Move each item to P1, P2 or P3, or drop it.
 - [ ] **MCP connection: decide on self-serve personal tokens.** With user-based RBAC, per-person OAuth works in all six clients except GitHub's coding agent. A token each person generates and pastes is only possible in VS Code, Cursor, Copilot CLI and Copilot Studio (API key with end-user credentials), never in Claude or ChatGPT. Offering it as a fallback contradicts Get started's "No API keys: it uses OAuth".
 - [ ] **MCP connection: GitHub Copilot coding agent is blocked.** GitHub doesn't support OAuth for the coding agent's remote MCP servers, and its `COPILOT_MCP_*` secrets are shared by every task in the repository, so it can't carry a person's identity. Revisit when GitHub adds OAuth.
 - [ ] **Get started's per-client steps are out of date.** Claude members now connect from Customize → Connectors, and ChatGPT uses Plugins rather than Settings → Connectors → Developer mode (`CLIENT_GUIDES` in `src/lib/mock-onboarding-data.ts`). Its URL depends on "decide the MCP URL" above.
+- [ ] **Agent security: settle the open questions before building it** (`/app/settings/security`). The page is a mockup on mock data, and no rule is enforced anywhere. `grep -n "VERIFY\|MOCK\|DECIDE" src/lib/mock-agent-security-data.ts src/lib/agent-security.ts` lists what's open. Most important first:
+  1. DECIDE where "Asks the person first" happens for agents used from Claude or ChatGPT over MCP. ADR-0003 decision 20 relies on elicitation, which isn't verified in either client.
+  2. MOCK the agent registry: each agent's tools, the data each tool touches, its action kind (read, change, reach outside, move money or delete) and its model have to come from the platform.
+  3. MOCK the person check. The real one asks each source system (Zendesk, Salesforce, Stripe…) what the person may do, delegated or synced, on every action.
+  4. DECIDE whether built-in minimums can ever be lowered, for example a data owner signing off on an agent that reads untrusted text and private data and can reach outside (ADR-0003 decision 17 allows it for servers).
+  5. VERIFY each model provider's regions and retention terms before showing them to clients.
+  6. DECIDE whether a change applies to runs already in progress, or only from each agent's next action.
+
+  The resolver in `src/lib/agent-security.ts` explains decisions in the browser only. The real one runs on the server on every action, and writes each decision and the rule behind it to the decision log (ADR-0003 decision 29).
 
 ## P3 — Nice to have
 
