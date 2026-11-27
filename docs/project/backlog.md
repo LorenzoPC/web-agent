@@ -180,6 +180,8 @@ Not given a priority yet. Move each item to P1, P2 or P3, or drop it.
 - [x] **Capabilities move to the Model Marketplace (UI only, mock data)**: shipped 2026-11-26, see design doc's "Capabilities move to the Model Marketplace":
   - The capability pools open the Model Marketplace, above Text generation; the Agent Marketplace keeps only the role pools
   - Both screens use `PoolCardGrid` (`src/components/marketplace/pool-card-grid.tsx`)
+- [x] **MCP & Tools Marketplace without Admin buttons (UI only)**: shipped 2026-11-26, see design doc's "MCP & Tools Marketplace without Admin buttons":
+  - Removed the red Create MCP server and Create tool buttons from `mcp-tools-marketplace.tsx`; the Admin menu still lists both screens
 - [x] **Builder as one page**: shipped 2026-11-01, see design doc's "Builder as one page":
   - Removed the Ecosystem / Pipeline / History switcher, `ecosystem-tab.tsx`, `catalog-search-modal.tsx` and `selectable-card.tsx`. `history-tab.tsx` became `run-history.tsx`, a section below the pipeline. `/api/ecosystem/*` and the catalog database stay
   - `display-grid.tsx`: a display card beside a grid of compact cards, for Pipeline steps and each model type

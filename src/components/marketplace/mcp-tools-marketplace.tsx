@@ -1,5 +1,3 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
 import type {
   MarketplaceStatus,
   MockMarketplaceMcpServer,
@@ -21,14 +19,11 @@ function StatusBadge({ status }: { status: MarketplaceStatus }) {
   );
 }
 
-function SectionHeader({ title, description, action }: { title: string; description: string; action: ReactNode }) {
+function SectionHeader({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-      <div>
-        <h2 className="font-medium text-black dark:text-zinc-50">{title}</h2>
-        <p className="text-sm text-zinc-500 dark:text-zinc-500">{description}</p>
-      </div>
-      {action}
+    <div>
+      <h2 className="font-medium text-black dark:text-zinc-50">{title}</h2>
+      <p className="text-sm text-zinc-500 dark:text-zinc-500">{description}</p>
     </div>
   );
 }
@@ -77,7 +72,11 @@ function ToolCard({ tool }: { tool: MockMarketplaceTool }) {
   );
 }
 
-/** MCP servers (a connection that brings several tools) above single tools. */
+/**
+ * MCP servers (a connection that brings several tools) above single tools. This is a
+ * Client workspace screen, so it has no links to the Admin screens that create them:
+ * those are in the Admin menu.
+ */
 export function McpToolsMarketplace({
   servers,
   tools,
@@ -91,16 +90,6 @@ export function McpToolsMarketplace({
         <SectionHeader
           title="MCP servers"
           description="One connection to an outside system, bringing a set of tools with it."
-          action={
-            // Publishing a server is privileged, so it gets the admin color and hint.
-            <Link
-              href="/admin/mcp-servers/new"
-              className="flex shrink-0 items-center gap-2 rounded-lg bg-admin px-3 py-1.5 text-xs font-medium text-admin-foreground transition-colors hover:bg-admin-hover"
-            >
-              Create MCP server
-              <span className="text-admin-foreground/80">Admin</span>
-            </Link>
-          }
         />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {servers.map((server) => (
@@ -113,16 +102,6 @@ export function McpToolsMarketplace({
         <SectionHeader
           title="Tools"
           description="Single actions an agent can call while it works."
-          action={
-            // Creating a tool is an Admin screen in the sitemap, so it matches the server button above.
-            <Link
-              href="/admin/tools/new"
-              className="flex shrink-0 items-center gap-2 rounded-lg bg-admin px-3 py-1.5 text-xs font-medium text-admin-foreground transition-colors hover:bg-admin-hover"
-            >
-              Create tool
-              <span className="text-admin-foreground/80">Admin</span>
-            </Link>
-          }
         />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {tools.map((tool) => (
